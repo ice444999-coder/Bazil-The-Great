@@ -1,0 +1,244 @@
+definitions:
+  dto.ChatHistoryResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      response:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.ChatRequest:
+    properties:
+      message:
+        type: string
+    required:
+    - message
+    type: object
+  dto.ChatResponse:
+    properties:
+      message:
+        type: string
+      response:
+        type: string
+    type: object
+  dto.LoginRequest:
+    properties:
+      password:
+        example: secret123
+        type: string
+      username:
+        example: john_doe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dto.LoginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  dto.RefreshRequest:
+    properties:
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    required:
+    - refresh_token
+    type: object
+  dto.RefreshResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  dto.SignupRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: secret123
+        minLength: 6
+        type: string
+      username:
+        example: john_doe
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  dto.SignupResponse:
+    properties:
+      message:
+        example: Signup successful
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /chat/history:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves last N chat messages for a user
+      parameters:
+      - default: 20
+        description: Number of messages
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ChatHistoryResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get chat history
+      tags:
+      - Chat
+  /chat/send:
+    post:
+      consumes:
+      - application/json
+      description: Sends a message to Ollama AI and stores the response
+      parameters:
+      - description: Chat Message
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Send a chat message
+      tags:
+      - Chat
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return JWT
+      parameters:
+      - description: Login Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - Auth
+  /users/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new access token using refresh token
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RefreshResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh Token
+      tags:
+      - Auth
+  /users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: Signup Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SignupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Signup
+      tags:
+      - Auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and your JWT token (e.g., "Bearer
+      <token>")
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
