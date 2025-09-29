@@ -1,4 +1,28 @@
 definitions:
+  dto.APIKeyRequest:
+    properties:
+      api_key:
+        example: your-secret-api-key
+        type: string
+    required:
+    - api_key
+    type: object
+  dto.APIKeyResponse:
+    properties:
+      message:
+        example: API key saved successfully
+        type: string
+    type: object
+  dto.BalanceDTO:
+    properties:
+      amount:
+        type: number
+      asset:
+        description: Always USD
+        type: string
+      user_id:
+        type: integer
+    type: object
   dto.ChatHistoryResponse:
     properties:
       created_at:
@@ -26,6 +50,47 @@ definitions:
       response:
         type: string
     type: object
+  dto.CoinDTO:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      symbol:
+        type: string
+    type: object
+  dto.CoinMarketDTO:
+    properties:
+      change_24h:
+        type: number
+      id:
+        type: string
+      last_updated:
+        type: string
+      market_cap:
+        type: number
+      name:
+        type: string
+      price_usd:
+        type: number
+      symbol:
+        type: string
+    type: object
+  dto.LimitOrderRequest:
+    properties:
+      coin_id:
+        type: string
+      currency:
+        type: string
+      limit_price:
+        type: number
+      quantity:
+        type: number
+      side:
+        type: string
+      symbol:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       password:
@@ -46,6 +111,25 @@ definitions:
       refresh_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
+    type: object
+  dto.MarketOrderRequest:
+    properties:
+      coin_id:
+        type: string
+      currency:
+        type: string
+      quantity:
+        type: number
+      side:
+        type: string
+      symbol:
+        type: string
+    required:
+    - coin_id
+    - currency
+    - quantity
+    - side
+    - symbol
     type: object
   dto.RefreshRequest:
     properties:
@@ -86,9 +170,248 @@ definitions:
         example: Signup successful
         type: string
     type: object
+  dto.TopMoverDTO:
+    properties:
+      change_24h:
+        type: number
+      id:
+        type: string
+      last_updated:
+        type: string
+      market_cap:
+        type: number
+      name:
+        type: string
+      price_usd:
+        type: number
+      symbol:
+        type: string
+    type: object
+  dto.TradeResponse:
+    properties:
+      coin_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      price:
+        type: number
+      quantity:
+        type: number
+      side:
+        type: string
+      status:
+        type: string
+      symbol:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
+  /assets/coins:
+    get:
+      description: Fetch the list of coins from CoinGecko with optional limit
+      parameters:
+      - default: 100
+        description: Limit number of coins to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.CoinDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all coins
+      tags:
+      - coins
+  /assets/coins/{id}/market:
+    get:
+      description: Fetch real-time market data for a specific coin
+      parameters:
+      - description: Coin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Currency to fetch prices in (default: USD)'
+        in: query
+        name: vs_currency
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CoinMarketDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get coin market data
+      tags:
+      - coins
+  /assets/coins/top-movers:
+    get:
+      description: Fetch top N coins by 24h price change
+      parameters:
+      - default: 10
+        description: Number of top movers
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TopMoverDTO'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get top movers
+      tags:
+      - coins
+  /assets/vs_currencies:
+    get:
+      description: Returns a list of supported currencies for market data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all supported vs_currency options
+      tags:
+      - coins
+  /balances:
+    get:
+      description: Fetch the current USD balance for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BalanceDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user USD balance
+      tags:
+      - balance
+  /balances/init:
+    post:
+      description: Create a default balance of 10k USD for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.BalanceDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Initialize balance
+      tags:
+      - balance
+  /balances/reset:
+    post:
+      description: Reset the user's balance back to default (10k USD)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BalanceDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reset balance
+      tags:
+      - balance
+  /balances/update:
+    put:
+      consumes:
+      - application/json
+      description: Add or subtract USD from user's balance (used internally for trades)
+      parameters:
+      - description: Balance delta (amount field used)
+        in: body
+        name: delta
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BalanceDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BalanceDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update balance
+      tags:
+      - balance
   /chat/history:
     get:
       consumes:
@@ -139,17 +462,118 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.ChatResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
       security:
       - BearerAuth: []
       summary: Send a chat message
       tags:
       - Chat
+  /settings/apikey:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: API Key
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.APIKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.APIKeyResponse'
+      security:
+      - BearerAuth: []
+      summary: Save API Key
+      tags:
+      - Settings
+  /trades/history:
+    get:
+      parameters:
+      - description: Number of trades
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TradeResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get last N trades for user
+      tags:
+      - Trading
+  /trades/limit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Limit Order
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LimitOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TradeResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute Limit Order
+      tags:
+      - Trading
+  /trades/market:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Market Order
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MarketOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TradeResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute Market Order
+      tags:
+      - Trading
+  /trades/pending:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TradeResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get pending limit orders for user
+      tags:
+      - Trading
   /users/login:
     post:
       consumes:

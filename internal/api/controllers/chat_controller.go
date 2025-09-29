@@ -4,6 +4,7 @@ import (
 	"ares_api/internal/api/dto"
 	"ares_api/internal/common"
 	service "ares_api/internal/interfaces/service"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -12,10 +13,11 @@ import (
 
 type ChatController struct {
 	Service service.ChatService
+	LedgerService service.LedgerService
 }
 
-func NewChatController(s service.ChatService) *ChatController {
-	return &ChatController{Service: s}
+func NewChatController(s service.ChatService , l service.LedgerService) *ChatController {
+	return &ChatController{Service: s , LedgerService: l}
 }
 
 // @Summary Send a chat message
@@ -25,7 +27,6 @@ func NewChatController(s service.ChatService) *ChatController {
 // @Produce  json
 // @Param   chat body dto.ChatRequest true "Chat Message"
 // @Success 200 {object} dto.ChatResponse
-// @Failure 400 {object} map[string]string
 // @Security BearerAuth
 // @Router /chat/send [post]
 func (cc *ChatController) SendMessage(c *gin.Context) {
@@ -43,14 +44,22 @@ func (cc *ChatController) SendMessage(c *gin.Context) {
 	}
 	userID := userIDInterface.(uint)
 
+	// Call chat service
 	resp, err := cc.Service.SendMessage(userID, req)
 	if err != nil {
 		common.JSON(c, http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// ---- Ledger logging ----
+	if cc.LedgerService != nil {
+		details := fmt.Sprintf(`{"message":"%s","response":"%s"}`, req.Message, resp.Response)
+		_ = cc.LedgerService.Append(userID, "chat", details)
+	}
+
 	common.JSON(c, http.StatusOK, resp)
 }
+
 
 // @Summary Get chat history
 // @Description Retrieves last N chat messages for a user

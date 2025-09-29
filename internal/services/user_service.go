@@ -15,6 +15,7 @@ var _ service.UserService = &UserService{}
 
 type UserService struct {
 	Repo repo.UserRepository
+	
 }
 
 // Constructor
@@ -43,29 +44,29 @@ func (s *UserService) Signup(username, email, password string) error {
 }
 
 // Login user and return both access and refresh tokens
-func (s *UserService) Login(username, password string) (string, string, error) {
+func (s *UserService) Login(username, password string) (uint, string, string, error) {
 	user, err := s.Repo.GetByUsername(username)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		return "", "", errors.New("invalid password")
+		return 0,"", "", errors.New("invalid password")
 	}
 
 	// Generate Access Token
 	accessToken, err := auth.GenerateJWT(user.ID)
 	if err != nil {
-		return "", "", err
+		return 0 ,"", "", err
 	}
 
 	// Generate Refresh Token
 	refreshToken, err := auth.GenerateRefreshToken(user.ID)
 	if err != nil {
-		return "", "", err
+		return 0,"", "", err
 	}
 
-	return accessToken, refreshToken, nil
+	return user.ID, accessToken, refreshToken, nil
 }
 
 // Refresh token to generate a new access token

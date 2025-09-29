@@ -29,7 +29,6 @@ func (s *ChatService) SendMessage(userID uint, req dto.ChatRequest) (dto.ChatRes
 		UserID:   userID,
 		Message:  req.Message,
 		Response: respText,
-		CreatedAt: time.Now(),
 	}
 
 	if err := s.Repo.Create(chat); err != nil {

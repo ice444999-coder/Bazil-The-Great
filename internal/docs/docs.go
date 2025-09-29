@@ -15,6 +15,314 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/assets/coins": {
+            "get": {
+                "description": "Fetch the list of coins from CoinGecko with optional limit",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "coins"
+                ],
+                "summary": "Get all coins",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Limit number of coins to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.CoinDTO"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/coins/top-movers": {
+            "get": {
+                "description": "Fetch top N coins by 24h price change",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "coins"
+                ],
+                "summary": "Get top movers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of top movers",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TopMoverDTO"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/coins/{id}/market": {
+            "get": {
+                "description": "Fetch real-time market data for a specific coin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "coins"
+                ],
+                "summary": "Get coin market data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Coin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Currency to fetch prices in (default: USD)",
+                        "name": "vs_currency",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CoinMarketDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/vs_currencies": {
+            "get": {
+                "description": "Returns a list of supported currencies for market data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "coins"
+                ],
+                "summary": "Get all supported vs_currency options",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/balances": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch the current USD balance for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "balance"
+                ],
+                "summary": "Get user USD balance",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BalanceDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/balances/init": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a default balance of 10k USD for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "balance"
+                ],
+                "summary": "Initialize balance",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BalanceDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/balances/reset": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reset the user's balance back to default (10k USD)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "balance"
+                ],
+                "summary": "Reset balance",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BalanceDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/balances/update": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add or subtract USD from user's balance (used internally for trades)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "balance"
+                ],
+                "summary": "Update balance",
+                "parameters": [
+                    {
+                        "description": "Balance delta (amount field used)",
+                        "name": "delta",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BalanceDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BalanceDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/chat/history": {
             "get": {
                 "security": [
@@ -99,13 +407,181 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.ChatResponse"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    }
+                }
+            }
+        },
+        "/settings/apikey": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Save API Key",
+                "parameters": [
+                    {
+                        "description": "API Key",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "$ref": "#/definitions/dto.APIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.APIKeyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trades/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trading"
+                ],
+                "summary": "Get last N trades for user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of trades",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TradeResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/trades/limit": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trading"
+                ],
+                "summary": "Execute Limit Order",
+                "parameters": [
+                    {
+                        "description": "Limit Order",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LimitOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trades/market": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trading"
+                ],
+                "summary": "Execute Market Order",
+                "parameters": [
+                    {
+                        "description": "Market Order",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MarketOrderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trades/pending": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trading"
+                ],
+                "summary": "Get pending limit orders for user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.TradeResponse"
                             }
                         }
                     }
@@ -243,6 +719,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.APIKeyRequest": {
+            "type": "object",
+            "required": [
+                "api_key"
+            ],
+            "properties": {
+                "api_key": {
+                    "type": "string",
+                    "example": "your-secret-api-key"
+                }
+            }
+        },
+        "dto.APIKeyResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "API key saved successfully"
+                }
+            }
+        },
+        "dto.BalanceDTO": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "asset": {
+                    "description": "Always USD",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.ChatHistoryResponse": {
             "type": "object",
             "properties": {
@@ -285,6 +797,69 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CoinDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CoinMarketDTO": {
+            "type": "object",
+            "properties": {
+                "change_24h": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "market_cap": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price_usd": {
+                    "type": "number"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LimitOrderRequest": {
+            "type": "object",
+            "properties": {
+                "coin_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "limit_price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "side": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -312,6 +887,33 @@ const docTemplate = `{
                 "refresh_token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "dto.MarketOrderRequest": {
+            "type": "object",
+            "required": [
+                "coin_id",
+                "currency",
+                "quantity",
+                "side",
+                "symbol"
+            ],
+            "properties": {
+                "coin_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "side": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
                 }
             }
         },
@@ -367,6 +969,70 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Signup successful"
+                }
+            }
+        },
+        "dto.TopMoverDTO": {
+            "type": "object",
+            "properties": {
+                "change_24h": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "market_cap": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price_usd": {
+                    "type": "number"
+                },
+                "symbol": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TradeResponse": {
+            "type": "object",
+            "properties": {
+                "coin_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "side": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         }

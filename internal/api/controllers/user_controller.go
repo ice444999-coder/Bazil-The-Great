@@ -11,10 +11,11 @@ import (
 
 type UserController struct {
 	Service interfaces.UserService
+	LedgerService interfaces.LedgerService
 }
 
-func NewUserController(service interfaces.UserService) *UserController {
-	return &UserController{Service: service}
+func NewUserController(service interfaces.UserService , ledgerService interfaces.LedgerService) *UserController {
+	return &UserController{Service: service , LedgerService: ledgerService}
 }
 
 // @Summary Signup
@@ -37,7 +38,7 @@ func (uc *UserController) Signup(c *gin.Context) {
 		common.JSON(c, http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	_ = uc.LedgerService.Append(0, "signup", "New user signed up: "+req.Username)
 	common.JSON(c, http.StatusOK, dto.SignupResponse{Message: "Signup successful"})
 }
 
@@ -57,12 +58,12 @@ func (uc *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, err := uc.Service.Login(req.Username, req.Password)
+	userid ,accessToken, refreshToken, err := uc.Service.Login(req.Username, req.Password)
 	if err != nil {
 		common.JSON(c, http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
+	_ = uc.LedgerService.Append(userid, "login", "User logged in: "+req.Username)
 	common.JSON(c, http.StatusOK, dto.LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -90,7 +91,7 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 		common.JSON(c, http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
+     _ = uc.LedgerService.Append(0, "token_refresh", "Access token refreshed")
 	common.JSON(c, http.StatusOK, dto.RefreshResponse{
 		AccessToken: newAccessToken,
 	})

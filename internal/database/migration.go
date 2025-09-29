@@ -13,5 +13,9 @@ func AutoMigrateAll(db *gorm.DB) error {
 	// Add all your models here
 	 &models.User{},
 	 &models.Chat{},
+	 &models.Trade{},
+	 &models.Setting{},
+	 &models.Ledger{},
+	 &models.Balance{},
 	)
 }
