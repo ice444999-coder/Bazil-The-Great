@@ -79,14 +79,13 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	embeddingService := service.NewEmbeddingService(memoryRepo)
 
 	// --------------------------
-	// CLAUDE AI MODULE (Now powered by Ollama + DeepSeek-R1)
+	// CLAUDE AI MODULE (Powered by Claude API - Sonnet 4)
 	// --------------------------
 	repoPath := os.Getenv("ARES_REPO_PATH")
 	if repoPath == "" {
 		repoPath = "C:/ARES_Workspace" // fallback - full workspace access
 	}
-	// Switch to Ollama-powered implementation (no API key required!)
-	claudeService := service.NewClaudeServiceOllama(memoryRepo, embeddingService, repoPath)
+	claudeService := service.NewClaudeService(memoryRepo, embeddingService, repoPath)
 	claudeController := controllers.NewClaudeController(claudeService, ledgerService)
 
 	// --------------------------

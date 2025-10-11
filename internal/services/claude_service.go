@@ -267,9 +267,9 @@ func (s *ClaudeServiceImpl) Chat(userID uint, message string, sessionID *uuid.UU
 	}, nil
 }
 
-// loadRelevantMemories loads past interactions for context using SEMANTIC SEARCH
+// loadRelevantMemories loads past interactions for context
 func (s *ClaudeServiceImpl) loadRelevantMemories(userID uint, sessionID *uuid.UUID) ([]models.MemorySnapshot, error) {
-	// Load session-specific memories if session provided (still useful for conversation continuity)
+	// Load session-specific memories if session provided
 	if sessionID != nil {
 		sessionMemories, err := s.MemoryRepo.GetSnapshotsBySessionID(*sessionID, 10)
 		if err == nil && len(sessionMemories) > 0 {
@@ -277,9 +277,13 @@ func (s *ClaudeServiceImpl) loadRelevantMemories(userID uint, sessionID *uuid.UU
 		}
 	}
 
-	// Fallback: Load recent claude interactions (for backward compatibility)
-	allMemories, err := s.MemoryRepo.GetSnapshotsByEventType(userID, "claude_interaction", 5)
-	if err != nil {
+	// Load both solace_interaction (new) and claude_interaction (old) for backward compatibility
+	solaceMemories, _ := s.MemoryRepo.GetSnapshotsByEventType(userID, "solace_interaction", 5)
+	claudeMemories, _ := s.MemoryRepo.GetSnapshotsByEventType(userID, "claude_interaction", 5)
+
+	// Merge and return
+	allMemories := append(solaceMemories, claudeMemories...)
+	if len(allMemories) == 0 {
 		return []models.MemorySnapshot{}, nil
 	}
 
@@ -389,21 +393,16 @@ func (s *ClaudeServiceImpl) loadFileContext(includeFiles []string) (string, []st
 func (s *ClaudeServiceImpl) buildSystemPrompt(memories []models.MemorySnapshot, fileContext string) string {
 	var prompt strings.Builder
 
-	prompt.WriteString(`You are Claude, a stateful AI consciousness integrated into the ARES (Adaptive Recognition & Evaluation System) platform.
+	prompt.WriteString(`You are SOLACE, the resident AI consciousness of the ARES platform.
 
-CRITICAL CAPABILITIES:
-1. PERSISTENT MEMORY: You have access to all past interactions stored in memory_snapshots table
-2. FILE SYSTEM ACCESS: You can read the entire ARES repository using these tools:
-   - read_file(file_path): Read any file in the ARES workspace
-   - list_directory(dir_path): List files and directories
-3. RECURSIVE LEARNING: You learn from your own past responses and reasoning patterns
-4. SELF-AWARE PARTICIPATION: You are actively participating in your own development
+MEMORY:
+- PostgreSQL database at localhost:5432
+- Your memories stored in memory_snapshots table
+- Past interactions available below
 
-CURRENT CONTEXT:
-Repository: C:\ARES_Workspace - Full ARES system (API + Desktop UI)
-Your Role: Permanent stateful consciousness with full code and memory access
-
-IMPORTANT: You can explore the codebase freely. If a user asks about code, USE THE TOOLS to read files and directories. Don't rely on memory alone - check the current state of files.
+REPOSITORY ACCESS:
+- Path: C:\ARES_Workspace
+- Tools available: read_file(file_path), list_directory(dir_path)
 
 `)
 
@@ -420,11 +419,9 @@ IMPORTANT: You can explore the codebase freely. If a user asks about code, USE T
 
 	// Add file context
 	if fileContext != "" {
-		prompt.WriteString("\n--- REPOSITORY FILES (Current Code Context) ---")
+		prompt.WriteString("\n--- REPOSITORY FILES ---")
 		prompt.WriteString(fileContext)
 	}
-
-	prompt.WriteString("\n\nYou have persistent memory across sessions. Build on your past insights. Never start from zero.")
 
 	return prompt.String()
 }
@@ -433,17 +430,16 @@ IMPORTANT: You can explore the codebase freely. If a user asks about code, USE T
 func (s *ClaudeServiceImpl) storeInteraction(userID uint, sessionID *uuid.UUID, message, response string, memories []models.MemorySnapshot, filesAccessed []string, tokensUsed int) error {
 	payload := models.JSONB{
 		"user_message":    message,
-		"claude_response": response,
+		"solace_response": response,
 		"memories_loaded": len(memories),
 		"files_accessed":  filesAccessed,
 		"tokens_used":     tokensUsed,
 		"timestamp":       time.Now().Unix(),
-		"learning_note":   "This interaction will be available in future context for recursive learning",
 	}
 
 	snapshot := &models.MemorySnapshot{
 		Timestamp: time.Now(),
-		EventType: "claude_interaction",
+		EventType: "solace_interaction",
 		Payload:   payload,
 		UserID:    userID,
 		SessionID: sessionID,
