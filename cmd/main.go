@@ -67,6 +67,9 @@ func main() {
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	// Static files for Monaco Editor
+	r.Static("/static", "./static")
+
 	// Register API routes with DB dependency
 	routes.RegisterRoutes(r, db)
 

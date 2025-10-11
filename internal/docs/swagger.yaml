@@ -50,6 +50,89 @@ definitions:
       response:
         type: string
     type: object
+  dto.ClaudeChatRequest:
+    properties:
+      include_files:
+        description: 'Optional: request specific files to include in context'
+        items:
+          type: string
+        type: array
+      max_tokens:
+        description: 'Optional: max tokens for response'
+        type: integer
+      message:
+        type: string
+      session_id:
+        type: string
+    required:
+    - message
+    type: object
+  dto.ClaudeChatResponse:
+    properties:
+      files_accessed:
+        items:
+          type: string
+        type: array
+      memories_loaded:
+        type: integer
+      message:
+        type: string
+      response:
+        type: string
+      session_id:
+        type: string
+      thinking_process:
+        additionalProperties: true
+        type: object
+      tokens_used:
+        type: integer
+    type: object
+  dto.ClaudeFileRequest:
+    properties:
+      file_path:
+        type: string
+    required:
+    - file_path
+    type: object
+  dto.ClaudeFileResponse:
+    properties:
+      content:
+        type: string
+      file_path:
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.ClaudeMemoryResponse:
+    properties:
+      memories:
+        items:
+          $ref: '#/definitions/dto.MemoryRecallResponse'
+        type: array
+      sessions_found:
+        items:
+          type: string
+        type: array
+      total_count:
+        type: integer
+    type: object
+  dto.ClaudeRepositoryContextResponse:
+    properties:
+      key_files:
+        items:
+          type: string
+        type: array
+      recent_commits:
+        items:
+          type: string
+        type: array
+      repository_path:
+        type: string
+      structure:
+        type: string
+      total_files:
+        type: integer
+    type: object
   dto.CoinDTO:
     properties:
       id:
@@ -75,6 +158,197 @@ definitions:
         type: number
       symbol:
         type: string
+    type: object
+  dto.ConversationImportRequest:
+    properties:
+      content:
+        type: string
+      source:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    required:
+    - content
+    type: object
+  dto.ConversationImportResponse:
+    properties:
+      import_id:
+        type: integer
+      message:
+        type: string
+      message_count:
+        type: integer
+    type: object
+  dto.EditorCreateRequest:
+    properties:
+      is_dir:
+        type: boolean
+      path:
+        type: string
+    required:
+    - path
+    type: object
+  dto.EditorDeleteRequest:
+    properties:
+      path:
+        type: string
+    required:
+    - path
+    type: object
+  dto.EditorFileInfo:
+    properties:
+      is_dir:
+        type: boolean
+      modified:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.EditorFileRequest:
+    properties:
+      file_path:
+        type: string
+    required:
+    - file_path
+    type: object
+  dto.EditorFileResponse:
+    properties:
+      content:
+        type: string
+      file_path:
+        type: string
+      language:
+        description: File language/extension
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.EditorListRequest:
+    properties:
+      directory_path:
+        type: string
+      max_depth:
+        type: integer
+      recursive:
+        type: boolean
+    required:
+    - directory_path
+    type: object
+  dto.EditorListResponse:
+    properties:
+      directory_path:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/dto.EditorFileInfo'
+        type: array
+      total_files:
+        type: integer
+    type: object
+  dto.EditorRenameRequest:
+    properties:
+      new_path:
+        type: string
+      old_path:
+        type: string
+    required:
+    - new_path
+    - old_path
+    type: object
+  dto.EditorSaveRequest:
+    properties:
+      content:
+        type: string
+      file_path:
+        type: string
+    required:
+    - content
+    - file_path
+    type: object
+  dto.EditorSaveResponse:
+    properties:
+      file_path:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  dto.FileFragment:
+    properties:
+      file_name:
+        type: string
+      matched_terms:
+        items:
+          type: string
+        type: array
+      modified:
+        type: string
+      path:
+        type: string
+      preview:
+        description: First 500 chars
+        type: string
+      size:
+        type: integer
+    type: object
+  dto.FileScanRequest:
+    properties:
+      extensions:
+        description: e.g., [".md", ".txt", ".go"]
+        items:
+          type: string
+        type: array
+      max_depth:
+        description: Max directory depth
+        type: integer
+      max_results:
+        description: Max files to return
+        type: integer
+      root_path:
+        type: string
+      search_terms:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.FileScanResponse:
+    properties:
+      files_found:
+        items:
+          $ref: '#/definitions/dto.FileFragment'
+        type: array
+      imported_count:
+        type: integer
+      scanned_paths:
+        type: integer
+      total_matches:
+        type: integer
+    type: object
+  dto.ImportFragmentsRequest:
+    properties:
+      event_type:
+        description: e.g., "solace_fragment"
+        type: string
+      file_paths:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.ImportFragmentsResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      imported_count:
+        type: integer
     type: object
   dto.LimitOrderRequest:
     properties:
@@ -131,6 +405,61 @@ definitions:
     - side
     - symbol
     type: object
+  dto.MemoryLearnRequest:
+    properties:
+      event_type:
+        type: string
+      payload:
+        additionalProperties: true
+        type: object
+      session_id:
+        type: string
+    required:
+    - event_type
+    - payload
+    type: object
+  dto.MemoryLearnResponse:
+    properties:
+      id:
+        type: integer
+      message:
+        type: string
+    type: object
+  dto.MemoryRecallResponse:
+    properties:
+      event_type:
+        type: string
+      id:
+        type: integer
+      payload:
+        additionalProperties: true
+        type: object
+      session_id:
+        type: string
+      timestamp:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.ProcessEmbeddingsRequest:
+    properties:
+      batch_size:
+        description: Default 50
+        type: integer
+    type: object
+  dto.ProcessEmbeddingsResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      failed:
+        type: integer
+      pending:
+        type: integer
+      processed:
+        type: integer
+    type: object
   dto.RefreshRequest:
     properties:
       refresh_token:
@@ -144,6 +473,34 @@ definitions:
       access_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
+    type: object
+  dto.SemanticSearchRequest:
+    properties:
+      limit:
+        description: Default 10
+        type: integer
+      query:
+        type: string
+      threshold:
+        description: Default 0.5
+        type: number
+    required:
+    - query
+    type: object
+  dto.SemanticSearchResponse:
+    properties:
+      embedding_model:
+        type: string
+      execution_time_ms:
+        type: integer
+      memories:
+        items:
+          $ref: '#/definitions/dto.MemoryRecallResponse'
+        type: array
+      query:
+        type: string
+      results_found:
+        type: integer
     type: object
   dto.SignupRequest:
     properties:
@@ -215,6 +572,132 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/editor/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Path and type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorSaveResponse'
+      summary: Create file/directory
+      tags:
+      - Editor
+  /api/v1/editor/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Path to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorSaveResponse'
+      summary: Delete file/directory
+      tags:
+      - Editor
+  /api/v1/editor/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Directory path
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorListResponse'
+      summary: List files
+      tags:
+      - Editor
+  /api/v1/editor/read:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: File path
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorFileResponse'
+      summary: Read file
+      tags:
+      - Editor
+  /api/v1/editor/rename:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Old and new paths
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorRenameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorSaveResponse'
+      summary: Rename/move file/directory
+      tags:
+      - Editor
+  /api/v1/editor/save:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: File path and content
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EditorSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.EditorSaveResponse'
+      summary: Save file
+      tags:
+      - Editor
   /assets/coins:
     get:
       description: Fetch the list of coins from CoinGecko with optional limit
@@ -319,6 +802,47 @@ paths:
       summary: Get all supported vs_currency options
       tags:
       - coins
+  /backup/export:
+    get:
+      description: Exports all tables to JSON and creates a downloadable zip file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Export full database backup
+      tags:
+      - Backup
+  /backup/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Restore data from a backup zip file
+      parameters:
+      - description: Backup zip file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Import database backup
+      tags:
+      - Backup
   /balances:
     get:
       description: Fetch the current USD balance for the authenticated user
@@ -467,6 +991,510 @@ paths:
       summary: Send a chat message
       tags:
       - Chat
+  /claude/chat:
+    post:
+      consumes:
+      - application/json
+      description: Chat with Claude AI with full memory context, file system access,
+        and recursive learning
+      parameters:
+      - description: Chat Message
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClaudeChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClaudeChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Chat with stateful Claude AI
+      tags:
+      - Claude
+  /claude/file:
+    post:
+      consumes:
+      - application/json
+      description: Read any file from the ARES repository (Claude's file system access)
+      parameters:
+      - description: File Path
+        in: body
+        name: file
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClaudeFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClaudeFileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Read a file from the repository
+      tags:
+      - Claude
+  /claude/memory:
+    get:
+      consumes:
+      - application/json
+      description: Get Claude's past interactions and memories with filtering options
+      parameters:
+      - description: Filter by session ID
+        in: query
+        name: session_id
+        type: string
+      - default: 20
+        description: Number of memories to retrieve
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by event type
+        in: query
+        name: event_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClaudeMemoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Retrieve Claude's memories
+      tags:
+      - Claude
+  /claude/process-embeddings:
+    post:
+      consumes:
+      - application/json
+      description: Generate embeddings for pending memory snapshots
+      parameters:
+      - description: Batch Size
+        in: body
+        name: process
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProcessEmbeddingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ProcessEmbeddingsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Process embedding queue
+      tags:
+      - Claude
+  /claude/repository:
+    get:
+      consumes:
+      - application/json
+      description: Get an overview of the ARES repository structure
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClaudeRepositoryContextResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get repository context
+      tags:
+      - Claude
+  /claude/semantic-search:
+    post:
+      consumes:
+      - application/json
+      description: Search memories using semantic similarity (intelligent retrieval)
+      parameters:
+      - description: Search Query
+        in: body
+        name: search
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SemanticSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SemanticSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Semantic memory search
+      tags:
+      - Claude
+  /llm/status:
+    get:
+      description: Check if Ollama is installed and list available models
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get local LLM status
+      tags:
+      - LLM
+  /llm/test:
+    post:
+      consumes:
+      - application/json
+      description: Send a test message to Ollama (if available) or fallback to Claude
+        API
+      parameters:
+      - description: Test request
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Test local LLM inference
+      tags:
+      - LLM
+  /memory/import:
+    post:
+      consumes:
+      - application/json
+      description: Imports a pasted conversation or text into memory system
+      parameters:
+      - description: Conversation Import
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ConversationImportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ConversationImportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Import a conversation
+      tags:
+      - Memory
+  /memory/learn:
+    post:
+      consumes:
+      - application/json
+      description: Stores a memory event for the user
+      parameters:
+      - description: Memory Event
+        in: body
+        name: memory
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MemoryLearnRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.MemoryLearnResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Store a memory snapshot
+      tags:
+      - Memory
+  /memory/recall:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves memory snapshots for the user
+      parameters:
+      - default: 20
+        description: Number of snapshots to retrieve
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by event type
+        in: query
+        name: event_type
+        type: string
+      - description: Filter by session ID
+        in: query
+        name: session_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.MemoryRecallResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Recall memory snapshots
+      tags:
+      - Memory
+  /scanner/import:
+    post:
+      consumes:
+      - application/json
+      description: Imports discovered fragments into memory_snapshots table
+      parameters:
+      - description: Import request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ImportFragmentsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ImportFragmentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Import file fragments into memory
+      tags:
+      - Scanner
+  /scanner/scan:
+    post:
+      consumes:
+      - application/json
+      description: Recursively scans filesystem for files containing search terms
+      parameters:
+      - description: Scan request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.FileScanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FileScanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Scan filesystem for Solace/ARES fragments
+      tags:
+      - Scanner
+  /scanner/solace:
+    post:
+      consumes:
+      - application/json
+      description: Scans C:\ProgramData\Solace\State and imports all files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ImportFragmentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Import Solace Delta 3.1 data
+      tags:
+      - Scanner
   /settings/apikey:
     post:
       consumes:
@@ -572,6 +1600,23 @@ paths:
       security:
       - BearerAuth: []
       summary: Get pending limit orders for user
+      tags:
+      - Trading
+  /trades/performance:
+    get:
+      description: Calculate P&L and performance metrics (scaffold - uses hardcoded
+        prices)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get trading performance stats
       tags:
       - Trading
   /users/login:

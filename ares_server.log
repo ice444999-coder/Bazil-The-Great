@@ -1,0 +1,87 @@
+2025/10/10 13:36:30 Generating Swagger docs...
+2025/10/10 13:36:30 Generate swagger docs....
+2025/10/10 13:36:30 Generate general API Info, search dir:./cmd
+2025/10/10 13:36:30 Generate general API Info, search dir:./internal/api/controllers
+2025/10/10 13:36:30 Generate general API Info, search dir:./internal/api/dto
+2025/10/10 13:36:30 Generating dto.CoinDTO
+2025/10/10 13:36:30 Generating dto.CoinMarketDTO
+2025/10/10 13:36:30 Generating dto.TopMoverDTO
+2025/10/10 13:36:30 Generating dto.BalanceDTO
+2025/10/10 13:36:30 Generating dto.ChatRequest
+2025/10/10 13:36:30 Generating dto.ChatResponse
+2025/10/10 13:36:30 Generating dto.ChatHistoryResponse
+2025/10/10 13:36:30 Generating dto.ClaudeChatRequest
+2025/10/10 13:36:30 Generating dto.ClaudeChatResponse
+2025/10/10 13:36:30 Generating dto.ClaudeMemoryResponse
+2025/10/10 13:36:30 Generating dto.MemoryRecallResponse
+2025/10/10 13:36:30 Generating dto.ClaudeFileRequest
+2025/10/10 13:36:30 Generating dto.ClaudeFileResponse
+2025/10/10 13:36:30 Generating dto.ClaudeRepositoryContextResponse
+2025/10/10 13:36:30 Generating dto.EditorFileRequest
+2025/10/10 13:36:30 Generating dto.EditorFileResponse
+2025/10/10 13:36:30 Generating dto.EditorSaveRequest
+2025/10/10 13:36:30 Generating dto.EditorSaveResponse
+2025/10/10 13:36:30 Generating dto.EditorListRequest
+2025/10/10 13:36:30 Generating dto.EditorListResponse
+2025/10/10 13:36:30 Generating dto.EditorFileInfo
+2025/10/10 13:36:30 Generating dto.EditorCreateRequest
+2025/10/10 13:36:30 Generating dto.EditorDeleteRequest
+2025/10/10 13:36:30 Generating dto.EditorRenameRequest
+2025/10/10 13:36:30 Generating dto.MemoryLearnRequest
+2025/10/10 13:36:30 Generating dto.MemoryLearnResponse
+2025/10/10 13:36:30 Generating dto.FileScanRequest
+2025/10/10 13:36:30 Generating dto.FileScanResponse
+2025/10/10 13:36:30 Generating dto.FileFragment
+2025/10/10 13:36:30 Generating dto.ImportFragmentsRequest
+2025/10/10 13:36:30 Generating dto.ImportFragmentsResponse
+2025/10/10 13:36:30 Generating dto.APIKeyRequest
+2025/10/10 13:36:30 Generating dto.APIKeyResponse
+2025/10/10 13:36:30 Generating dto.MarketOrderRequest
+2025/10/10 13:36:30 Generating dto.TradeResponse
+2025/10/10 13:36:30 Generating dto.LimitOrderRequest
+2025/10/10 13:36:30 Generating dto.SignupRequest
+2025/10/10 13:36:30 Generating dto.SignupResponse
+2025/10/10 13:36:30 Generating dto.LoginRequest
+2025/10/10 13:36:30 Generating dto.LoginResponse
+2025/10/10 13:36:30 Generating dto.RefreshRequest
+2025/10/10 13:36:30 Generating dto.RefreshResponse
+2025/10/10 13:36:30 create docs.go at internal/docs/docs.go
+2025/10/10 13:36:30 create swagger.json at internal/docs/swagger.json
+2025/10/10 13:36:30 create swagger.yaml at internal/docs/swagger.yaml
+2025/10/10 13:36:30 Swagger docs generated.
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (4 handlers)
+[GIN-debug] POST   /api/v1/users/signup      --> ares_api/internal/api/controllers.(*UserController).Signup-fm (5 handlers)
+[GIN-debug] POST   /api/v1/users/login       --> ares_api/internal/api/controllers.(*UserController).Login-fm (5 handlers)
+[GIN-debug] POST   /api/v1/users/refresh     --> ares_api/internal/api/controllers.(*UserController).RefreshToken-fm (5 handlers)
+[GIN-debug] POST   /api/v1/chat/send         --> ares_api/internal/api/controllers.(*ChatController).SendMessage-fm (6 handlers)
+[GIN-debug] GET    /api/v1/chat/history      --> ares_api/internal/api/controllers.(*ChatController).GetHistory-fm (6 handlers)
+[GIN-debug] POST   /api/v1/trades/market     --> ares_api/internal/api/controllers.(*TradeController).MarketOrder-fm (6 handlers)
+[GIN-debug] POST   /api/v1/trades/limit      --> ares_api/internal/api/controllers.(*TradeController).LimitOrder-fm (6 handlers)
+[GIN-debug] GET    /api/v1/trades/history    --> ares_api/internal/api/controllers.(*TradeController).GetHistory-fm (6 handlers)
+[GIN-debug] GET    /api/v1/trades/pending    --> ares_api/internal/api/controllers.(*TradeController).GetPendingLimitOrders-fm (6 handlers)
+[GIN-debug] POST   /api/v1/settings/apikey   --> ares_api/internal/api/controllers.(*SettingsController).SaveAPIKey-fm (6 handlers)
+[GIN-debug] GET    /api/v1/balances/         --> ares_api/internal/api/controllers.(*BalanceController).GetUSDBalance-fm (6 handlers)
+[GIN-debug] POST   /api/v1/balances/init     --> ares_api/internal/api/controllers.(*BalanceController).InitializeBalance-fm (6 handlers)
+[GIN-debug] POST   /api/v1/balances/reset    --> ares_api/internal/api/controllers.(*BalanceController).ResetBalance-fm (6 handlers)
+[GIN-debug] POST   /api/v1/balances/update   --> ares_api/internal/api/controllers.(*BalanceController).UpdateBalance-fm (6 handlers)
+[GIN-debug] GET    /api/v1/assets/coins      --> ares_api/internal/api/controllers.(*AssetController).GetAllCoins-fm (5 handlers)
+[GIN-debug] GET    /api/v1/assets/coins/:id/market --> ares_api/internal/api/controllers.(*AssetController).GetCoinMarket-fm (5 handlers)
+[GIN-debug] GET    /api/v1/assets/coins/top-movers --> ares_api/internal/api/controllers.(*AssetController).GetTopMovers-fm (5 handlers)
+[GIN-debug] GET    /api/v1/assets/vs_currencies --> ares_api/internal/api/controllers.(*AssetController).GetSupportedVSCurrencies-fm (5 handlers)
+[GIN-debug] POST   /api/v1/memory/learn      --> ares_api/internal/api/controllers.(*MemoryController).Learn-fm (6 handlers)
+[GIN-debug] GET    /api/v1/memory/recall     --> ares_api/internal/api/controllers.(*MemoryController).Recall-fm (6 handlers)
+[GIN-debug] POST   /api/v1/claude/chat       --> ares_api/internal/api/controllers.(*ClaudeController).Chat-fm (6 handlers)
+[GIN-debug] GET    /api/v1/claude/memory     --> ares_api/internal/api/controllers.(*ClaudeController).GetMemory-fm (6 handlers)
+[GIN-debug] POST   /api/v1/claude/file       --> ares_api/internal/api/controllers.(*ClaudeController).ReadFile-fm (6 handlers)
+[GIN-debug] GET    /api/v1/claude/repository --> ares_api/internal/api/controllers.(*ClaudeController).GetRepositoryContext-fm (6 handlers)
+2025/10/10 13:36:31 🚀 Server running at http://localhost:8080
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://github.com/gin-gonic/gin/blob/master/docs/doc.md#dont-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN] 2025/10/10 - 13:36:31 | 200 |       608.7µs |             ::1 | GET      "/swagger/index.html"

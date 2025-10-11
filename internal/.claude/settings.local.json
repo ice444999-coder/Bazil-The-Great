@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/ARES_Workspace/ARES_API/**)",
+      "Bash(go run:*)",
+      "Bash(go get:*)",
+      "Bash(go build:*)",
+      "Bash(cmd //c:*)",
+      "Bash(taskkill:*)",
+      "Bash(curl:*)",
+      "Read(//c/ARES_Workspace/ARES_UI/**)",
+      "Read(//c/ARES_Workspace//**)",
+      "Read(//c/ARES_Workspace/**)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git reset:*)",
+      "Bash(dotnet build:*)",
+      "Bash(go doc:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:microsoft.github.io)",
+      "Bash(tar:*)",
+      "Bash(dotnet add package:*)",
+      "Read(//c/Users/User/.nuget/packages/webview2.avalonia/**)",
+      "Bash(cat:*)",
+      "Bash(PGPASSWORD=ARESISWAKING psql -h localhost -U ARES -d ares_db -f internal/database/migrations/003_semantic_memory_architecture.sql)",
+      "Bash(ollama pull:*)",
+      "Bash(./ARES.exe)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(awk:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
