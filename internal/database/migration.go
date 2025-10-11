@@ -37,5 +37,11 @@ func AutoMigrateAll(db *gorm.DB) error {
 	 &models.AresConfig{},
 	 &models.ConversationImport{},
 	 &models.FileScanResult{},
+	 // Autonomous Trading System
+	 &models.SandboxTrade{},
+	 &models.TradingPerformance{},
+	 &models.MarketDataCache{},
+	 &models.StrategyMutation{},
+	 &models.RiskEvent{},
 	)
 }

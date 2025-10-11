@@ -2,9 +2,16 @@ package Repositories
 import "ares_api/internal/models"
 
 type BalanceRepository interface {
-	GetUSDBalance(userID uint) (*models.Balance, error)
+	// Legacy methods
+	GetUSDBalanceModel(userID uint) (*models.Balance, error)  // Returns full model
 	UpdateUSDBalance(userID uint, delta float64) (*models.Balance, error)
 	ResetUSDBalance(userID uint, defaultBalance float64) error
 	CreateUSDBalance(userID uint, defaultBalance float64) (*models.Balance, error)
+
+	// New trading methods
+	GetUSDBalance(userID uint) (float64, error)               // Returns just amount
+	GetBalanceRecord(userID uint) (*models.Balance, error)    // Get full record with auto-topup settings
+	UpdateBalance(userID uint, newAmount float64) error       // Update balance amount
+	UpdateBalanceRecord(balance *models.Balance) error        // Save entire record
 }
 

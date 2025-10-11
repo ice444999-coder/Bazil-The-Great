@@ -39,7 +39,7 @@ func (s *TradeService) MarketOrder(userID uint, req dto.MarketOrderRequest) (*dt
 	cost := req.Quantity * price
 
 	// Get user USD balance
-	balance, err := s.BalanceRepo.GetUSDBalance(userID)
+	balance, err := s.BalanceRepo.GetUSDBalanceModel(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get USD balance: %w", err)
 	}

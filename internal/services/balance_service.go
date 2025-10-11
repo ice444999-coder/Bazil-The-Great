@@ -17,7 +17,7 @@ func NewBalanceService(r repository.BalanceRepository) service.BalanceService {
 }
 
 func (s *BalanceServiceImpl) GetUSDBalance(userID uint) (*dto.BalanceDTO, error) {
-	b, err := s.Repo.GetUSDBalance(userID)
+	b, err := s.Repo.GetUSDBalanceModel(userID)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"ares_api/internal/ollama"
 	repositories "ares_api/internal/repositories"
 	service "ares_api/internal/services"
+	"ares_api/internal/services"
 
 	"fmt"
 	"os"
@@ -53,11 +54,18 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	assetService := service.NewAssetService(assetRepo)
 	assetContoller := controllers.NewAssetController(assetService , ledgerService)
 	// --------------------------
-	// TRADE MODULE
+	// TRADE MODULE (Legacy market/limit orders)
 	// --------------------------
 	tradeRepo := repositories.NewTradeRepository(db)
 	tradeService := service.NewTradeService(tradeRepo, balanceRepo, assetRepo)
 	tradeController := controllers.NewTradeController(tradeService, ledgerService)
+
+	// --------------------------
+	// SANDBOX TRADING MODULE (Autonomous Trading for SOLACE)
+	// --------------------------
+	tradingRepo := repositories.NewTradingRepository(db)
+	tradingService := services.NewTradingService(tradingRepo, balanceRepo, assetRepo)
+	tradingController := controllers.NewTradingController(tradingService, ledgerService)
 
 	// --------------------------
 	// SETTINGS MODULE
@@ -86,6 +94,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		repoPath = "C:/ARES_Workspace" // fallback - full workspace access
 	}
 	claudeService := service.NewClaudeService(memoryRepo, embeddingService, repoPath)
+	// Wire trading service into Claude (for execute_trade tool)
+	claudeService.SetTradingService(tradingService)
 	claudeController := controllers.NewClaudeController(claudeService, ledgerService)
 
 	// --------------------------
@@ -185,7 +195,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 	}
 
 	// --------------------------
-	// Trade endpoints
+	// Trade endpoints (Legacy market/limit orders)
 	// --------------------------
 	trades := api.Group("/trades")
 	trades.Use(middleware.AuthMiddleware())
@@ -195,6 +205,20 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
 		trades.GET("/history", tradeController.GetHistory)
 		trades.GET("/pending", tradeController.GetPendingLimitOrders)
 		trades.GET("/performance", tradeController.GetPerformance)
+	}
+
+	// --------------------------
+	// Sandbox Trading endpoints (SOLACE Autonomous Trading)
+	// --------------------------
+	trading := api.Group("/trading")
+	trading.Use(middleware.AuthMiddleware())
+	{
+		trading.POST("/execute", tradingController.ExecuteTrade)
+		trading.POST("/close", tradingController.CloseTrade)
+		trading.POST("/close-all", tradingController.CloseAllTrades)
+		trading.GET("/history", tradingController.GetTradeHistory)
+		trading.GET("/open", tradingController.GetOpenTrades)
+		trading.GET("/performance", tradingController.GetPerformance)
 	}
 
 	// --------------------------

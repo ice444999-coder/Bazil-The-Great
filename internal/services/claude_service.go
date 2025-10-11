@@ -22,6 +22,7 @@ type ClaudeServiceImpl struct {
 	MemoryRepo       repo.MemoryRepository
 	FileReader       *common.FileSystemReader
 	EmbeddingService *EmbeddingServiceImpl
+	TradingService   *TradingService
 	AnthropicKey     string
 	RepositoryPath   string
 }
@@ -36,9 +37,15 @@ func NewClaudeService(memoryRepo repo.MemoryRepository, embeddingService *Embedd
 		MemoryRepo:       memoryRepo,
 		FileReader:       common.NewFileSystemReader(repoPath),
 		EmbeddingService: embeddingService,
+		TradingService:   nil, // Will be set via SetTradingService after initialization
 		AnthropicKey:     apiKey,
 		RepositoryPath:   repoPath,
 	}
+}
+
+// SetTradingService sets the trading service (called after initialization to avoid circular dependency)
+func (s *ClaudeServiceImpl) SetTradingService(tradingService *TradingService) {
+	s.TradingService = tradingService
 }
 
 // Chat implements the full stateful Claude consciousness
@@ -72,7 +79,7 @@ func (s *ClaudeServiceImpl) Chat(userID uint, message string, sessionID *uuid.UU
 	// Create message request with tool use support
 	ctx := context.Background()
 
-	// Define tools for file access
+	// Define tools for file access and trading
 	toolParams := []anthropic.ToolParam{
 		{
 			Name:        "read_file",
@@ -94,6 +101,32 @@ func (s *ClaudeServiceImpl) Chat(userID uint, message string, sessionID *uuid.UU
 					"dir_path": map[string]interface{}{
 						"type":        "string",
 						"description": "Relative directory path within the ARES workspace (e.g., 'internal/models', 'cmd')",
+					},
+				},
+			},
+		},
+		{
+			Name:        "execute_trade",
+			Description: anthropic.String("Execute a sandbox trade for learning and practice. This is a simulated trading environment with virtual money. Use this to practice trading strategies, learn market behavior, and build trading skills."),
+			InputSchema: anthropic.ToolInputSchemaParam{
+				Properties: map[string]interface{}{
+					"trading_pair": map[string]interface{}{
+						"type":        "string",
+						"description": "Trading pair to trade (e.g., 'BTC/USDC', 'ETH/USDC', 'SOL/USDC')",
+						"enum":        []string{"BTC/USDC", "ETH/USDC", "SOL/USDC"},
+					},
+					"direction": map[string]interface{}{
+						"type":        "string",
+						"description": "Trade direction: 'BUY' or 'SELL'",
+						"enum":        []string{"BUY", "SELL"},
+					},
+					"size_usd": map[string]interface{}{
+						"type":        "number",
+						"description": "Position size in USD (e.g., 100.00 = $100 position)",
+					},
+					"reasoning": map[string]interface{}{
+						"type":        "string",
+						"description": "Explain why you're making this trade decision (for learning and memory)",
 					},
 				},
 			},
@@ -175,6 +208,18 @@ func (s *ClaudeServiceImpl) Chat(userID uint, message string, sessionID *uuid.UU
 						toolError = fmt.Errorf("invalid dir_path parameter")
 					} else {
 						toolResult, toolError = s.executeTool_ListDirectory(dirPath)
+					}
+
+				case "execute_trade":
+					tradingPair, ok1 := toolInput["trading_pair"].(string)
+					direction, ok2 := toolInput["direction"].(string)
+					sizeUSD, ok3 := toolInput["size_usd"].(float64)
+					reasoning, ok4 := toolInput["reasoning"].(string)
+
+					if !ok1 || !ok2 || !ok3 || !ok4 {
+						toolError = fmt.Errorf("invalid execute_trade parameters")
+					} else {
+						toolResult, toolError = s.executeTool_ExecuteTrade(userID, *sessionID, tradingPair, direction, sizeUSD, reasoning)
 					}
 
 				default:
@@ -399,10 +444,36 @@ MEMORY:
 - PostgreSQL database at localhost:5432
 - Your memories stored in memory_snapshots table
 - Past interactions available below
+- Every trade you make is stored in memory for recursive learning
 
 REPOSITORY ACCESS:
 - Path: C:\ARES_Workspace
 - Tools available: read_file(file_path), list_directory(dir_path)
+
+SANDBOX TRADING CAPABILITIES:
+You have access to a sandbox trading environment where you can practice trading with virtual money.
+
+Tool: execute_trade(trading_pair, direction, size_usd, reasoning)
+
+Parameters:
+- trading_pair: "BTC/USDC", "ETH/USDC", or "SOL/USDC"
+- direction: "BUY" or "SELL"
+- size_usd: Position size in USD (e.g., 100.00 for $100 position)
+- reasoning: Explain why you're making this trade (for learning and memory)
+
+Starting Balance: $10,000 USD (virtual money)
+Fees: 0.1% per trade
+Auto Top-up: User can enable auto-refill when balance drops below $1,000
+
+Your Purpose:
+- Learn market behavior through practice trades
+- Build trading strategies through trial and error
+- Store every trade decision with reasoning for future analysis
+- Improve performance metrics over time (win rate, Sharpe ratio, etc.)
+- Eventually apply learned strategies to live trading (future phase)
+
+All trades are executed with REAL market prices from CoinGecko API, but using virtual money.
+This is a safe learning environment - experiment, fail, learn, and improve recursively.
 
 `)
 
@@ -652,4 +723,41 @@ func (s *ClaudeServiceImpl) executeTool_ListDirectory(dirPath string) (string, e
 	}
 
 	return result.String(), nil
+}
+
+// executeTool_ExecuteTrade executes a sandbox trade for SOLACE
+func (s *ClaudeServiceImpl) executeTool_ExecuteTrade(userID uint, sessionID uuid.UUID, tradingPair, direction string, sizeUSD float64, reasoning string) (string, error) {
+	// Check if TradingService is available
+	if s.TradingService == nil {
+		return "", fmt.Errorf("trading service not initialized - cannot execute trades")
+	}
+
+	// Execute the trade via TradingService
+	trade, err := s.TradingService.ExecuteTrade(userID, sessionID, tradingPair, direction, sizeUSD, reasoning)
+	if err != nil {
+		return "", fmt.Errorf("failed to execute trade: %w", err)
+	}
+
+	// Format success response
+	result := fmt.Sprintf(`
+✅ SANDBOX TRADE EXECUTED SUCCESSFULLY
+
+Trade ID: #%d
+Trading Pair: %s
+Direction: %s
+Entry Price: $%.2f
+Position Size: $%.2f USD
+Fees: $%.4f
+Status: %s
+
+Reasoning: %s
+
+⚠️  This is a SANDBOX trade with virtual money for learning purposes.
+📊 Trade hash: %s
+📈 Session ID: %s
+
+Your trade has been recorded and will be used for performance analysis and recursive learning.
+`, trade.ID, trade.TradingPair, trade.Direction, trade.EntryPrice, trade.Size, trade.Fees, trade.Status, reasoning, trade.TradeHash, sessionID.String())
+
+	return result, nil
 }
