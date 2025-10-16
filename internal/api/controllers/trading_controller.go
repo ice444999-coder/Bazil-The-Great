@@ -3,8 +3,9 @@ package controllers
 import (
 	"ares_api/internal/api/dto"
 	"ares_api/internal/common"
-	"ares_api/internal/services"
 	service "ares_api/internal/interfaces/service"
+	"ares_api/internal/services"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -61,6 +62,8 @@ func (c *TradingController) ExecuteTrade(ctx *gin.Context) {
 		req.Reasoning,
 	)
 	if err != nil {
+		// LOG THE ACTUAL ERROR
+		fmt.Printf("❌ TRADE EXECUTION FAILED: %v\n", err)
 		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -70,6 +73,79 @@ func (c *TradingController) ExecuteTrade(ctx *gin.Context) {
 		userID,
 		"ExecuteTrade",
 		"SOLACE executed "+req.Direction+" trade on "+req.TradingPair+" for $"+strconv.FormatFloat(req.SizeUSD, 'f', 2, 64),
+	)
+
+	// Return trade response
+	response := dto.SandboxTradeResponse{
+		ID:               trade.ID,
+		TradingPair:      trade.TradingPair,
+		Direction:        trade.Direction,
+		Size:             trade.Size,
+		EntryPrice:       trade.EntryPrice,
+		Fees:             trade.Fees,
+		Status:           trade.Status,
+		OpenedAt:         trade.OpenedAt,
+		Reasoning:        trade.Reasoning,
+		MarketConditions: trade.MarketConditions,
+		TradeHash:        trade.TradeHash,
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// ExecuteLeveragedTrade - Execute trade with leverage (1x-20x)
+// @Summary Execute Leveraged Trade
+// @Description SOLACE executes a leveraged trade with up to 20x leverage
+// @Tags Sandbox Trading
+// @Accept json
+// @Produce json
+// @Param request body dto.ExecuteLeveragedTradeRequest true "Leveraged Trade Execution"
+// @Success 200 {object} dto.SandboxTradeResponse
+// @Security BearerAuth
+// @Router /trading/leverage [post]
+func (c *TradingController) ExecuteLeveragedTrade(ctx *gin.Context) {
+	var req dto.ExecuteLeveragedTradeRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		common.JSON(ctx, http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID := ctx.GetUint("userID")
+
+	// Parse session ID
+	sessionID, err := uuid.Parse(req.SessionID)
+	if err != nil {
+		common.JSON(ctx, http.StatusBadRequest, gin.H{"error": "invalid session_id format"})
+		return
+	}
+
+	// Validate leverage
+	if req.Leverage < 1.0 || req.Leverage > 20.0 {
+		common.JSON(ctx, http.StatusBadRequest, gin.H{"error": "leverage must be between 1x and 20x"})
+		return
+	}
+
+	// Execute leveraged trade
+	trade, err := c.TradingService.ExecuteLeveragedTrade(
+		userID,
+		sessionID,
+		req.TradingPair,
+		req.Direction,
+		req.SizeUSD,
+		req.Leverage,
+		req.Reasoning,
+	)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Log to ledger
+	_ = c.LedgerService.Append(
+		userID,
+		"ExecuteLeveragedTrade",
+		fmt.Sprintf("SOLACE executed %.2fx leveraged %s trade on %s for $%.2f (collateral: $%.2f)",
+			req.Leverage, req.Direction, req.TradingPair, req.SizeUSD, req.SizeUSD/req.Leverage),
 	)
 
 	// Return trade response
@@ -129,21 +205,21 @@ func (c *TradingController) CloseTrade(ctx *gin.Context) {
 
 	// Return trade response
 	response := dto.SandboxTradeResponse{
-		ID:               trade.ID,
-		TradingPair:      trade.TradingPair,
-		Direction:        trade.Direction,
-		Size:             trade.Size,
-		EntryPrice:       trade.EntryPrice,
-		ExitPrice:        trade.ExitPrice,
-		ProfitLoss:       trade.ProfitLoss,
+		ID:                trade.ID,
+		TradingPair:       trade.TradingPair,
+		Direction:         trade.Direction,
+		Size:              trade.Size,
+		EntryPrice:        trade.EntryPrice,
+		ExitPrice:         trade.ExitPrice,
+		ProfitLoss:        trade.ProfitLoss,
 		ProfitLossPercent: trade.ProfitLossPercent,
-		Fees:             trade.Fees,
-		Status:           trade.Status,
-		OpenedAt:         trade.OpenedAt,
-		ClosedAt:         trade.ClosedAt,
-		Reasoning:        trade.Reasoning,
-		MarketConditions: trade.MarketConditions,
-		TradeHash:        trade.TradeHash,
+		Fees:              trade.Fees,
+		Status:            trade.Status,
+		OpenedAt:          trade.OpenedAt,
+		ClosedAt:          trade.ClosedAt,
+		Reasoning:         trade.Reasoning,
+		MarketConditions:  trade.MarketConditions,
+		TradeHash:         trade.TradeHash,
 	}
 
 	common.JSON(ctx, http.StatusOK, response)
@@ -220,21 +296,21 @@ func (c *TradingController) GetTradeHistory(ctx *gin.Context) {
 	var responses []dto.SandboxTradeResponse
 	for _, trade := range trades {
 		responses = append(responses, dto.SandboxTradeResponse{
-			ID:               trade.ID,
-			TradingPair:      trade.TradingPair,
-			Direction:        trade.Direction,
-			Size:             trade.Size,
-			EntryPrice:       trade.EntryPrice,
-			ExitPrice:        trade.ExitPrice,
-			ProfitLoss:       trade.ProfitLoss,
+			ID:                trade.ID,
+			TradingPair:       trade.TradingPair,
+			Direction:         trade.Direction,
+			Size:              trade.Size,
+			EntryPrice:        trade.EntryPrice,
+			ExitPrice:         trade.ExitPrice,
+			ProfitLoss:        trade.ProfitLoss,
 			ProfitLossPercent: trade.ProfitLossPercent,
-			Fees:             trade.Fees,
-			Status:           trade.Status,
-			OpenedAt:         trade.OpenedAt,
-			ClosedAt:         trade.ClosedAt,
-			Reasoning:        trade.Reasoning,
-			MarketConditions: trade.MarketConditions,
-			TradeHash:        trade.TradeHash,
+			Fees:              trade.Fees,
+			Status:            trade.Status,
+			OpenedAt:          trade.OpenedAt,
+			ClosedAt:          trade.ClosedAt,
+			Reasoning:         trade.Reasoning,
+			MarketConditions:  trade.MarketConditions,
+			TradeHash:         trade.TradeHash,
 		})
 	}
 
@@ -303,22 +379,22 @@ func (c *TradingController) GetPerformance(ctx *gin.Context) {
 
 	// Convert to response DTO
 	response := dto.TradingPerformanceResponse{
-		TotalTrades:    perf.TotalTrades,
-		WinningTrades:  perf.WinningTrades,
-		LosingTrades:   perf.LosingTrades,
-		WinRate:        perf.WinRate,
+		TotalTrades:     perf.TotalTrades,
+		WinningTrades:   perf.WinningTrades,
+		LosingTrades:    perf.LosingTrades,
+		WinRate:         perf.WinRate,
 		TotalProfitLoss: perf.TotalProfitLoss,
-		AvgProfit:      perf.AvgProfit,
-		AvgLoss:        perf.AvgLoss,
-		LargestWin:     perf.LargestWin,
-		LargestLoss:    perf.LargestLoss,
-		SharpeRatio:    perf.SharpeRatio,
-		SortinoRatio:   perf.SortinoRatio,
-		KellyCriterion: perf.KellyCriterion,
-		Var5Percent:    perf.Var5Percent,
-		RiskOfRuin:     perf.RiskOfRuin,
+		AvgProfit:       perf.AvgProfit,
+		AvgLoss:         perf.AvgLoss,
+		LargestWin:      perf.LargestWin,
+		LargestLoss:     perf.LargestLoss,
+		SharpeRatio:     perf.SharpeRatio,
+		SortinoRatio:    perf.SortinoRatio,
+		KellyCriterion:  perf.KellyCriterion,
+		Var5Percent:     perf.Var5Percent,
+		RiskOfRuin:      perf.RiskOfRuin,
 		StrategyVersion: perf.StrategyVersion,
-		CalculatedAt:   perf.CalculatedAt,
+		CalculatedAt:    perf.CalculatedAt,
 	}
 
 	common.JSON(ctx, http.StatusOK, response)

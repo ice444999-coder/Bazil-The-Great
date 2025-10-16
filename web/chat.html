@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES - Chat with SOLACE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .user-info {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            border-left: 3px solid white;
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            margin: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .header {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .solace-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: #f0fdf4;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f9fafb;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.solace .message-avatar {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .message-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .message-bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.solace .message-bubble {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #333;
+        }
+
+        .thinking-section {
+            margin-top: 10px;
+            padding: 12px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #666;
+            border-left: 3px solid #f5576c;
+        }
+
+        .thinking-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #f5576c;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 15px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #999;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 20px 30px;
+            background: white;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            transition: border-color 0.3s;
+            min-height: 50px;
+            max-height: 150px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #e0e0e0;
+            border-color: #667eea;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .welcome-message h3 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .connection-status {
+            padding: 10px 20px;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .connection-status.connected {
+            background: #d1fae5;
+            border-left-color: #10b981;
+        }
+
+        .connection-status.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>ARES</h1>
+                <p>Autonomous AI Trading System</p>
+            </div>
+
+            <div class="user-info">
+                <div class="username" id="username">Loading...</div>
+                <div class="role">Administrator</div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/trading.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Trading</span>
+                </a>
+                <a href="/chat.html" class="nav-item active">
+                    <span class="icon">💬</span>
+                    <span>Chat with SOLACE</span>
+                </a>
+                <a href="/editor.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    <span>Code Editor</span>
+                </a>
+                <a href="/memory.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>Memory System</span>
+                </a>
+                <a href="/vision.html" class="nav-item">
+                    <span class="icon">👁️</span>
+                    <span>SOLACE Vision</span>
+                </a>
+                <a href="/health.html" class="nav-item">
+                    <span class="icon">❤️</span>
+                    <span>System Health</span>
+                </a>
+            </nav>
+
+            <div class="logout-btn" onclick="logout()">
+                🚪 Logout
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Chat with SOLACE</h2>
+                <p>Have a conversation with the autonomous AI agent</p>
+                <div class="solace-status">
+                    <div class="status-indicator"></div>
+                    <span>SOLACE is online</span>
+                </div>
+            </div>
+
+            <div class="connection-status" id="connectionStatus">
+                Connecting to SOLACE...
+            </div>
+
+            <div class="chat-container">
+                <div class="messages" id="messages">
+                    <div class="welcome-message">
+                        <h3>👋 Welcome to SOLACE Chat</h3>
+                        <p>Start a conversation with the AI trading agent. Ask about trades, strategies, or anything else!</p>
+                    </div>
+                </div>
+
+                <div class="input-container">
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="sendQuickMessage('Show me recent trades')">📊 Recent Trades</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('What is your current strategy?')">🎯 Current Strategy</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Analyze the market')">📈 Market Analysis</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Show playbook rules')">📚 Playbook</button>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <div class="input-box">
+                            <textarea 
+                                id="messageInput" 
+                                placeholder="Type your message to SOLACE..."
+                                rows="1"
+                                onkeydown="handleKeyPress(event)"
+                            ></textarea>
+                        </div>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                            Send 🚀
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chat functionality - DECLARE FIRST
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        let isTyping = false;
+
+        // Authentication
+        const token = localStorage.getItem('ares_token');
+        const userStr = localStorage.getItem('ares_user');
+        let user = {};
+        
+        try {
+            if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+                user = JSON.parse(userStr);
+            }
+        } catch (e) {
+            console.error('Failed to parse user:', e);
+        }
+
+        console.log('Token:', token);
+        console.log('User:', user);
+
+        // Don't redirect - allow chat to work without auth for now
+
+        const usernameEl = document.getElementById('username');
+        if (usernameEl) {
+            usernameEl.textContent = user.username || 'User';
+        }
+
+        function logout() {
+            localStorage.removeItem('ares_token');
+            localStorage.removeItem('ares_user');
+            window.location.href = '/login.html';
+        }
+
+        // Load chat history
+        // Track loaded messages to prevent flashing
+        let loadedMessageIds = new Set();
+
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/v1/agent/chat/history', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const history = data.messages || [];
+
+                    // FIXED: Only reload if new messages exist (prevent flashing)
+                    const newMessages = history.filter(msg => !loadedMessageIds.has(msg.id));
+                    
+                    if (newMessages.length > 0 || loadedMessageIds.size === 0) {
+                        // First load or new messages detected
+                        messagesContainer.innerHTML = '';
+                        loadedMessageIds.clear();
+                        
+                        history.forEach(msg => {
+                            addMessage(msg.role === 'user' ? 'user' : 'solace', msg.content, msg.created_at, msg.thinking);
+                            loadedMessageIds.add(msg.id);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(sender, text, timestamp = null, thinking = null) {
+            const welcomeMsg = messagesContainer.querySelector('.welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+            let thinkingHTML = '';
+            if (thinking && sender === 'solace') {
+                thinkingHTML = `
+                    <div class="thinking-section">
+                        <div class="thinking-label">🤔 Thought Process:</div>
+                        <div>${thinking}</div>
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${sender === 'user' ? '👤' : '🤖'}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-name">${sender === 'user' ? user.username : 'SOLACE'}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-bubble">${text}</div>
+                    ${thinkingHTML}
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message solace';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isTyping) return;
+
+            // Add user message
+            addMessage('user', message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Disable input
+            isTyping = true;
+            sendBtn.disabled = true;
+            messageInput.disabled = true;
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                // Use ARES API for persistent memory
+                const response = await fetch('/api/v1/agent/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                });
+
+                hideTypingIndicator();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const solaceResponse = data.response;
+                    
+                    // Extract thinking from response if DeepSeek includes it
+                    let thinking = null;
+                    let responseText = solaceResponse;
+                    
+                    // Check if response has <think> tags
+                    const thinkMatch = responseText.match(/<think>(.*?)<\/think>/s);
+                    if (thinkMatch) {
+                        thinking = thinkMatch[1].trim();
+                        responseText = responseText.replace(/<think>.*?<\/think>/s, '').trim();
+                    }
+
+                    addMessage('solace', responseText, null, thinking);
+                } else {
+                    addMessage('solace', 'Sorry, I encountered an error processing your request.');
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('solace', 'Connection error. Please try again.');
+                console.error('Chat error:', error);
+            } finally {
+                isTyping = false;
+                sendBtn.disabled = false;
+                messageInput.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Quick message
+        function sendQuickMessage(message) {
+            messageInput.value = message;
+            sendMessage();
+        }
+
+        // Handle enter key
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        // Load history on page load
+        loadChatHistory();
+
+        // Poll for new messages every 5 seconds (in case of multi-user scenario)
+        setInterval(loadChatHistory, 5000);
+    </script>
+</body>
+</html>

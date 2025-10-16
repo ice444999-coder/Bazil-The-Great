@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACE Framework - Consciousness Substrate Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            margin-top: 10px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            border-radius: 20px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #a0aec0;
+            font-size: 0.95em;
+        }
+
+        .metric-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .metric-value.good {
+            color: #10b981;
+        }
+
+        .metric-value.warning {
+            color: #f59e0b;
+        }
+
+        .metric-value.critical {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .pattern-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .pattern-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .pattern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pattern-name {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .confidence-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .confidence-high {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .confidence-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .confidence-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .pattern-category {
+            font-size: 0.9em;
+            color: #8b5cf6;
+            margin-bottom: 5px;
+        }
+
+        .pattern-description {
+            font-size: 0.9em;
+            color: #a0aec0;
+            line-height: 1.4;
+        }
+
+        .decision-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 10px;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .decision-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .decision-type {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .quality-score {
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .score-excellent {
+            background: rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .score-good {
+            background: rgba(99, 102, 241, 0.3);
+            color: #6366f1;
+        }
+
+        .score-poor {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .reasoning-trace {
+            font-size: 0.85em;
+            color: #a0aec0;
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .loading {
+            text-align: center;
+            color: #6366f1;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 ACE Framework Dashboard</h1>
+            <p class="subtitle">Aspiration → Cognition → Execution Consciousness Substrate</p>
+            <span class="status-badge" id="systemStatus">● System Operational</span>
+        </header>
+
+        <!-- System Statistics -->
+        <div class="grid">
+            <div class="card">
+                <h2>📊 System Statistics</h2>
+                <div id="systemStats" class="loading pulse">Loading statistics...</div>
+            </div>
+
+            <div class="card">
+                <h2>🧬 Pattern Library</h2>
+                <div id="patternStats" class="loading pulse">Loading patterns...</div>
+            </div>
+
+            <div class="card">
+                <h2>📖 Playbook Status</h2>
+                <div id="playbookStats" class="loading pulse">Loading playbook...</div>
+            </div>
+        </div>
+
+        <!-- Quality Trends Chart -->
+        <div class="card">
+            <h2>📈 Quality Score Trends (Last 50 Decisions)</h2>
+            <div class="chart-container">
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Decisions -->
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 Recent Decisions</h2>
+                <div id="recentDecisions" class="pattern-list loading pulse">Loading decisions...</div>
+            </div>
+
+            <div class="card">
+                <h2>🔥 Top Cognitive Patterns</h2>
+                <div id="topPatterns" class="pattern-list loading pulse">Loading top patterns...</div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="refreshAll()">🔄 Refresh Dashboard</button>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1/ace';
+        let qualityChart = null;
+
+        // Fetch system statistics
+        async function loadSystemStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const stats = result.data;
+                    const systemStatsDiv = document.getElementById('systemStats');
+                    
+                    systemStatsDiv.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">System Status</span>
+                            <span class="metric-value good">${stats.system_status || 'operational'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Generator Module</span>
+                            <span class="metric-value good">${stats.ace_modules?.generator ? '✓ Active' : '✗ Inactive'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Reflector Module</span>
+                            <span class="metric-value good">${stats.ace_modules?.reflector ? '✓ Active' : '✗ Inactive'}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Curator Module</span>
+                            <span class="metric-value good">${stats.ace_modules?.curator ? '✓ Active' : '✗ Inactive'}</span>
+                        </div>
+                    `;
+
+                    // Pattern library stats
+                    if (stats.pattern_library) {
+                        const pl = stats.pattern_library;
+                        document.getElementById('patternStats').innerHTML = `
+                            <div class="metric">
+                                <span class="metric-label">Total Patterns</span>
+                                <span class="metric-value">${pl.total_patterns || 0}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Avg Confidence</span>
+                                <span class="metric-value good">${(pl.avg_confidence || 0).toFixed(3)}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Total Usage</span>
+                                <span class="metric-value">${pl.total_usage || 0}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Success Rate</span>
+                                <span class="metric-value good">${pl.success_rate ? (pl.success_rate * 100).toFixed(1) + '%' : 'N/A'}</span>
+                            </div>
+                        `;
+                    }
+
+                    // Playbook stats
+                    if (stats.playbook) {
+                        const pb = stats.playbook;
+                        document.getElementById('playbookStats').innerHTML = `
+                            <div class="metric">
+                                <span class="metric-label">Active Rules</span>
+                                <span class="metric-value">${pb.total_rules || 0}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Avg Confidence</span>
+                                <span class="metric-value good">${(pb.avg_confidence || 0).toFixed(3)}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">High Confidence (>0.7)</span>
+                                <span class="metric-value good">${pb.high_confidence_rules || 0}</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-label">Top Category</span>
+                                <span class="metric-value">${pb.top_category || 'N/A'}</span>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('systemStats').innerHTML = `<div class="error">Failed to load statistics: ${error.message}</div>`;
+            }
+        }
+
+        // Fetch and display quality scores with chart
+        async function loadQualityScores() {
+            try {
+                const response = await fetch(`${API_BASE}/quality?limit=50`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data.scores) {
+                    const scores = result.data.scores.reverse(); // Chronological order
+                    
+                    // Prepare chart data
+                    const labels = scores.map((s, i) => `#${i + 1}`);
+                    const compositeScores = scores.map(s => s.composite_quality_score);
+                    const specificityScores = scores.map(s => s.specificity_score);
+                    const actionabilityScores = scores.map(s => s.actionability_score);
+
+                    // Create or update chart
+                    const ctx = document.getElementById('qualityChart').getContext('2d');
+                    
+                    if (qualityChart) {
+                        qualityChart.destroy();
+                    }
+
+                    qualityChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Composite Quality',
+                                    data: compositeScores,
+                                    borderColor: '#6366f1',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                },
+                                {
+                                    label: 'Specificity',
+                                    data: specificityScores,
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    tension: 0.4,
+                                    fill: false
+                                },
+                                {
+                                    label: 'Actionability',
+                                    data: actionabilityScores,
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                    tension: 0.4,
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e0e0e0'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 1,
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading quality scores:', error);
+            }
+        }
+
+        // Fetch recent decisions
+        async function loadRecentDecisions() {
+            try {
+                const response = await fetch(`${API_BASE}/decisions?limit=10`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data.decisions) {
+                    const decisions = result.data.decisions;
+                    const decisionsDiv = document.getElementById('recentDecisions');
+                    
+                    if (decisions.length === 0) {
+                        decisionsDiv.innerHTML = '<p style="text-align:center; color:#a0aec0;">No decisions recorded yet</p>';
+                        return;
+                    }
+
+                    decisionsDiv.innerHTML = decisions.map(d => {
+                        const score = d.final_quality_score || d.initial_quality_score || 0;
+                        const scoreClass = score >= 0.7 ? 'score-excellent' : score >= 0.5 ? 'score-good' : 'score-poor';
+                        
+                        return `
+                            <div class="decision-item">
+                                <div class="decision-header">
+                                    <span class="decision-type">${d.decision_type}</span>
+                                    <span class="quality-score ${scoreClass}">${score.toFixed(3)}</span>
+                                </div>
+                                <div style="font-size:0.85em; color:#a0aec0;">
+                                    Confidence: ${(d.confidence_level || 0).toFixed(3)} | 
+                                    Patterns: ${d.patterns_considered ? d.patterns_considered.length : 0} |
+                                    ${d.refactor_triggered ? '🔄 Refactored' : '✓ Initial'}
+                                </div>
+                                ${d.reasoning_trace ? `<div class="reasoning-trace">${d.reasoning_trace}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading decisions:', error);
+                document.getElementById('recentDecisions').innerHTML = `<div class="error">Failed to load decisions</div>`;
+            }
+        }
+
+        // Fetch top patterns
+        async function loadTopPatterns() {
+            try {
+                const response = await fetch(`${API_BASE}/patterns?limit=15`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data.patterns) {
+                    const patterns = result.data.patterns;
+                    const patternsDiv = document.getElementById('topPatterns');
+                    
+                    if (patterns.length === 0) {
+                        patternsDiv.innerHTML = '<p style="text-align:center; color:#a0aec0;">No patterns loaded yet</p>';
+                        return;
+                    }
+
+                    patternsDiv.innerHTML = patterns.map(p => {
+                        const confidence = p.confidence_score || 0;
+                        const confidenceClass = confidence >= 0.7 ? 'confidence-high' : confidence >= 0.5 ? 'confidence-medium' : 'confidence-low';
+                        
+                        return `
+                            <div class="pattern-item">
+                                <div class="pattern-header">
+                                    <span class="pattern-name">${p.pattern_name}</span>
+                                    <span class="confidence-badge ${confidenceClass}">${confidence.toFixed(3)}</span>
+                                </div>
+                                <div class="pattern-category">${p.pattern_category}</div>
+                                <div class="pattern-description">${p.description || 'No description'}</div>
+                                <div style="font-size:0.8em; color:#6b7280; margin-top:8px;">
+                                    Used: ${p.times_used || 0} | Success: ${p.times_successful || 0}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading patterns:', error);
+                document.getElementById('topPatterns').innerHTML = `<div class="error">Failed to load patterns</div>`;
+            }
+        }
+
+        // Refresh all dashboard data
+        function refreshAll() {
+            loadSystemStats();
+            loadQualityScores();
+            loadRecentDecisions();
+            loadTopPatterns();
+        }
+
+        // Initial load
+        refreshAll();
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>

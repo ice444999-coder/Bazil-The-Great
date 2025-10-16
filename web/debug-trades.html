@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Debug - Check Trades</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #1e1e1e; 
+            color: #d4d4d4; 
+        }
+        .section { 
+            background: #252526; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        pre { 
+            background: #1e1e1e; 
+            padding: 10px; 
+            border-radius: 3px; 
+            overflow-x: auto; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 ARES Trading Debug</h1>
+    
+    <div class="section">
+        <h2>Authentication</h2>
+        <div id="auth-status">Logging in...</div>
+    </div>
+    
+    <div class="section">
+        <h2>Open Positions API Response</h2>
+        <div id="positions-status">Fetching...</div>
+        <pre id="positions-data"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>Parsed Data</h2>
+        <div id="parsed-status"></div>
+        <pre id="parsed-data"></pre>
+    </div>
+    
+    <div class="section">
+        <a href="/trading.html" style="color: #4ec9b0;">→ Go to Trading Page</a>
+    </div>
+
+    <script>
+        async function debug() {
+            try {
+                // Step 1: Login
+                console.log('Logging in...');
+                const loginResponse = await fetch('/api/v1/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'solace_ai',
+                        password: 'test123'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error('Login failed');
+                }
+                
+                const loginData = await loginResponse.json();
+                const token = loginData.access_token;
+                
+                document.getElementById('auth-status').innerHTML = 
+                    `<span class="success">✓ Logged in as solace_ai</span><br>Token: ${token.substring(0, 20)}...`;
+                
+                // Step 2: Fetch positions
+                console.log('Fetching positions...');
+                const positionsResponse = await fetch('/api/v1/trading/open', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!positionsResponse.ok) {
+                    throw new Error('Failed to fetch positions');
+                }
+                
+                const positionsData = await positionsResponse.json();
+                
+                document.getElementById('positions-status').innerHTML = 
+                    `<span class="success">✓ API Response received</span>`;
+                document.getElementById('positions-data').textContent = 
+                    JSON.stringify(positionsData, null, 2).substring(0, 2000) + '...';
+                
+                // Step 3: Parse data
+                console.log('Parsing data...');
+                const positions = Array.isArray(positionsData) ? positionsData : 
+                                 (positionsData.positions || positionsData.trades || []);
+                
+                document.getElementById('parsed-status').innerHTML = 
+                    `<span class="success">✓ Found ${positions.length} positions</span>`;
+                document.getElementById('parsed-data').textContent = 
+                    `Total positions: ${positions.length}\n\n` +
+                    `First 3 positions:\n` +
+                    JSON.stringify(positions.slice(0, 3), null, 2);
+                
+                // Store token for trading page
+                localStorage.setItem('ares_token', token);
+                localStorage.setItem('ares_user', JSON.stringify({
+                    username: 'solace_ai'
+                }));
+                
+            } catch (error) {
+                console.error('Debug failed:', error);
+                document.body.innerHTML += `
+                    <div class="section">
+                        <h2 class="error">❌ Error</h2>
+                        <pre>${error.message}\n${error.stack}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        debug();
+    </script>
+</body>
+</html>

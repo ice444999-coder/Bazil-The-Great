@@ -1,0 +1,16 @@
+# ARES Agent Swarm Coordinator Dependencies
+# Install: pip install -r requirements.txt
+
+# Database
+psycopg2-binary==2.9.9
+
+# LLM APIs
+openai==1.52.0
+anthropic==0.39.0
+
+# Web Testing (for SENTINEL)
+playwright==1.40.0
+
+# Utilities
+requests==2.31.0
+python-dotenv==1.0.0

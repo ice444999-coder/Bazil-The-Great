@@ -1,0 +1,359 @@
+import { useState } from 'react';
+import StopLossInput from './StopLossInput';
+import TakeProfitInput from './TakeProfitInput';
+import styles from './AdvancedOrderForm.module.css';
+
+interface AdvancedOrderFormProps {
+  symbol: string;
+  currentPrice: number;
+  onSubmit: (order: OrderData) => void;
+  loading?: boolean;
+}
+
+interface OrderData {
+  symbol: string;
+  orderType: 'market' | 'limit';
+  direction: 'long' | 'short';
+  amount: number;
+  price?: number; // For limit orders
+  stopLoss?: number;
+  stopLossPercent?: number;
+  takeProfit?: number;
+  takeProfitPercent?: number;
+}
+
+export default function AdvancedOrderForm({
+  symbol,
+  currentPrice,
+  onSubmit,
+  loading = false,
+}: AdvancedOrderFormProps) {
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [direction, setDirection] = useState<'long' | 'short'>('long');
+  const [amount, setAmount] = useState<string>('');
+  const [limitPrice, setLimitPrice] = useState<string>('');
+  const [stopLoss, setStopLoss] = useState<{ price: number | null; percent: number | null }>({
+    price: null,
+    percent: null,
+  });
+  const [takeProfit, setTakeProfit] = useState<{ price: number | null; percent: number | null }>({
+    price: null,
+    percent: null,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    if (orderType === 'limit') {
+      const limitPriceNum = parseFloat(limitPrice);
+      if (isNaN(limitPriceNum) || limitPriceNum <= 0) {
+        alert('Please enter a valid limit price');
+        return;
+      }
+    }
+
+    const orderData: OrderData = {
+      symbol,
+      orderType,
+      direction,
+      amount: amountNum,
+      price: orderType === 'limit' ? parseFloat(limitPrice) : undefined,
+      stopLoss: stopLoss.price || undefined,
+      stopLossPercent: stopLoss.percent || undefined,
+      takeProfit: takeProfit.price || undefined,
+      takeProfitPercent: takeProfit.percent || undefined,
+    };
+
+    onSubmit(orderData);
+  };
+
+  const getEstimatedCost = () => {
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum)) return 0;
+
+    const price = orderType === 'limit' ? parseFloat(limitPrice) : currentPrice;
+    return amountNum * price;
+  };
+
+  const getEstimatedPnL = () => {
+    if (!takeProfit.price && !stopLoss.price) return null;
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum)) return null;
+
+    const entryPrice = orderType === 'limit' ? parseFloat(limitPrice) : currentPrice;
+
+    let maxProfit = 0;
+    let maxLoss = 0;
+
+    if (takeProfit.price) {
+      maxProfit = direction === 'long'
+        ? (takeProfit.price - entryPrice) * amountNum
+        : (entryPrice - takeProfit.price) * amountNum;
+    }
+
+    if (stopLoss.price) {
+      maxLoss = direction === 'long'
+        ? (stopLoss.price - entryPrice) * amountNum
+        : (entryPrice - stopLoss.price) * amountNum;
+    }
+
+    return { maxProfit, maxLoss };
+  };
+
+  const pnl = getEstimatedPnL();
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div
+        style={{
+          background: '#1E2329',
+          border: '1px solid #2B3139',
+          borderRadius: 8,
+          padding: 20,
+        }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #2B3139' }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#FFFFFF', marginBottom: 4 }}>
+            Place Order
+          </div>
+          <div style={{ fontSize: 12, color: '#848E9C' }}>
+            {symbol} • Current Price: ${currentPrice.toFixed(2)}
+          </div>
+        </div>
+
+        {/* Order Type Selector */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 12, color: '#848E9C', marginBottom: 8 }}>
+            Order Type
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {(['market', 'limit'] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setOrderType(type)}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: orderType === type ? '#F0B90B' : 'transparent',
+                  color: orderType === type ? '#0B0E11' : '#FFFFFF',
+                  border: `1px solid ${orderType === type ? '#F0B90B' : '#2B3139'}`,
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Direction Selector */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 12, color: '#848E9C', marginBottom: 8 }}>
+            Direction
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setDirection('long')}
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: direction === 'long' ? '#0ECB81' : 'transparent',
+                color: direction === 'long' ? '#0B0E11' : '#0ECB81',
+                border: '1px solid #0ECB81',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              BUY / LONG
+            </button>
+            <button
+              type="button"
+              onClick={() => setDirection('short')}
+              style={{
+                flex: 1,
+                padding: '12px',
+                background: direction === 'short' ? '#F6465D' : 'transparent',
+                color: direction === 'short' ? '#0B0E11' : '#F6465D',
+                border: '1px solid #F6465D',
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              SELL / SHORT
+            </button>
+          </div>
+        </div>
+
+        {/* Limit Price (if limit order) */}
+        {orderType === 'limit' && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 12, color: '#848E9C', marginBottom: 8 }}>
+              Limit Price (USDT)
+            </label>
+            <input
+              type="number"
+              value={limitPrice}
+              onChange={(e) => setLimitPrice(e.target.value)}
+              placeholder={currentPrice.toFixed(2)}
+              step="0.01"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#0B0E11',
+                border: '1px solid #2B3139',
+                borderRadius: 6,
+                color: '#FFFFFF',
+                fontSize: 14,
+                outline: 'none',
+              }}
+            />
+          </div>
+        )}
+
+        {/* Amount Input */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 12, color: '#848E9C', marginBottom: 8 }}>
+            Amount (USDT)
+          </label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="100.00"
+            min="0"
+            step="0.01"
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: '#0B0E11',
+              border: '1px solid #2B3139',
+              borderRadius: 6,
+              color: '#FFFFFF',
+              fontSize: 14,
+              outline: 'none',
+            }}
+          />
+          {amount && (
+            <div style={{ fontSize: 11, color: '#848E9C', marginTop: 6 }}>
+              Estimated Cost: ${getEstimatedCost().toFixed(2)} USDT
+            </div>
+          )}
+        </div>
+
+        {/* Stop Loss */}
+        <div style={{ marginBottom: 16 }}>
+          <StopLossInput
+            currentPrice={orderType === 'limit' ? parseFloat(limitPrice) || currentPrice : currentPrice}
+            direction={direction}
+            onStopLossChange={(price, percent) => setStopLoss({ price, percent })}
+            disabled={loading}
+          />
+        </div>
+
+        {/* Take Profit */}
+        <div style={{ marginBottom: 20 }}>
+          <TakeProfitInput
+            currentPrice={orderType === 'limit' ? parseFloat(limitPrice) || currentPrice : currentPrice}
+            direction={direction}
+            onTakeProfitChange={(price, percent) => setTakeProfit({ price, percent })}
+            disabled={loading}
+          />
+        </div>
+
+        {/* PnL Summary */}
+        {pnl && (pnl.maxProfit > 0 || pnl.maxLoss < 0) && (
+          <div
+            style={{
+              padding: '16px',
+              background: '#0B0E11',
+              borderRadius: 8,
+              marginBottom: 20,
+            }}
+          >
+            <div style={{ fontSize: 12, color: '#848E9C', marginBottom: 12, fontWeight: 600 }}>
+              Risk/Reward Summary
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+              {pnl.maxLoss < 0 && (
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: '#848E9C', marginBottom: 4 }}>Max Loss</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#F6465D' }}>
+                    ${Math.abs(pnl.maxLoss).toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#F6465D' }}>
+                    {stopLoss.percent?.toFixed(2)}%
+                  </div>
+                </div>
+              )}
+              {pnl.maxProfit > 0 && (
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  <div style={{ fontSize: 11, color: '#848E9C', marginBottom: 4 }}>Max Profit</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#0ECB81' }}>
+                    ${pnl.maxProfit.toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#0ECB81' }}>
+                    {takeProfit.percent?.toFixed(2)}%
+                  </div>
+                </div>
+              )}
+            </div>
+            {pnl.maxProfit > 0 && pnl.maxLoss < 0 && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #2B3139' }}>
+                <div style={{ fontSize: 11, color: '#848E9C', marginBottom: 4 }}>
+                  Risk/Reward Ratio
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#F0B90B' }}>
+                  1 : {(Math.abs(pnl.maxProfit / pnl.maxLoss)).toFixed(2)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading || !amount}
+          style={{
+            width: '100%',
+            padding: '16px',
+            background: loading || !amount ? '#2B3139' : (direction === 'long' ? '#0ECB81' : '#F6465D'),
+            color: loading || !amount ? '#848E9C' : '#FFFFFF',
+            border: 'none',
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: loading || !amount ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            textTransform: 'uppercase',
+          }}
+        >
+          {loading ? 'Placing Order...' : `Place ${direction} Order`}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export type { OrderData };

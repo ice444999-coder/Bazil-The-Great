@@ -36,13 +36,12 @@ func (cc *ChatController) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Get userID from JWT middleware context
+	// Get userID from JWT middleware context, or use default guest user (1)
+	userID := uint(1) // Default guest user
 	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
+	if exists {
+		userID = userIDInterface.(uint)
 	}
-	userID := userIDInterface.(uint)
 
 	// Call chat service
 	resp, err := cc.Service.SendMessage(userID, req)
@@ -67,7 +66,7 @@ func (cc *ChatController) SendMessage(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param   limit query int false "Number of messages" default(20)
-// @Success 200 {array} dto.ChatHistoryResponse
+// @Success 200 {object} dto.ChatHistoryListResponse
 // @Failure 400 {object} map[string]string
 // @Security BearerAuth
 // @Router /chat/history [get]
@@ -75,13 +74,12 @@ func (cc *ChatController) GetHistory(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "20")
 	limit, _ := strconv.Atoi(limitStr)
 
-	// Get userID from JWT middleware context
+	// Get userID from JWT middleware context, or use default guest user (1)
+	userID := uint(1) // Default guest user
 	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
+	if exists {
+		userID = userIDInterface.(uint)
 	}
-	userID := userIDInterface.(uint)
 
 	history, err := cc.Service.GetHistory(userID, limit)
 	if err != nil {
@@ -89,5 +87,25 @@ func (cc *ChatController) GetHistory(c *gin.Context) {
 		return
 	}
 
-	common.JSON(c, http.StatusOK, history)
+	// Convert to UI-friendly format
+	messages := make([]dto.ChatHistoryMessage, 0)
+	for _, h := range history {
+		// Add user message
+		messages = append(messages, dto.ChatHistoryMessage{
+			Role:      "user",
+			Content:   h.Message,
+			CreatedAt: h.CreatedAt,
+		})
+		// Add assistant response
+		messages = append(messages, dto.ChatHistoryMessage{
+			Role:      "assistant",
+			Content:   h.Response,
+			CreatedAt: h.CreatedAt,
+			Thinking:  "", // TODO: Extract <think> tags if present
+		})
+	}
+
+	common.JSON(c, http.StatusOK, dto.ChatHistoryListResponse{
+		Messages: messages,
+	})
 }

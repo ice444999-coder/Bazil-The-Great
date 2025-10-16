@@ -1,0 +1,22 @@
+import styles from './StatsCard.module.css';
+
+interface StatsCardProps {
+  label: string;
+  value: string | number;
+  positive?: boolean;
+}
+
+export default function StatsCard({ label, value, positive }: StatsCardProps) {
+  const valueClass = positive === true ? styles.valuePositive : positive === false ? styles.valueNegative : styles.valueNeutral;
+
+  return (
+    <div className={styles.statBox}>
+      <div className={styles.label}>{label}</div>
+      <div className={valueClass}>
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </div>
+    </div>
+  );
+}
+
+export type { StatsCardProps };

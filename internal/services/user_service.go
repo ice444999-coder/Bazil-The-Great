@@ -83,3 +83,12 @@ func (s *UserService) Refresh(refreshToken string) (string, error) {
 
 	return accessToken, nil
 }
+
+// GetUserByID retrieves a user by their ID
+func (s *UserService) GetUserByID(id uint) (*models.User, error) {
+	user, err := s.Repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
+}

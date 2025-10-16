@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES - Memory System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .user-info {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            border-left: 3px solid white;
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            margin: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Search Bar */
+        .search-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Memory Grid */
+        .memories-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .memory-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .memory-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .memory-card.episodic {
+            border-left-color: #10b981;
+        }
+
+        .memory-card.semantic {
+            border-left-color: #3b82f6;
+        }
+
+        .memory-card.working {
+            border-left-color: #f59e0b;
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .memory-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .memory-type {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .memory-type.episodic {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .memory-type.semantic {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .memory-type.working {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .memory-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .importance-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .importance-indicator {
+            width: 100px;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .importance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #667eea);
+            transition: width 0.3s;
+        }
+
+        .importance-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .memory-content {
+            margin-bottom: 15px;
+        }
+
+        .memory-text {
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .memory-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .memory-tag {
+            padding: 4px 10px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* Timeline View */
+        .timeline-container {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -33px;
+            top: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #e0e0e0;
+        }
+
+        .view-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>ARES</h1>
+                <p>Autonomous AI Trading System</p>
+            </div>
+
+            <div class="user-info">
+                <div class="username" id="username">Loading...</div>
+                <div class="role">Administrator</div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/trading.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    <span>Trading</span>
+                </a>
+                <a href="/chat.html" class="nav-item">
+                    <span class="icon">💬</span>
+                    <span>Chat with SOLACE</span>
+                </a>
+                <a href="/editor.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    <span>Code Editor</span>
+                </a>
+                <a href="/memory.html" class="nav-item active">
+                    <span class="icon">🧠</span>
+                    <span>Memory System</span>
+                </a>
+                <a href="/vision.html" class="nav-item">
+                    <span class="icon">👁️</span>
+                    <span>SOLACE Vision</span>
+                </a>
+                <a href="/health.html" class="nav-item">
+                    <span class="icon">❤️</span>
+                    <span>System Health</span>
+                </a>
+            </nav>
+
+            <div class="logout-btn" onclick="logout()">
+                🚪 Logout
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="/chat.html" style="text-decoration: none; color: #6C63FF; font-size: 1.5rem;" title="Back to Chat">←</a>
+                    <div>
+                        <h2>Memory System</h2>
+                        <p>Explore SOLACE's episodic, semantic, and working memory</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="label">Total Memories</div>
+                    <div class="value" id="totalMemories">0</div>
+                </div>
+                <div class="stat-box" title="Episodic: Event-based memories (errors, fixes, actions)">
+                    <div class="label">📖 Episodic</div>
+                    <div class="value" id="episodicCount">0</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">Events & Actions</div>
+                </div>
+                <div class="stat-box" title="Semantic: Knowledge-based memories (concepts, explanations)">
+                    <div class="label">💡 Semantic</div>
+                    <div class="value" id="semanticCount">0</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">Knowledge & Facts</div>
+                </div>
+                <div class="stat-box" title="Working: Active context memories (current conversations)">
+                    <div class="label">⚡ Working Memory</div>
+                    <div class="value" id="workingCount">0</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">Active Context</div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-section">
+                <div class="search-wrapper">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="Search memories semantically..."
+                    >
+                    <button class="search-btn" id="searchBtn">
+                        🔍 Search
+                    </button>
+                </div>
+
+                <div class="filters">
+                    <button class="filter-btn active" data-type="all">
+                        All Memories
+                    </button>
+                    <button class="filter-btn" data-type="episodic">
+                        📖 Episodic
+                    </button>
+                    <button class="filter-btn" data-type="semantic">
+                        💡 Semantic
+                    </button>
+                    <button class="filter-btn" data-type="working">
+                        ⚡ Working
+                    </button>
+                </div>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="grid">
+                    📊 Grid View
+                </button>
+                <button class="view-btn" data-view="timeline">
+                    📅 Timeline View
+                </button>
+            </div>
+
+            <!-- Memories Display -->
+            <div id="memoriesContainer">
+                <div class="loading">Loading memories...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === SOLACE's Architectural Decision: addEventListener + DOMContentLoaded ===
+        // Wrapping all JavaScript to ensure DOM is fully loaded before execution
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global state - DECLARE FIRST (per SOLACE's debugging instructions)
+            let allMemories = [];
+            let filteredMemories = [];
+            let currentFilter = 'all';
+            let currentView = 'grid';
+
+            // Authentication (moved after variable declarations)
+            const token = localStorage.getItem('ares_token');
+            const userStr = localStorage.getItem('ares_user');
+            const user = (userStr && userStr !== 'undefined' && userStr !== 'null') ? JSON.parse(userStr) : {};
+
+            // Removed auth redirect - guest access allowed per SOLACE's decision
+            // if (!token) {
+            //     window.location.href = '/login.html';
+            // }
+
+            document.getElementById('username').textContent = user.username || 'Guest';
+
+            function logout() {
+                localStorage.removeItem('ares_token');
+                localStorage.removeItem('ares_user');
+                window.location.href = '/login.html';
+            }
+            
+            // Attach logout event listener
+            const logoutBtn = document.querySelector('.logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+
+        // Load memories from conversations endpoint (SOLACE's new endpoint!)
+        async function loadMemories() {
+            try {
+                const response = await fetch('/api/v1/memory/conversations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allMemories = data.memories || [];
+                    filteredMemories = allMemories;
+                    updateStats();
+                    renderMemories();
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading memories:', error);
+                showEmptyState();
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalMemories').textContent = allMemories.length;
+            
+            const episodic = allMemories.filter(m => m.memory_type === 'episodic').length;
+            const semantic = allMemories.filter(m => m.memory_type === 'semantic').length;
+            const working = allMemories.filter(m => m.memory_type === 'working').length;
+
+            document.getElementById('episodicCount').textContent = episodic;
+            document.getElementById('semanticCount').textContent = semantic;
+            document.getElementById('workingCount').textContent = working;
+        }
+
+        // Filter by type
+        function filterByType(type) {
+            currentFilter = type;
+
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Filter memories
+            if (type === 'all') {
+                filteredMemories = allMemories;
+            } else {
+                filteredMemories = allMemories.filter(m => m.memory_type === type);
+            }
+
+            renderMemories();
+        }
+
+        // Search memories
+        async function searchMemories() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                filteredMemories = allMemories;
+                renderMemories();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/memory/recall', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    filteredMemories = data.memories || [];
+                    renderMemories();
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        function handleSearchKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchMemories();
+            }
+        }
+
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.view === view) {
+                    btn.classList.add('active');
+                }
+            });
+
+            renderMemories();
+        }
+
+        // Render memories
+        function renderMemories() {
+            const container = document.getElementById('memoriesContainer');
+
+            if (filteredMemories.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            if (currentView === 'grid') {
+                renderGridView(container);
+            } else {
+                renderTimelineView(container);
+            }
+        }
+
+        function renderGridView(container) {
+            const html = `
+                <div class="memories-grid">
+                    ${filteredMemories.map(memory => createMemoryCard(memory)).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderTimelineView(container) {
+            const html = `
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    ${filteredMemories.map(memory => `
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            ${createMemoryCard(memory)}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function createMemoryCard(memory) {
+            const importance = (memory.importance || 0.5) * 100;
+            const memoryType = memory.memory_type || 'working';
+            
+            // FIXED: Use 'timestamp' field from API (not 'created_at')
+            let timestamp = 'Unknown';
+            if (memory.timestamp) {
+                try {
+                    const date = new Date(memory.timestamp);
+                    timestamp = date.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (e) {
+                    console.error('Failed to parse timestamp:', e);
+                }
+            }
+
+            // Parse content - show user message
+            let content = memory.content || memory.user_message || 'No content';
+            if (content.length > 200) {
+                content = content.substring(0, 200) + '...';
+            }
+
+            return `
+                <div class="memory-card ${memoryType}">
+                    <div class="memory-header">
+                        <div class="memory-meta">
+                            <span class="memory-type ${memoryType}">${memoryType}</span>
+                            <span class="memory-time">${timestamp}</span>
+                        </div>
+                        <div class="importance-bar" title="Importance: ${importance.toFixed(0)}% - Based on conversation length and complexity">
+                            <div class="importance-indicator">
+                                <div class="importance-fill" style="width: ${importance}%"></div>
+                            </div>
+                            <span class="importance-value" title="Higher % = More significant conversation">${importance.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-text">${content}</div>
+                    </div>
+                    <div class="memory-tags">
+                        <span class="memory-tag">ID: ${memory.id}</span>
+                        ${memory.snapshot_type ? `<span class="memory-tag">${memory.snapshot_type}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showEmptyState() {
+            const container = document.getElementById('memoriesContainer');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🧠</div>
+                    <h3>No memories found</h3>
+                    <p>SOLACE will create memories as it learns from trading and conversations.</p>
+                </div>
+            `;
+        }
+
+        // Load on page load
+        loadMemories();
+
+        // Refresh every 30 seconds
+        setInterval(loadMemories, 30000);
+
+        // === Event Listeners (SOLACE's Solution: addEventListener) ===
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterByType(this.dataset.type);
+            });
+        });
+
+        // View switcher buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                switchView(this.dataset.view);
+            });
+        });
+
+        // Search button
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', searchMemories);
+        }
+
+        // Search input (Enter key)
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    searchMemories();
+                }
+            });
+        }
+
+        }); // End DOMContentLoaded
+    </script>
+</body>
+</html>

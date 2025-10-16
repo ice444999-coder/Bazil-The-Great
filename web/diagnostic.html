@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARES Trading UI Diagnostic</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #0B0E11;
+            color: #EAECEF;
+            padding: 20px;
+        }
+        .test {
+            background: #1E2329;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .pass { border-left-color: #0ECB81; }
+        .fail { border-left-color: #F6465D; }
+        h1 { color: #667eea; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 ARES Trading UI Diagnostic Tool</h1>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="location.href='/trading.html'">Open Trading UI</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        async function runAllTests() {
+            results.innerHTML = '<p>Running diagnostics...</p>';
+            
+            // Test 1: Lightweight Charts Library
+            testLightweightCharts();
+            
+            // Test 2: Binance API Accessibility
+            await testBinanceAPI();
+            
+            // Test 3: WebSocket Connectivity
+            await testWebSockets();
+            
+            // Test 4: SOLACE Backend
+            await testSOLACEBackend();
+            
+            // Test 5: Database Tables
+            showDatabaseInfo();
+        }
+
+        function testLightweightCharts() {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = '<strong>Test 1: TradingView Lightweight Charts</strong><br>';
+            
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
+            script.onload = () => {
+                if (typeof LightweightCharts !== 'undefined') {
+                    testDiv.innerHTML += '✅ Lightweight Charts loaded successfully';
+                    testDiv.className = 'test pass';
+                } else {
+                    testDiv.innerHTML += '❌ Lightweight Charts failed to load';
+                    testDiv.className = 'test fail';
+                }
+            };
+            script.onerror = () => {
+                testDiv.innerHTML += '❌ Failed to fetch Lightweight Charts from CDN';
+                testDiv.className = 'test fail';
+            };
+            document.head.appendChild(script);
+            results.appendChild(testDiv);
+        }
+
+        async function testBinanceAPI() {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = '<strong>Test 2: Binance API Connectivity</strong><br>Testing...';
+            results.appendChild(testDiv);
+            
+            try {
+                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT');
+                const data = await response.json();
+                
+                if (data.symbol === 'BTCUSDT') {
+                    testDiv.innerHTML = `<strong>Test 2: Binance API Connectivity</strong><br>
+                        ✅ Connected to Binance API<br>
+                        📊 BTC Price: $${parseFloat(data.lastPrice).toFixed(2)}<br>
+                        📈 24h Change: ${parseFloat(data.priceChangePercent).toFixed(2)}%`;
+                    testDiv.className = 'test pass';
+                } else {
+                    throw new Error('Invalid response');
+                }
+            } catch (error) {
+                testDiv.innerHTML = `<strong>Test 2: Binance API Connectivity</strong><br>
+                    ❌ Failed to connect to Binance API<br>
+                    Error: ${error.message}`;
+                testDiv.className = 'test fail';
+            }
+        }
+
+        async function testWebSockets() {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = '<strong>Test 3: WebSocket Connectivity</strong><br>Testing...';
+            results.appendChild(testDiv);
+            
+            let results_text = '';
+            
+            // Test Binance WebSocket
+            try {
+                const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+                await new Promise((resolve, reject) => {
+                    ws.onopen = () => {
+                        results_text += '✅ Binance WebSocket connected<br>';
+                        ws.close();
+                        resolve();
+                    };
+                    ws.onerror = reject;
+                    setTimeout(reject, 5000);
+                });
+            } catch (error) {
+                results_text += '❌ Binance WebSocket failed<br>';
+            }
+            
+            // Test SOLACE WebSocket
+            try {
+                const ws = new WebSocket('ws://localhost:8080/api/v1/solace/observe');
+                await new Promise((resolve, reject) => {
+                    ws.onopen = () => {
+                        results_text += '✅ SOLACE WebSocket connected<br>';
+                        ws.close();
+                        resolve();
+                    };
+                    ws.onerror = reject;
+                    setTimeout(reject, 3000);
+                });
+            } catch (error) {
+                results_text += '❌ SOLACE WebSocket failed<br>';
+            }
+            
+            testDiv.innerHTML = '<strong>Test 3: WebSocket Connectivity</strong><br>' + results_text;
+            testDiv.className = results_text.includes('❌') ? 'test fail' : 'test pass';
+        }
+
+        async function testSOLACEBackend() {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = '<strong>Test 4: SOLACE Backend</strong><br>Testing...';
+            results.appendChild(testDiv);
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/health');
+                if (response.ok) {
+                    testDiv.innerHTML = '<strong>Test 4: SOLACE Backend</strong><br>✅ ARES backend responding';
+                    testDiv.className = 'test pass';
+                } else {
+                    throw new Error('Backend not healthy');
+                }
+            } catch (error) {
+                testDiv.innerHTML = '<strong>Test 4: SOLACE Backend</strong><br>❌ ARES backend not responding';
+                testDiv.className = 'test fail';
+            }
+        }
+
+        function showDatabaseInfo() {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = `<strong>Test 5: Database Tables</strong><br>
+                ℹ️ Run this PowerShell command to check database:<br>
+                <code>cd C:\\ARES_Workspace; .\\test_solace_observation.ps1</code>`;
+            results.appendChild(testDiv);
+        }
+
+        // Auto-run on page load
+        window.onload = runAllTests;
+    </script>
+</body>
+</html>

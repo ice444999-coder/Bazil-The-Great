@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES Documentation Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0d1117;
+            --bg-darker: #010409;
+            --bg-card: #161b22;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-purple: #bc8cff;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-darker);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .header-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-darker);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .category-group {
+            margin-bottom: 1rem;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .category-header:hover {
+            background: var(--bg-card);
+        }
+
+        .category-icon {
+            font-size: 0.875rem;
+            color: var(--accent-blue);
+        }
+
+        .category-name {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .category-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+        }
+
+        .doc-list {
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .doc-item {
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .doc-item:hover {
+            background: var(--bg-card);
+            border-left-color: var(--accent-blue);
+        }
+
+        .doc-item.active {
+            background: var(--bg-card);
+            border-left-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-close {
+            margin-left: 0.5rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .tab-close:hover {
+            opacity: 1;
+            color: var(--accent-red);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Document Content */
+        .doc-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--accent-blue);
+        }
+
+        .doc-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .doc-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .markdown-body {
+            color: var(--text-primary);
+        }
+
+        .markdown-body h1 {
+            font-size: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--accent-blue);
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent-purple);
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-green);
+        }
+
+        .markdown-body code {
+            background: var(--bg-card);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
+            color: var(--accent-purple);
+        }
+
+        .markdown-body pre {
+            background: var(--bg-darker);
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        .markdown-body a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .markdown-body th {
+            background: var(--bg-card);
+            font-weight: 600;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 2rem;
+            margin: 0.5rem 0;
+        }
+
+        .markdown-body li {
+            margin: 0.25rem 0;
+        }
+
+        /* Fault Vault Styles */
+        .fault-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 6px;
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-select {
+            width: 100%;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .fault-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .fault-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 6px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fault-item:hover {
+            border-left-width: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .fault-item.severity-low {
+            border-left-color: var(--accent-green);
+        }
+
+        .fault-item.severity-medium {
+            border-left-color: var(--accent-yellow);
+        }
+
+        .fault-item.severity-high {
+            border-left-color: var(--accent-red);
+        }
+
+        .fault-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .fault-type {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .fault-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .fault-description {
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+
+        .fault-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .fault-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            background: var(--bg-darker);
+            color: var(--text-secondary);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1 class="header-title">
+                <i class="fas fa-book"></i> ARES Documentation Portal
+            </h1>
+            <span class="header-subtitle">SOLACE governs ARES Platform</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="/trading.html" class="nav-link"><i class="fas fa-chart-line"></i> Trading</a>
+            <a href="/chat.html" class="nav-link"><i class="fas fa-comments"></i> Chat</a>
+            <a href="/health.html" class="nav-link"><i class="fas fa-heartbeat"></i> Health</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="section-title">Quick Access</div>
+                <div class="category-group">
+                    <div class="category-header" onclick="loadFaultVault()">
+                        <i class="category-icon fas fa-exclamation-triangle"></i>
+                        <span class="category-name">Fault Vault</span>
+                        <span class="category-count" id="fault-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-title">Documents by Category</div>
+                <div id="categories-container"></div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <div class="tabs" id="tabs-container"></div>
+            <div id="content-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let categories = {};
+        let openTabs = [];
+        let activeTab = null;
+        let faultVaultData = null;
+
+        // API Base URL
+        const API_BASE = 'http://localhost:8080/api/v1';
+
+        // Get JWT token from localStorage
+        function getAuthToken() {
+            return localStorage.getItem('jwt_token');
+        }
+
+        // Initialize
+        async function init() {
+            await loadCategories();
+            await loadFaultVaultStats();
+            
+            // Open masterplan by default
+            const masterplanDocs = Object.values(categories).flat().find(doc => doc.category === 'Masterplan');
+            if (masterplanDocs) {
+                openDocument(Object.values(categories).flat().find(doc => doc.category === 'Masterplan'));
+            }
+        }
+
+        // Load document categories
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/docs/categories`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                const data = await response.json();
+                categories = data.categories || {};
+                renderCategories();
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        // Load fault vault stats
+        async function loadFaultVaultStats() {
+            try {
+                const response = await fetch(`${API_BASE}/fault-vault/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                const stats = await response.json();
+                document.getElementById('fault-count').textContent = stats.TotalActions || 0;
+            } catch (error) {
+                console.error('Failed to load fault stats:', error);
+            }
+        }
+
+        // Render categories in sidebar
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+            const categoryIcons = {
+                'Masterplan': 'fa-rocket',
+                'Gate Verification': 'fa-check-circle',
+                'Phase Reports': 'fa-list-check',
+                'Implementation Status': 'fa-code-branch',
+                'Architecture': 'fa-building',
+                'ACE Framework': 'fa-brain',
+                'SOLACE': 'fa-robot',
+                'Trading System': 'fa-chart-line',
+                'Memory System': 'fa-database',
+                'LLM Infrastructure': 'fa-microchip',
+                'UI/Desktop': 'fa-desktop',
+                'Guides': 'fa-book-open',
+                'README': 'fa-file-alt',
+                'Session Summaries': 'fa-calendar-check',
+                'Roadmaps': 'fa-route',
+                'Security & Stability': 'fa-shield-alt',
+                'Other': 'fa-file'
+            };
+
+            Object.entries(categories).forEach(([categoryName, docs]) => {
+                const icon = categoryIcons[categoryName] || 'fa-file';
+                
+                const group = document.createElement('div');
+                group.className = 'category-group';
+                group.innerHTML = `
+                    <div class="category-header" onclick="toggleCategory('${categoryName}')">
+                        <i class="category-icon fas ${icon}"></i>
+                        <span class="category-name">${categoryName}</span>
+                        <span class="category-count">${docs.length}</span>
+                    </div>
+                    <div class="doc-list" id="category-${categoryName.replace(/\s+/g, '-')}" style="display: none;">
+                        ${docs.map(doc => `
+                            <div class="doc-item" onclick='openDocument(${JSON.stringify(doc).replace(/'/g, "&apos;")})'>
+                                ${doc.name}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(group);
+            });
+        }
+
+        // Toggle category expansion
+        function toggleCategory(categoryName) {
+            const listId = `category-${categoryName.replace(/\s+/g, '-')}`;
+            const list = document.getElementById(listId);
+            list.style.display = list.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Open document in new tab
+        async function openDocument(doc) {
+            // Check if already open
+            const existing = openTabs.find(tab => tab.path === doc.path);
+            if (existing) {
+                switchTab(doc.path);
+                return;
+            }
+
+            // Load document content
+            try {
+                const response = await fetch(`${API_BASE}/docs/content?path=${encodeURIComponent(doc.path)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    }
+                });
+                const data = await response.json();
+                
+                openTabs.push({
+                    name: doc.name,
+                    path: doc.path,
+                    content: data.content,
+                    modifiedAt: data.modified_at,
+                    size: data.size,
+                    category: doc.category
+                });
+                
+                renderTabs();
+                switchTab(doc.path);
+            } catch (error) {
+                console.error('Failed to load document:', error);
+                alert('Failed to load document: ' + error.message);
+            }
+        }
+
+        // Load fault vault
+        async function loadFaultVault() {
+            try {
+                const [actionsRes, statsRes] = await Promise.all([
+                    fetch(`${API_BASE}/fault-vault/actions?limit=50`, {
+                        headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                    }),
+                    fetch(`${API_BASE}/fault-vault/stats`, {
+                        headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+                    })
+                ]);
+
+                const actionsData = await actionsRes.json();
+                const statsData = await statsRes.json();
+
+                const existing = openTabs.find(tab => tab.path === '_fault_vault');
+                if (existing) {
+                    existing.actions = actionsData.actions;
+                    existing.stats = statsData;
+                    switchTab('_fault_vault');
+                } else {
+                    openTabs.push({
+                        name: 'Fault Vault',
+                        path: '_fault_vault',
+                        actions: actionsData.actions || [],
+                        stats: statsData,
+                        isFaultVault: true
+                    });
+                    renderTabs();
+                    switchTab('_fault_vault');
+                }
+            } catch (error) {
+                console.error('Failed to load fault vault:', error);
+            }
+        }
+
+        // Render tabs
+        function renderTabs() {
+            const tabsContainer = document.getElementById('tabs-container');
+            tabsContainer.innerHTML = openTabs.map(tab => `
+                <button class="tab ${activeTab === tab.path ? 'active' : ''}" onclick="switchTab('${tab.path}')">
+                    <i class="fas ${tab.isFaultVault ? 'fa-exclamation-triangle' : 'fa-file-alt'}"></i>
+                    ${tab.name}
+                    <span class="tab-close" onclick="event.stopPropagation(); closeTab('${tab.path}')">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </button>
+            `).join('');
+        }
+
+        // Switch to tab
+        function switchTab(path) {
+            activeTab = path;
+            renderTabs();
+            renderContent();
+        }
+
+        // Close tab
+        function closeTab(path) {
+            openTabs = openTabs.filter(tab => tab.path !== path);
+            if (activeTab === path && openTabs.length > 0) {
+                activeTab = openTabs[0].path;
+            } else if (openTabs.length === 0) {
+                activeTab = null;
+            }
+            renderTabs();
+            renderContent();
+        }
+
+        // Render active tab content
+        function renderContent() {
+            const container = document.getElementById('content-container');
+            const tab = openTabs.find(t => t.path === activeTab);
+            
+            if (!tab) {
+                container.innerHTML = '<div class="loading">Select a document to view</div>';
+                return;
+            }
+
+            if (tab.isFaultVault) {
+                renderFaultVault(tab);
+            } else {
+                renderDocument(tab);
+            }
+        }
+
+        // Render document
+        function renderDocument(tab) {
+            const container = document.getElementById('content-container');
+            
+            const html = marked.parse(tab.content);
+            
+            container.innerHTML = `
+                <div class="doc-header">
+                    <h1 class="doc-title">${tab.name}</h1>
+                    <div class="doc-meta">
+                        <div class="doc-meta-item">
+                            <i class="fas fa-folder"></i>
+                            ${tab.category}
+                        </div>
+                        <div class="doc-meta-item">
+                            <i class="fas fa-calendar"></i>
+                            Modified: ${new Date(tab.modifiedAt).toLocaleDateString()}
+                        </div>
+                        <div class="doc-meta-item">
+                            <i class="fas fa-file-code"></i>
+                            ${(tab.size / 1024).toFixed(1)} KB
+                        </div>
+                    </div>
+                </div>
+                <div class="markdown-body">${html}</div>
+            `;
+
+            // Highlight code blocks
+            container.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        // Render fault vault
+        function renderFaultVault(tab) {
+            const container = document.getElementById('content-container');
+            const stats = tab.stats || {};
+            const actions = tab.actions || [];
+
+            container.innerHTML = `
+                <div class="doc-header">
+                    <h1 class="doc-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Fault Vault
+                    </h1>
+                    <div class="doc-meta">
+                        <div class="doc-meta-item">
+                            <i class="fas fa-info-circle"></i>
+                            System error tracking to prevent repetition
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.TotalActions || 0}</div>
+                        <div class="stat-label">Total Faults</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.ErrorCount || 0}</div>
+                        <div class="stat-label">Errors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.WarningCount || 0}</div>
+                        <div class="stat-label">Warnings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(stats.AvgSeverity || 0).toFixed(1)}</div>
+                        <div class="stat-label">Avg Severity</div>
+                    </div>
+                </div>
+
+                <div class="fault-filters">
+                    <div class="filter-group">
+                        <label class="filter-label">Type</label>
+                        <select class="filter-select" onchange="filterFaults('type', this.value)">
+                            <option value="">All</option>
+                            <option value="error">Errors</option>
+                            <option value="warning">Warnings</option>
+                            <option value="info">Info</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Component</label>
+                        <select class="filter-select" onchange="filterFaults('component', this.value)">
+                            <option value="">All</option>
+                            <option value="trading">Trading</option>
+                            <option value="llm">LLM</option>
+                            <option value="memory">Memory</option>
+                            <option value="api">API</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Severity</label>
+                        <select class="filter-select" onchange="filterFaults('severity', this.value)">
+                            <option value="">All</option>
+                            <option value="1">Low (1-3)</option>
+                            <option value="4">Medium (4-6)</option>
+                            <option value="7">High (7-10)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="fault-list">
+                    ${actions.map(action => {
+                        const severity = action.severity <= 3 ? 'low' : action.severity <= 6 ? 'medium' : 'high';
+                        return `
+                            <div class="fault-item severity-${severity}">
+                                <div class="fault-header">
+                                    <div class="fault-type">${action.action_type.toUpperCase()}: ${action.component}</div>
+                                    <div class="fault-time">${new Date(action.timestamp).toLocaleString()}</div>
+                                </div>
+                                <div class="fault-description">${action.description}</div>
+                                ${action.error_message ? `<div class="fault-description" style="color: var(--accent-red);">Error: ${action.error_message}</div>` : ''}
+                                <div class="fault-tags">
+                                    <span class="fault-tag">Severity: ${action.severity}/10</span>
+                                    <span class="fault-tag">Result: ${action.result}</span>
+                                    ${action.learned_rule ? `<span class="fault-tag" style="background: var(--accent-green); color: var(--bg-dark);">Rule Learned</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Filter faults (stub for future implementation)
+        function filterFaults(type, value) {
+            console.log(`Filter ${type}: ${value}`);
+            // TODO: Reload fault vault with filters
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

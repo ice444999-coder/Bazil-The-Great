@@ -1,0 +1,254 @@
+/* AdvancedOrderForm CSS Module */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #181A20;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: #FFFFFF;
+}
+
+.header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #2B3139;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #848E9C;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  color: #848E9C;
+  margin-bottom: 8px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.typeButton {
+  flex: 1;
+  padding: 10px 16px;
+  background: #2B3139;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.typeButton:hover {
+  background: #474D57;
+}
+
+.typeButtonActive {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: #F0B90B;
+  color: #181A20;
+}
+
+.sideButton {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.sideButton:hover {
+  opacity: 0.8;
+}
+
+.sideButtonBuy {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: #0ECB81;
+  color: #FFFFFF;
+}
+
+.sideButtonSell {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: #F6465D;
+  color: #FFFFFF;
+}
+
+.sideButtonActive {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  background: #2B3139;
+  border: 1px solid #2B3139;
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #F0B90B;
+}
+
+.helperText {
+  font-size: 11px;
+  color: #848E9C;
+  margin-top: 6px;
+}
+
+.checkbox {
+  margin-right: 8px;
+}
+
+.riskSummary {
+  margin-bottom: 20px;
+}
+
+.riskBox {
+  background: linear-gradient(135deg, rgba(240, 185, 11, 0.1), rgba(240, 185, 11, 0.05));
+  border: 1px solid rgba(240, 185, 11, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.riskLabel {
+  font-size: 12px;
+  color: #848E9C;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.riskMetrics {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.riskMetric {
+  flex: 1;
+}
+
+.riskMetricRight {
+  flex: 1;
+  text-align: right;
+}
+
+.metricLabel {
+  font-size: 11px;
+  color: #848E9C;
+  margin-bottom: 4px;
+}
+
+.metricValueLoss {
+  font-size: 18px;
+  font-weight: 700;
+  color: #F6465D;
+}
+
+.metricValueProfit {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0ECB81;
+}
+
+.metricSubtext {
+  font-size: 10px;
+}
+
+.metricSubtextLoss {
+  font-size: 10px;
+  color: #F6465D;
+}
+
+.metricSubtextProfit {
+  font-size: 10px;
+  color: #0ECB81;
+}
+
+.marginInfo {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #2B3139;
+}
+
+.marginLabel {
+  font-size: 11px;
+  color: #848E9C;
+  margin-bottom: 4px;
+}
+
+.marginValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #F0B90B;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(90deg, #F0B90B, #F8D12F);
+  color: #181A20;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submitButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

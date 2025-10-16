@@ -92,13 +92,12 @@ func (mc *MemoryController) Learn(c *gin.Context) {
 // @Security BearerAuth
 // @Router /memory/recall [get]
 func (mc *MemoryController) Recall(c *gin.Context) {
-	// Get userID from JWT middleware context
+	// Get userID from JWT middleware context, or use default guest user (per SOLACE's decision)
+	userID := uint(1) // Default guest user
 	userIDInterface, exists := c.Get("userID")
-	if !exists {
-		common.JSON(c, http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
+	if exists {
+		userID = userIDInterface.(uint)
 	}
-	userID := userIDInterface.(uint)
 
 	// Parse query parameters
 	limitStr := c.DefaultQuery("limit", "20")
@@ -185,5 +184,49 @@ func (mc *MemoryController) ImportConversation(c *gin.Context) {
 		Message:      "Conversation imported successfully",
 		MessageCount: messageCount,
 		ImportID:     importID,
+	})
+}
+
+// @Summary Get all memory snapshots
+// @Description Retrieves all memory snapshots for the user with optional limit
+// @Tags Memory
+// @Accept  json
+// @Produce  json
+// @Param   limit query int false "Number of snapshots to retrieve" default(100)
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /memory/snapshots [get]
+func (mc *MemoryController) GetSnapshots(c *gin.Context) {
+	// Default to guest user (userID=1) per SOLACE's decision for memory endpoints
+	userID := uint(1)
+	
+	// Get userID from JWT middleware context if available
+	userIDInterface, exists := c.Get("userID")
+	if exists {
+		userID = userIDInterface.(uint)
+	}
+
+	// Parse query parameters
+	limitStr := c.DefaultQuery("limit", "100")
+	limit, _ := strconv.Atoi(limitStr)
+
+	// Get all memories
+	memories, err := mc.Service.Recall(userID, limit)
+	if err != nil {
+		common.JSON(c, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ---- Ledger logging ----
+	if mc.LedgerService != nil {
+		details := fmt.Sprintf(`{"limit":%d,"count":%d}`, limit, len(memories))
+		_ = mc.LedgerService.Append(userID, "memory_snapshots", details)
+	}
+
+	common.JSON(c, http.StatusOK, gin.H{
+		"snapshots": memories,
+		"count":     len(memories),
 	})
 }

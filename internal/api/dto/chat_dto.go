@@ -18,3 +18,16 @@ type ChatHistoryResponse struct {
 	Response  string `json:"response"`
 	CreatedAt string `json:"created_at"`
 }
+
+// ChatHistoryMessage represents a single message in chat history (UI-friendly format)
+type ChatHistoryMessage struct {
+	Role      string `json:"role"`      // "user" or "assistant"
+	Content   string `json:"content"`   // The actual message text
+	CreatedAt string `json:"created_at"` // Timestamp
+	Thinking  string `json:"thinking,omitempty"` // Optional thinking process
+}
+
+// ChatHistoryListResponse wraps the messages array for UI
+type ChatHistoryListResponse struct {
+	Messages []ChatHistoryMessage `json:"messages"`
+}

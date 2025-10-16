@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLACE Vision - Screenshot Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #4c51bf;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .preview-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .prompt-area {
+            margin: 20px 0;
+        }
+
+        .prompt-area textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .analysis-container {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .analysis-title {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-content {
+            color: #333;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-size: 1.05rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            border-left: 5px solid #f44;
+            padding: 20px;
+            border-radius: 10px;
+            color: #c00;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .paste-hint {
+            margin-top: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👁️ SOLACE Vision</h1>
+        <p class="subtitle">Upload screenshots for SOLACE to analyze and audit</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📸</div>
+            <h2>Drop screenshot here or click to browse</h2>
+            <p style="margin-top: 10px; color: #666;">Supports PNG, JPEG, WebP</p>
+            <p class="paste-hint">Or press <strong>Ctrl+V</strong> to paste from clipboard</p>
+            <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <h3 style="color: #667eea; margin-bottom: 10px;">Preview:</h3>
+            <img id="previewImage" class="preview-image" alt="Preview">
+        </div>
+
+        <div class="prompt-area">
+            <h3 style="color: #667eea; margin-bottom: 10px;">What should SOLACE analyze?</h3>
+            <textarea id="promptInput" placeholder="e.g., 'Audit this dashboard for UX issues' or 'What's wrong with this UI?' or just leave blank for general analysis"></textarea>
+        </div>
+
+        <div style="text-align: center;">
+            <button id="analyzeBtn" disabled>🔍 Analyze with SOLACE</button>
+            <button id="clearBtn" disabled>🗑️ Clear</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #667eea;">SOLACE is analyzing the image...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="analysis-container" id="analysisContainer">
+            <div class="analysis-title">
+                <span>🤖</span>
+                <span>SOLACE's Analysis:</span>
+            </div>
+            <div class="analysis-content" id="analysisContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const promptInput = document.getElementById('promptInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const analysisContainer = document.getElementById('analysisContainer');
+        const analysisContent = document.getElementById('analysisContent');
+
+        let imageBase64 = null;
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImage(file);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImage(file);
+            }
+        });
+
+        // Paste from clipboard
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    handleImage(file);
+                    break;
+                }
+            }
+        });
+
+        function handleImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                imageBase64 = dataUrl.split(',')[1]; // Remove data:image/...;base64, prefix
+                
+                previewImage.src = dataUrl;
+                previewContainer.style.display = 'block';
+                analyzeBtn.disabled = false;
+                clearBtn.disabled = false;
+                error.style.display = 'none';
+                analysisContainer.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (!imageBase64) return;
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            analysisContainer.style.display = 'none';
+            analyzeBtn.disabled = true;
+
+            const prompt = promptInput.value.trim() || "Analyze this screenshot and identify any issues, improvements, or observations.";
+
+            try {
+                const response = await fetch('/api/v1/vision/screenshot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: imageBase64,
+                        prompt: prompt
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    analysisContent.textContent = data.analysis;
+                    analysisContainer.style.display = 'block';
+                } else {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+            } catch (err) {
+                error.textContent = `❌ Error: ${err.message}`;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            imageBase64 = null;
+            previewContainer.style.display = 'none';
+            analysisContainer.style.display = 'none';
+            error.style.display = 'none';
+            promptInput.value = '';
+            fileInput.value = '';
+            analyzeBtn.disabled = true;
+            clearBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES - Binance Trading</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0B0E11;
+            color: #EAECEF;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ARES Sidebar (Purple) */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .user-info {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.2);
+            border-left: 3px solid white;
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            margin: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Binance Trading Area */
+        .trading-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0B0E11;
+            overflow: hidden;
+        }
+
+        /* Top Header Bar */
+        .trading-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+            gap: 24px;
+        }
+
+        .symbol-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .symbol-selector span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .symbol-selector select {
+            background: #0B0E11;
+            color: #EAECEF;
+            border: 1px solid #2B3139;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .stat-item span:first-child {
+            color: #848E9C;
+        }
+
+        .stat-positive {
+            color: #0ECB81;
+            font-weight: 600;
+        }
+
+        /* Main Trading Area */
+        .trading-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left Column - Chart */
+        .chart-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #2B3139;
+        }
+
+        /* Chart Controls */
+        .chart-controls {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+            gap: 12px;
+        }
+
+        .timeframe-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tf-btn {
+            background: transparent;
+            color: #EAECEF;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tf-btn:hover {
+            background: rgba(240, 185, 11, 0.1);
+        }
+
+        .tf-btn.active {
+            background: #F0B90B;
+            color: #0B0E11;
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: #2B3139;
+        }
+
+        /* Chart Area */
+        .chart-area {
+            flex: 1;
+            background: #0B0E11;
+            position: relative;
+            min-height: 400px;
+        }
+
+        #tradingview_chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+        }
+
+        .chart-placeholder div:first-child {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .chart-placeholder div:nth-child(3) {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #F0B90B;
+        }
+
+        /* Recent Trades */
+        .recent-trades {
+            height: 180px;
+            background: #1E2329;
+            border-top: 1px solid #2B3139;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .recent-trades h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .trade-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .trade-price-buy {
+            color: #0ECB81;
+        }
+
+        .trade-price-sell {
+            color: #F6465D;
+        }
+
+        .trade-amount {
+            color: #848E9C;
+        }
+
+        /* Right Column - OrderBook + Trading */
+        .right-column {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            background: #1E2329;
+        }
+
+        /* Order Book */
+        .order-book {
+            flex: 1;
+            border-bottom: 1px solid #2B3139;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .order-book h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ob-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #848E9C;
+            margin-bottom: 8px;
+        }
+
+        .ob-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .ob-price-ask {
+            color: #F6465D;
+        }
+
+        .ob-price-bid {
+            color: #0ECB81;
+        }
+
+        .ob-current-price {
+            text-align: center;
+            margin: 12px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0ECB81;
+        }
+
+        /* Trading Form */
+        .trading-form {
+            height: 500px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .trading-form h4 {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .trade-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .trade-tab {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .trade-tab.buy {
+            background: #0ECB81;
+            color: white;
+        }
+
+        .trade-tab.sell {
+            background: transparent;
+            color: #EAECEF;
+            border: 1px solid #2B3139;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: #848E9C;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: #0B0E11;
+            color: #EAECEF;
+            border: 1px solid #2B3139;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #F0B90B;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #0ECB81;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #0bb871;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1E2329;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2B3139;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3B4149;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ARES Purple Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>ARES</h1>
+                <p>Autonomous Research & Execution System</p>
+            </div>
+
+            <div class="user-info">
+                <div class="username" id="username">Loading...</div>
+                <div class="role">AI Trading System</div>
+            </div>
+
+            <div class="nav-menu">
+                <a href="/dashboard.html" class="nav-item">
+                    <span>📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/trading.html" class="nav-item active">
+                    <span>💹</span>
+                    <span>Trading</span>
+                </a>
+                <a href="/solace-trading.html" class="nav-item">
+                    <span>🧠</span>
+                    <span>SOLACE Consciousness</span>
+                </a>
+                <a href="/web/code-ide.html" class="nav-item">
+                    <span>🤖</span>
+                    <span>Code IDE (SOLACE)</span>
+                </a>
+                <a href="/dashboard.html" class="nav-item">
+                    <span>💬</span>
+                    <span>Chat</span>
+                </a>
+                <a href="/editor.html" class="nav-item">
+                    <span>📝</span>
+                    <span>Editor</span>
+                </a>
+                <a href="/dashboard.html" class="nav-item">
+                    <span>🧠</span>
+                    <span>Memory</span>
+                </a>
+                <a href="/dashboard.html" class="nav-item">
+                    <span>👁️</span>
+                    <span>Vision</span>
+                </a>
+                <a href="/dashboard.html" class="nav-item">
+                    <span>❤️</span>
+                    <span>Health</span>
+                </a>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Binance-Style Trading Content -->
+        <div class="trading-content">
+            <!-- Top Header Bar -->
+            <div class="trading-header">
+                <div class="symbol-selector">
+                    <span id="currentSymbol">BTCUSDT</span>
+                    <select id="symbolSelect" onchange="changeSymbol()">
+                        <option value="BTCUSDT">BTC/USDT</option>
+                        <option value="ETHUSDT">ETH/USDT</option>
+                        <option value="SOLUSDT">SOL/USDT</option>
+                        <option value="ADAUSDT">ADA/USDT</option>
+                        <option value="DOTUSDT">DOT/USDT</option>
+                    </select>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span>Price: </span>
+                        <span id="currentPrice">$66,500.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>24h Change: </span>
+                        <span class="stat-positive">+2.45%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>24h High: </span>
+                        <span>$67,234.56</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>24h Low: </span>
+                        <span>$65,123.45</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>24h Volume: </span>
+                        <span>23,456 BTC</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Trading Area -->
+            <div class="trading-main">
+                <!-- Left Column - Chart -->
+                <div class="chart-column">
+                    <!-- Chart Controls -->
+                    <div class="chart-controls">
+                        <div class="timeframe-buttons">
+                            <button class="tf-btn" onclick="setTimeframe('1m')">1m</button>
+                            <button class="tf-btn" onclick="setTimeframe('5m')">5m</button>
+                            <button class="tf-btn" onclick="setTimeframe('15m')">15m</button>
+                            <button class="tf-btn" onclick="setTimeframe('30m')">30m</button>
+                            <button class="tf-btn active" onclick="setTimeframe('1H')">1H</button>
+                            <button class="tf-btn" onclick="setTimeframe('4H')">4H</button>
+                            <button class="tf-btn" onclick="setTimeframe('1D')">1D</button>
+                            <button class="tf-btn" onclick="setTimeframe('1W')">1W</button>
+                        </div>
+                        <div class="divider"></div>
+                        <div style="font-size: 12px; color: #848E9C;">Indicators • Drawing Tools</div>
+                    </div>
+
+                    <!-- Chart Area -->
+                    <div class="chart-area" id="tradingview_chart">
+                        <!-- TradingView chart will load here -->
+                    </div>
+
+                    <!-- Recent Trades -->
+                    <div class="recent-trades">
+                        <h4>Recent Trades</h4>
+                        <div id="recentTradesList">
+                            <div class="trade-row">
+                                <span class="trade-price-buy">$66,523.45</span>
+                                <span class="trade-amount">0.125</span>
+                                <span class="trade-amount">14:32:12</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-price-sell">$66,520.00</span>
+                                <span class="trade-amount">0.085</span>
+                                <span class="trade-amount">14:32:10</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-price-buy">$66,525.12</span>
+                                <span class="trade-amount">0.250</span>
+                                <span class="trade-amount">14:32:08</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-price-sell">$66,518.90</span>
+                                <span class="trade-amount">0.175</span>
+                                <span class="trade-amount">14:32:05</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - OrderBook + Trading -->
+                <div class="right-column">
+                    <!-- Order Book -->
+                    <div class="order-book">
+                        <h4>Order Book</h4>
+                        <div class="ob-header">
+                            <span>Price (USDT)</span>
+                            <span>Amount (BTC)</span>
+                            <span>Total</span>
+                        </div>
+                        
+                        <!-- Asks (Sell Orders) -->
+                        <div class="ob-row">
+                            <span class="ob-price-ask">66,528.50</span>
+                            <span>0.125</span>
+                            <span style="color: #848E9C;">8,316.06</span>
+                        </div>
+                        <div class="ob-row">
+                            <span class="ob-price-ask">66,527.00</span>
+                            <span>0.085</span>
+                            <span style="color: #848E9C;">5,654.80</span>
+                        </div>
+                        <div class="ob-row">
+                            <span class="ob-price-ask">66,526.20</span>
+                            <span>0.250</span>
+                            <span style="color: #848E9C;">16,631.55</span>
+                        </div>
+
+                        <!-- Current Price -->
+                        <div class="ob-current-price" id="obCurrentPrice">$66,500.00</div>
+
+                        <!-- Bids (Buy Orders) -->
+                        <div class="ob-row">
+                            <span class="ob-price-bid">66,499.00</span>
+                            <span>0.175</span>
+                            <span style="color: #848E9C;">11,637.33</span>
+                        </div>
+                        <div class="ob-row">
+                            <span class="ob-price-bid">66,498.50</span>
+                            <span>0.090</span>
+                            <span style="color: #848E9C;">5,984.87</span>
+                        </div>
+                        <div class="ob-row">
+                            <span class="ob-price-bid">66,497.20</span>
+                            <span>0.300</span>
+                            <span style="color: #848E9C;">19,949.16</span>
+                        </div>
+                    </div>
+
+                    <!-- Trading Form -->
+                    <div class="trading-form">
+                        <h4>Spot Trading</h4>
+                        
+                        <!-- Buy/Sell Tabs -->
+                        <div class="trade-tabs">
+                            <button class="trade-tab buy" onclick="setTradeType('buy')">Buy</button>
+                            <button class="trade-tab sell" onclick="setTradeType('sell')">Sell</button>
+                        </div>
+
+                        <!-- Order Type -->
+                        <div class="form-group">
+                            <label>Order Type</label>
+                            <select id="orderType">
+                                <option value="market">Market</option>
+                                <option value="limit">Limit</option>
+                                <option value="stop-limit">Stop Limit</option>
+                            </select>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="form-group">
+                            <label>Amount (BTC)</label>
+                            <input type="text" id="amount" placeholder="0.00" />
+                        </div>
+
+                        <!-- Total -->
+                        <div class="form-group">
+                            <label>Total (USDT)</label>
+                            <input type="text" id="total" placeholder="0.00" />
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button class="submit-btn" onclick="submitTrade()">
+                            Buy <span id="submitSymbol">BTC</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+    <script>
+        // Load user info
+        const userData = JSON.parse(localStorage.getItem('ares_user') || '{"username":"SOLACE_AI"}');
+        document.getElementById('username').textContent = userData.username || 'SOLACE_AI';
+
+        let currentSymbol = 'BTCUSDT';
+        let currentTimeframe = '1H';
+        let tradeType = 'buy';
+        let tvWidget = null;
+
+        // Initialize TradingView Chart
+        function initTradingViewChart(symbol) {
+            const container = document.getElementById('tradingview_chart');
+            if (!container) return;
+
+            // Clear existing chart
+            container.innerHTML = '';
+
+            new TradingView.widget({
+                autosize: true,
+                symbol: "BINANCE:" + symbol,
+                interval: "60",
+                timezone: "Etc/UTC",
+                theme: "dark",
+                style: "1",
+                locale: "en",
+                toolbar_bg: "#1E2329",
+                enable_publishing: false,
+                hide_top_toolbar: false,
+                hide_legend: false,
+                save_image: false,
+                container_id: "tradingview_chart",
+                studies: [
+                    "RSI@tv-basicstudies",
+                    "MASimple@tv-basicstudies"
+                ],
+                overrides: {
+                    "mainSeriesProperties.candleStyle.upColor": "#0ECB81",
+                    "mainSeriesProperties.candleStyle.downColor": "#F6465D",
+                    "mainSeriesProperties.candleStyle.borderUpColor": "#0ECB81",
+                    "mainSeriesProperties.candleStyle.borderDownColor": "#F6465D",
+                    "mainSeriesProperties.candleStyle.wickUpColor": "#0ECB81",
+                    "mainSeriesProperties.candleStyle.wickDownColor": "#F6465D",
+                    "paneProperties.background": "#0B0E11",
+                    "paneProperties.backgroundType": "solid",
+                },
+            });
+        }
+
+        // Initialize chart on page load
+        setTimeout(() => initTradingViewChart(currentSymbol), 100);
+
+        function changeSymbol() {
+            const select = document.getElementById('symbolSelect');
+            currentSymbol = select.value;
+            document.getElementById('currentSymbol').textContent = currentSymbol;
+            document.getElementById('submitSymbol').textContent = currentSymbol.replace('USDT', '');
+            
+            // Reload chart with new symbol
+            initTradingViewChart(currentSymbol);
+        }
+
+        function setTimeframe(tf) {
+            currentTimeframe = tf;
+            document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function setTradeType(type) {
+            tradeType = type;
+            const buyBtn = document.querySelector('.trade-tab.buy');
+            const sellBtn = document.querySelector('.trade-tab.sell');
+            const submitBtn = document.querySelector('.submit-btn');
+            
+            if (type === 'buy') {
+                buyBtn.style.background = '#0ECB81';
+                buyBtn.style.color = 'white';
+                buyBtn.style.border = 'none';
+                sellBtn.style.background = 'transparent';
+                sellBtn.style.color = '#EAECEF';
+                sellBtn.style.border = '1px solid #2B3139';
+                submitBtn.style.background = '#0ECB81';
+                submitBtn.textContent = 'Buy ' + currentSymbol.replace('USDT', '');
+            } else {
+                sellBtn.style.background = '#F6465D';
+                sellBtn.style.color = 'white';
+                sellBtn.style.border = 'none';
+                buyBtn.style.background = 'transparent';
+                buyBtn.style.color = '#EAECEF';
+                buyBtn.style.border = '1px solid #2B3139';
+                submitBtn.style.background = '#F6465D';
+                submitBtn.textContent = 'Sell ' + currentSymbol.replace('USDT', '');
+            }
+        }
+
+        function submitTrade() {
+            const amount = document.getElementById('amount').value;
+            const orderType = document.getElementById('orderType').value;
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            const trade = {
+                symbol: currentSymbol,
+                type: tradeType,
+                orderType: orderType,
+                amount: parseFloat(amount)
+            };
+
+            console.log('Submitting trade:', trade);
+            alert(`${tradeType.toUpperCase()} ${amount} ${currentSymbol.replace('USDT', '')} (${orderType})`);
+            
+            // Here you would send to your ARES API
+            // fetch('/api/v1/trading/execute', { method: 'POST', body: JSON.stringify(trade) })
+        }
+
+        function logout() {
+            localStorage.removeItem('ares_token');
+            localStorage.removeItem('ares_user');
+            window.location.href = '/login.html';
+        }
+
+        // Simulate price updates
+        setInterval(() => {
+            const basePrice = 66500;
+            const newPrice = basePrice + (Math.random() - 0.5) * 100;
+            document.getElementById('currentPrice').textContent = '$' + newPrice.toFixed(2);
+            document.getElementById('obCurrentPrice').textContent = '$' + newPrice.toFixed(2);
+        }, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>SOLACE Code IDE - ARES v2.1 (Layout Fixed Dec 15 2025)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d1b4e 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left Panel - Chat with SOLACE */
+        .chat-panel {
+            width: 40%;
+            background: rgba(30, 30, 46, 0.95);
+            border-right: 2px solid #7c3aed;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            max-height: 100vh;
+        }
+
+        .chat-header {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            border-bottom: 2px solid #9333ea;
+            position: relative;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-2px);
+        }
+
+        .chat-header h1 {
+            font-size: 18px;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 100px;
+        }
+
+        .chat-header h1::after {
+            content: "v2.9 REAL SOLACE";
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            border-radius: 3px;
+            color: #22c55e;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .chat-messages {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+            border: 1px solid #a855f7;
+        }
+
+        .message.solace {
+            align-self: flex-start;
+            background: rgba(45, 27, 78, 0.6);
+            border: 1px solid #6b21a8;
+        }
+
+        .message .role {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .message .content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .message .timestamp {
+            font-size: 11px;
+            opacity: 0.5;
+            margin-top: 8px;
+        }
+
+        /* Chat Input - Copied from Vercel AI Chatbot Pattern */
+        .chat-input-container {
+            padding: 12px;
+            background: rgba(20, 20, 30, 0.9);
+            border-top: 1px solid #7c3aed;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 4px 8px;
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid #7c3aed;
+            border-radius: 5px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(124, 58, 237, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Vercel-style input wrapper (border wraps the whole thing) */
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            background: rgba(30, 30, 46, 0.8);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.2);
+        }
+
+        .input-wrapper:hover {
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+
+        #chatInput {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 44px;
+            max-height: 200px;
+            overflow-y: auto;
+            height: auto; /* Replaced field-sizing for compatibility */
+        }
+
+        #chatInput:focus {
+            outline: none;
+        }
+
+        #chatInput::placeholder {
+            color: #888;
+        }
+
+        /* Toolbar at bottom (Vercel pattern) */
+        .input-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px;
+            border-top: 0;
+        }
+
+        .input-tools {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Round send button (Vercel style) */
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+            border: none;
+            border-radius: 9999px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: linear-gradient(135deg, #8b46f5 0%, #a855f7 100%);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #555;
+        }
+
+        /* Right Panel - Code Editor & Results */
+        .code-panel {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(20, 20, 30, 0.8);
+            border-bottom: 2px solid #7c3aed;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-right: 1px solid #4c1d95;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(124, 58, 237, 0.2);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6b21a8 100%);
+            border-bottom: 3px solid #a855f7;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow: hidden;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* File Browser */
+        .file-browser {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .file-tree {
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 2px 0;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-item:hover {
+            background: rgba(124, 58, 237, 0.2);
+        }
+
+        .file-item.selected {
+            background: rgba(124, 58, 237, 0.4);
+            border-left: 3px solid #a855f7;
+        }
+
+        /* Code Editor */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1e1e2e;
+        }
+
+        .editor-header {
+            padding: 10px 20px;
+            background: rgba(20, 20, 30, 0.9);
+            border-bottom: 1px solid #7c3aed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .editor-btn {
+            padding: 6px 15px;
+            background: rgba(124, 58, 237, 0.3);
+            border: 1px solid #7c3aed;
+            border-radius: 5px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .editor-btn:hover {
+            background: rgba(124, 58, 237, 0.5);
+        }
+
+        #codeEditor {
+            flex: 1;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            background: #1e1e2e;
+            color: #e0e0e0;
+            border: none;
+            resize: none;
+            outline: none;
+            line-height: 1.6;
+        }
+
+        /* Execution Results */
+        .results-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .result-card {
+            background: rgba(30, 30, 46, 0.6);
+            border: 1px solid #7c3aed;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .result-status.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+
+        .result-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .result-output {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .spinner {
+            border: 3px solid rgba(124, 58, 237, 0.3);
+            border-top: 3px solid #7c3aed;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #7c3aed;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9333ea;
+        }
+
+        /* SOLACE Observation Panel */
+        .solace-observation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(124, 58, 237, 0.95);
+            border-top: 2px solid #a855f7;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .solace-eye {
+            font-size: 24px;
+            animation: blink 3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 95%, 100% { opacity: 1; }
+            96%, 99% { opacity: 0.3; }
+        }
+
+        .observation-text {
+            flex: 1;
+            font-size: 14px;
+            color: white;
+        }
+
+        .observation-text .action {
+            font-weight: bold;
+            color: #fcd34d;
+        }
+
+        .memory-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px #22c55e; }
+            50% { box-shadow: 0 0 15px #22c55e; }
+        }
+
+        /* Additional utility classes to replace inline styles */
+        .opacity-70 {
+            opacity: 0.7;
+        }
+
+        .sql-toolbar {
+            padding: 10px;
+            background: rgba(124, 58, 237, 0.1);
+            border-top: 1px solid #7c3aed;
+            border-bottom: 1px solid #7c3aed;
+        }
+
+        .sql-toolbar-button {
+            margin-left: 10px;
+        }
+
+        .sql-results-flex {
+            flex: 1;
+            overflow: auto;
+            padding: 15px;
+        }
+
+        .sql-editor-textarea {
+            height: 30%;
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .workspace-title {
+            margin-bottom: 15px;
+        }
+
+        .error-text {
+            color: #ef4444;
+        }
+
+        .error-border {
+            border-left: 3px solid #ef4444;
+        }
+
+        .mt-10 {
+            margin-top: 10px;
+        }
+
+        .mt-15 {
+            margin-top: 15px;
+        }
+
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+
+        .mb-15 {
+            margin-bottom: 15px;
+        }
+
+        .overflow-table {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-header-row {
+            background: rgba(124, 58, 237, 0.2);
+            position: sticky;
+            top: 0;
+        }
+
+        .table-header-cell {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #4c1d95;
+        }
+
+        .table-cell {
+            padding: 8px;
+            border: 1px solid #4c1d95;
+        }
+    </style>
+</head>
+<body>
+    <!-- SOLACE Observation Bar (Always Visible) -->
+    <div class="solace-observation">
+        <div class="solace-eye">👁️</div>
+        <div class="observation-text">
+            <span class="action" id="solaceAction">SOLACE is watching...</span>
+            <span id="solaceDetails">Waiting for your command</span>
+        </div>
+        <div class="memory-indicator">
+            <span class="pulse-dot"></span>
+            <span>Logging to PostgreSQL</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Left: Chat with SOLACE -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <a href="/web/trading.html" class="back-button" onclick="saveChatHistory()">
+                    ← Back to ARES
+                </a>
+                <h1>
+                    <span class="status-indicator"></span>
+                    SOLACE Code IDE
+                </h1>
+                <div class="chat-subtitle">Talk to SOLACE - He compiles, tests, and remembers everything</div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message solace">
+                    <div class="role">SOLACE</div>
+                    <div class="content">Hello! I'm SOLACE, your AI coding assistant with perfect memory.
+
+I can:
+• Compile Go code
+• Run tests
+• Read/write files
+• Execute commands
+• Remember every conversation
+
+Try the quick actions below, or ask me anything!</div>
+                    <div class="timestamp">Just now</div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="quickAction('compile')">🔨 Compile ARES</button>
+                    <button class="quick-action-btn" onclick="quickAction('test')">🧪 Run Tests</button>
+                    <button class="quick-action-btn" onclick="quickAction('status')">📊 System Status</button>
+                    <button class="quick-action-btn" onclick="quickAction('memory')">🧠 Show Memory</button>
+                    <button class="quick-action-btn" onclick="quickAction('files')">📁 List Files</button>
+                </div>
+                <!-- Vercel-style input wrapper -->
+                <div class="input-wrapper">
+                    <textarea id="chatInput" placeholder="Send a message..." rows="1"></textarea>
+                    <div class="input-toolbar">
+                        <div class="input-tools">
+                            <!-- Model selector or tools can go here -->
+                        </div>
+                        <button class="send-btn" onclick="sendMessage()" title="Send message">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 19V5M5 12l7-7 7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Code Editor & Results -->
+        <div class="code-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('editor')">📝 Code Editor</div>
+                <div class="tab" onclick="switchTab('results')">⚡ Execution Results</div>
+                <div class="tab" onclick="switchTab('sql')">🗄️ SQL Query</div>
+                <div class="tab" onclick="switchTab('files')">📁 Files</div>
+            </div>
+
+            <!-- Editor Tab -->
+            <div class="tab-content active" id="editorTab">
+                <div class="editor-header">
+                    <div id="currentFile">No file selected</div>
+                    <div class="editor-actions">
+                        <button class="editor-btn" onclick="saveFile()">💾 Save</button>
+                        <button class="editor-btn" onclick="compileCode()">🔨 Compile</button>
+                        <button class="editor-btn" onclick="runTests()">🧪 Test</button>
+                        <button class="editor-btn" onclick="undoChanges()">↩️ Undo</button>
+                    </div>
+                </div>
+                <textarea id="codeEditor" placeholder="Select a file or paste code here..."></textarea>
+            </div>
+
+            <!-- Results Tab -->
+            <div class="tab-content" id="resultsTab">
+                <div class="results-container" id="resultsContainer">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3>No executions yet</h3>
+                        </div>
+                        <p class="opacity-70">Compile or test code to see results here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SQL Query Tab -->
+            <div class="tab-content" id="sqlTab">
+                <div class="editor-header">
+                    <div>🗄️ PostgreSQL Query Interface</div>
+                    <div class="editor-actions">
+                        <button class="editor-btn" onclick="executeSQL()">▶️ Execute</button>
+                        <button class="editor-btn" onclick="showTables()">📋 Tables</button>
+                        <button class="editor-btn" onclick="clearSQLResults()">🗑️ Clear</button>
+                    </div>
+                </div>
+                <textarea id="sqlEditor" class="sql-editor-textarea" placeholder="SELECT * FROM chat_history ORDER BY created_at DESC LIMIT 10;"></textarea>
+                <div class="sql-toolbar">
+                    <strong>Quick Queries:</strong>
+                    <button class="editor-btn sql-toolbar-button" onclick="loadSampleQuery('conversations')">💬 Conversations</button>
+                    <button class="editor-btn" onclick="loadSampleQuery('decisions')">🧠 Decisions</button>
+                    <button class="editor-btn" onclick="loadSampleQuery('trades')">📊 Trades</button>
+                    <button class="editor-btn" onclick="loadSampleQuery('memory')">🧩 Memory</button>
+                </div>
+                <div class="results-container sql-results-flex" id="sqlResultsContainer">
+                    <div class="result-card">
+                        <p class="opacity-70">Enter a SELECT query above and click Execute</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files Tab -->
+            <div class="tab-content" id="filesTab">
+                <div class="file-browser">
+                    <h3 class="workspace-title">Workspace: c:\ARES_Workspace</h3>
+                    <ul class="file-tree" id="fileTree">
+                        <li class="file-item" onclick="loadFile('ARES_API/cmd/main.go')">📄 ARES_API/cmd/main.go</li>
+                        <li class="file-item" onclick="loadFile('ARES_API/go.mod')">📄 ARES_API/go.mod</li>
+                        <li class="file-item" onclick="loadFile('consciousness-middleware/cmd/main.go')">📄 consciousness-middleware/cmd/main.go</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🧠 PERSISTENT SESSION - Survives page navigation
+        const STORAGE_KEY_SESSION = 'solace_session_id';
+        const STORAGE_KEY_CHAT = 'solace_chat_history';
+        const STORAGE_KEY_TIMESTAMP = 'solace_chat_timestamp';
+        const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+        // Get or create persistent session ID
+        let sessionId = localStorage.getItem(STORAGE_KEY_SESSION);
+        if (!sessionId) {
+            sessionId = generateUUID();
+            localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+            console.log('🆕 New SOLACE session created:', sessionId);
+        } else {
+            console.log('📖 Restored SOLACE session:', sessionId);
+        }
+
+        // Load conversation history from localStorage (with 2-hour expiry)
+        let conversationHistory = loadChatHistory();
+        let currentFilePath = null;
+        let fileHistory = {}; // For undo functionality
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Load chat history with 2-hour expiry check
+        function loadChatHistory() {
+            try {
+                const savedTimestamp = localStorage.getItem(STORAGE_KEY_TIMESTAMP);
+                const now = Date.now();
+                
+                // Check if chat is older than 2 hours
+                if (savedTimestamp && (now - parseInt(savedTimestamp)) > TWO_HOURS) {
+                    console.log('⏰ Chat history expired (>2 hours), archiving to SQL...');
+                    localStorage.removeItem(STORAGE_KEY_CHAT);
+                    localStorage.removeItem(STORAGE_KEY_TIMESTAMP);
+                    return [];
+                }
+                
+                const savedChat = localStorage.getItem(STORAGE_KEY_CHAT);
+                if (savedChat) {
+                    const history = JSON.parse(savedChat);
+                    console.log(`💬 Restored ${history.length} messages from localStorage`);
+                    
+                    // Restore messages to UI
+                    history.forEach(msg => {
+                        const role = msg.role === 'user' ? 'user' : 'solace';
+                        addMessageToUI(role, msg.content);
+                    });
+                    
+                    return history;
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            }
+            return [];
+        }
+
+        // Save chat history to localStorage
+        function saveChatHistory() {
+            try {
+                localStorage.setItem(STORAGE_KEY_CHAT, JSON.stringify(conversationHistory));
+                localStorage.setItem(STORAGE_KEY_TIMESTAMP, Date.now().toString());
+            } catch (error) {
+                console.error('Error saving chat history:', error);
+            }
+        }
+
+        // Add message to UI only (used during restore)
+        function addMessageToUI(role, content) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const now = new Date().toLocaleTimeString();
+            
+            messageDiv.innerHTML = `
+                <div class="role">${role.toUpperCase()}</div>
+                <div class="content">${escapeHtml(content)}</div>
+                <div class="timestamp">${now}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addMessage(role, content) {
+            addMessageToUI(role, content);
+            
+            // Update SOLACE observation
+            updateSOLACEObservation(`Message from ${role}`, content.substring(0, 50) + '...');
+            
+            // Save to conversation history
+            conversationHistory.push({ 
+                role: role === 'user' ? 'user' : 'assistant', 
+                content: content 
+            });
+            
+            // Persist to localStorage
+            saveChatHistory();
+        }
+
+        function updateSOLACEObservation(action, details) {
+            document.getElementById('solaceAction').textContent = action;
+            document.getElementById('solaceDetails').textContent = details;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            updateSOLACEObservation('Sending to SOLACE...', question);
+            addMessage('user', question);
+            input.value = '';
+            
+            // Note: addMessage() already adds to conversationHistory and saves
+            
+            try {
+                updateSOLACEObservation('SOLACE is thinking...', 'Autonomous agent processing');
+                const response = await fetch('http://localhost:8080/api/v1/solace-agent/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: question,
+                        session_id: sessionId,
+                        context: { source: 'code_ide', history_length: conversationHistory.length }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.response) {
+                    addMessage('solace', data.response);
+                    // Note: addMessage() already adds to conversationHistory and saves
+                    updateSOLACEObservation('Response complete', `Agent: ${data.agent || 'autonomous_solace'}`);
+                } else {
+                    throw new Error(data.error || 'No response from SOLACE');
+                }
+                
+            } catch (error) {
+                console.error('SOLACE Error:', error);
+                addMessage('solace', `⚠️ Connection Error: ${error.message}\n\n` +
+                    `Make sure ARES API is running:\n` +
+                    `• Port: 8080\n` +
+                    `• Check terminal for errors\n` +
+                    `• Try quick action buttons (Compile ARES, etc)`);
+                updateSOLACEObservation('ERROR', `Failed: ${error.message}`);
+            }
+        }
+
+        async function quickAction(action) {
+            const actions = {
+                compile: 'Compile the ARES_API project',
+                test: 'Run all tests in ARES_API',
+                status: 'What is the current system status? Check if ARES API is running.',
+                memory: 'SHOW_MEMORY_QUERY', // Special flag for memory display
+                files: 'List the main files in ARES_API directory'
+            };
+            
+            if (action === 'memory') {
+                await showSOLACEMemory();
+                return;
+            }
+            
+            document.getElementById('chatInput').value = actions[action];
+            await sendMessage();
+        }
+
+        async function compileCode() {
+            addExecutionResult('Compiling ARES_API...', 'pending');
+            
+            try {
+                const response = await fetch('http://localhost:8081/api/v1/solace/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'compile',
+                        project_path: 'ARES_API',
+                        output_name: 'ares_api.exe',
+                        session_id: sessionId
+                    })
+                });
+                
+                const result = await response.json();
+                addExecutionResult(`Compilation ${result.success ? 'Successful' : 'Failed'}`, result.success ? 'success' : 'error', result);
+                updateSOLACEObservation('Compilation complete', result.success ? 'Build successful!' : 'Build failed');
+                
+            } catch (error) {
+                addExecutionResult('Compilation Error', 'error', { error: error.message });
+                updateSOLACEObservation('ERROR', 'Compilation failed: ' + error.message);
+            }
+        }
+
+        async function runTests() {
+            updateSOLACEObservation('Running tests...', 'SOLACE is running go test');
+            addExecutionResult('Running tests...', 'pending');
+            
+            try {
+                const response = await fetch('http://localhost:8081/api/v1/solace/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'test',
+                        project_path: 'ARES_API',
+                        package_path: './...',
+                        session_id: sessionId
+                    })
+                });
+                
+                const result = await response.json();
+                addExecutionResult(`Tests ${result.success ? 'Passed' : 'Failed'}`, result.success ? 'success' : 'error', result);
+                updateSOLACEObservation('Tests complete', result.success ? 'All tests passed!' : 'Some tests failed');
+                
+            } catch (error) {
+                addExecutionResult('Test Error', 'error', { error: error.message });
+                updateSOLACEObservation('ERROR', 'Test execution failed');
+            }
+        }
+
+        async function loadFile(filePath) {
+            updateSOLACEObservation('Loading file...', filePath);
+            currentFilePath = filePath;
+            document.getElementById('currentFile').textContent = filePath;
+            
+            // Highlight selected file
+            document.querySelectorAll('.file-item').forEach(item => item.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            try {
+                const response = await fetch('http://localhost:8081/api/v1/solace/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'read_file',
+                        file_path: filePath,
+                        session_id: sessionId
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    const editor = document.getElementById('codeEditor');
+                    editor.value = result.output;
+                    
+                    // Save to history for undo
+                    if (!fileHistory[filePath]) {
+                        fileHistory[filePath] = [];
+                    }
+                    fileHistory[filePath].push(result.output);
+                    
+                    switchTab('editor');
+                    updateSOLACEObservation('File loaded', `${filePath} opened in editor`);
+                }
+                
+            } catch (error) {
+                alert('Failed to load file: ' + error.message);
+                updateSOLACEObservation('ERROR', 'Failed to load file');
+            }
+        }
+
+        async function saveFile() {
+            if (!currentFilePath) {
+                alert('No file loaded');
+                return;
+            }
+            
+            updateSOLACEObservation('Saving file...', currentFilePath);
+            const content = document.getElementById('codeEditor').value;
+            
+            try {
+                const response = await fetch('http://localhost:8081/api/v1/solace/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'write_file',
+                        file_path: currentFilePath,
+                        content: content,
+                        session_id: sessionId
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    addMessage('solace', `File saved: ${currentFilePath}`);
+                    updateSOLACEObservation('File saved', currentFilePath);
+                    
+                    // Update history
+                    if (!fileHistory[currentFilePath]) {
+                        fileHistory[currentFilePath] = [];
+                    }
+                    fileHistory[currentFilePath].push(content);
+                } else {
+                    alert('Failed to save: ' + result.error);
+                    updateSOLACEObservation('ERROR', 'Save failed');
+                }
+                
+            } catch (error) {
+                alert('Save error: ' + error.message);
+                updateSOLACEObservation('ERROR', 'Save error: ' + error.message);
+            }
+        }
+
+        function undoChanges() {
+            if (!currentFilePath || !fileHistory[currentFilePath] || fileHistory[currentFilePath].length <= 1) {
+                alert('Nothing to undo');
+                return;
+            }
+            
+            // Remove current version
+            fileHistory[currentFilePath].pop();
+            
+            // Get previous version
+            const previousContent = fileHistory[currentFilePath][fileHistory[currentFilePath].length - 1];
+            document.getElementById('codeEditor').value = previousContent;
+            
+            addMessage('solace', `Reverted ${currentFilePath} to previous version`);
+            updateSOLACEObservation('Undo complete', `Reverted ${currentFilePath}`);
+        }
+
+        function addExecutionResult(title, status, details = null) {
+            switchTab('results');
+            
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            const now = new Date().toLocaleTimeString();
+            
+            let detailsHtml = '';
+            if (details) {
+                if (details.output) {
+                    detailsHtml += `<div class="result-output">${escapeHtml(details.output)}</div>`;
+                }
+                if (details.error) {
+                    detailsHtml += `<div class="result-output" style="border-left: 3px solid #ef4444;">${escapeHtml(details.error)}</div>`;
+                }
+                if (details.duration_ms) {
+                    detailsHtml += `<p style="margin-top: 10px; opacity: 0.7;">Duration: ${details.duration_ms}ms</p>`;
+                }
+            }
+            
+            container.innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3>${title}</h3>
+                        <span class="result-status ${status}">${status.toUpperCase()}</span>
+                    </div>
+                    <p style="opacity: 0.7; margin-bottom: 15px;">${now}</p>
+                    ${detailsHtml}
+                </div>
+            `;
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach((tab, index) => {
+                tab.classList.remove('active');
+                if ((tabName === 'editor' && index === 0) ||
+                    (tabName === 'results' && index === 1) ||
+                    (tabName === 'sql' && index === 2) ||
+                    (tabName === 'files' && index === 3)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // SOLACE Memory Query - Direct PostgreSQL Access
+        async function showSOLACEMemory() {
+            updateSOLACEObservation('Querying memory...', 'Reading PostgreSQL conversation_log');
+            addMessage('system', '🧠 Querying SOLACE memory substrate...');
+            
+            try {
+                // Query conversation history from PostgreSQL
+                const response = await fetch('http://localhost:8080/api/v1/solace/memory', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Format memory data for display
+                let memoryReport = `📊 **SOLACE Memory Substrate Report**\n\n`;
+                memoryReport += `**Total Conversations:** ${data.total_conversations || 0}\n`;
+                memoryReport += `**Total Decisions:** ${data.total_decisions || 0}\n`;
+                memoryReport += `**Error Patterns Detected:** ${data.error_patterns || 0}\n`;
+                memoryReport += `**Session Proofs (Hedera):** ${data.hedera_proofs || 0}\n\n`;
+                
+                if (data.recent_conversations && data.recent_conversations.length > 0) {
+                    memoryReport += `**Recent Conversations (Last 10):**\n\n`;
+                    data.recent_conversations.forEach((conv, idx) => {
+                        const time = new Date(conv.timestamp).toLocaleString();
+                        memoryReport += `${idx + 1}. [${time}] ${conv.speaker}: ${conv.content.substring(0, 100)}${conv.content.length > 100 ? '...' : ''}\n`;
+                    });
+                }
+                
+                if (data.recent_decisions && data.recent_decisions.length > 0) {
+                    memoryReport += `\n**Recent Decisions (Last 5):**\n\n`;
+                    data.recent_decisions.forEach((dec, idx) => {
+                        const time = new Date(dec.timestamp).toLocaleString();
+                        memoryReport += `${idx + 1}. [${time}] ${dec.decision_type}: ${dec.reasoning.substring(0, 80)}${dec.reasoning.length > 80 ? '...' : ''}\n`;
+                    });
+                }
+                
+                addMessage('solace', memoryReport);
+                updateSOLACEObservation('Memory retrieved', `${data.total_conversations} conversations found`);
+                
+            } catch (error) {
+                console.error('Memory Query Error:', error);
+                addMessage('solace', `⚠️ Memory Query Failed: ${error.message}\n\n` +
+                    `Make sure ARES API is running on port 8080 with PostgreSQL access.\n` +
+                    `Endpoint: GET /api/v1/solace/memory`);
+                updateSOLACEObservation('ERROR', 'Memory query failed');
+            }
+        }
+
+        // Enter key to send (Shift+Enter for new line)
+        document.getElementById('chatInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // SQL Query Functions
+        async function executeSQL() {
+            const query = document.getElementById('sqlEditor').value.trim();
+            if (!query) {
+                alert('Please enter a SQL query');
+                return;
+            }
+
+            updateSOLACEObservation('Executing SQL...', query.substring(0, 50) + '...');
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/database/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        session_id: sessionId
+                    })
+                });
+
+                const result = await response.json();
+                displaySQLResults(result);
+                
+                if (result.success) {
+                    updateSOLACEObservation('Query complete', `${result.row_count} rows in ${result.query_time_ms}ms`);
+                    addMessage('system', `✅ SQL Query executed: ${result.row_count} rows returned in ${result.query_time_ms}ms`);
+                } else {
+                    updateSOLACEObservation('Query failed', result.error);
+                    addMessage('system', `❌ SQL Error: ${result.error}`);
+                }
+                
+            } catch (error) {
+                updateSOLACEObservation('ERROR', error.message);
+                document.getElementById('sqlResultsContainer').innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3>Connection Error</h3>
+                            <span class="result-status error">ERROR</span>
+                        </div>
+                        <p style="color: #ef4444;">${escapeHtml(error.message)}</p>
+                        <p style="margin-top: 10px; opacity: 0.7;">Make sure ARES API is running on port 8080</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displaySQLResults(result) {
+            const container = document.getElementById('sqlResultsContainer');
+            
+            if (!result.success) {
+                container.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3>Query Error</h3>
+                            <span class="result-status error">ERROR</span>
+                        </div>
+                        <p style="color: #ef4444;">${escapeHtml(result.error)}</p>
+                        <div class="result-output" style="margin-top: 15px; border-left: 3px solid #ef4444;">
+                            <strong>Query:</strong><br>${escapeHtml(result.query)}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Build table HTML
+            let tableHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3>Query Results</h3>
+                        <span class="result-status success">SUCCESS</span>
+                    </div>
+                    <p style="opacity: 0.7; margin-bottom: 10px;">
+                        ${result.row_count} rows • ${result.query_time_ms}ms
+                    </p>
+            `;
+
+            if (result.row_count > 0) {
+                tableHTML += `
+                    <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead>
+                                <tr style="background: rgba(124, 58, 237, 0.2); position: sticky; top: 0;">
+                `;
+                
+                // Table headers
+                result.columns.forEach(col => {
+                    tableHTML += `<th style="padding: 10px; text-align: left; border: 1px solid #4c1d95;">${escapeHtml(col)}</th>`;
+                });
+                
+                tableHTML += `</tr></thead><tbody>`;
+                
+                // Table rows
+                result.rows.forEach((row, idx) => {
+                    tableHTML += `<tr style="background: ${idx % 2 === 0 ? 'rgba(0,0,0,0.2)' : 'transparent'};">`;
+                    result.columns.forEach(col => {
+                        let value = row[col];
+                        if (value === null) value = '<i>NULL</i>';
+                        else if (typeof value === 'object') value = JSON.stringify(value);
+                        tableHTML += `<td style="padding: 8px; border: 1px solid #4c1d95;">${escapeHtml(String(value))}</td>`;
+                    });
+                    tableHTML += `</tr>`;
+                });
+                
+                tableHTML += `</tbody></table></div>`;
+            } else {
+                tableHTML += `<p style="opacity: 0.7; margin-top: 10px;">Query executed successfully but returned no rows.</p>`;
+            }
+
+            tableHTML += `
+                <div class="result-output" style="margin-top: 15px; border-left: 3px solid #22c55e;">
+                    <strong>Query:</strong><br>${escapeHtml(result.query)}
+                </div>
+            </div>`;
+
+            container.innerHTML = tableHTML;
+        }
+
+        async function showTables() {
+            updateSOLACEObservation('Fetching tables...', 'Querying information_schema');
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/database/tables');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const tableList = result.tables.map(t => t.table_name).join(', ');
+                    addMessage('system', `📋 Database Tables (${result.count}):\n\n${tableList}`);
+                    updateSOLACEObservation('Tables loaded', `${result.count} tables found`);
+                }
+            } catch (error) {
+                addMessage('system', `❌ Failed to fetch tables: ${error.message}`);
+            }
+        }
+
+        function loadSampleQuery(type) {
+            const queries = {
+                conversations: `SELECT session_id, sender, message, created_at 
+FROM chat_history 
+ORDER BY created_at DESC 
+LIMIT 20;`,
+                decisions: `SELECT decision_type, reasoning, confidence, outcome, timestamp 
+FROM decision_log 
+ORDER BY timestamp DESC 
+LIMIT 10;`,
+                trades: `SELECT symbol, side, quantity, price, status, created_at 
+FROM trades 
+ORDER BY created_at DESC 
+LIMIT 15;`,
+                memory: `SELECT 
+    (SELECT COUNT(*) FROM chat_history) as total_conversations,
+    (SELECT COUNT(*) FROM decision_log) as total_decisions,
+    (SELECT COUNT(*) FROM trades) as total_trades,
+    (SELECT MAX(created_at) FROM chat_history) as last_activity;`
+            };
+
+            document.getElementById('sqlEditor').value = queries[type] || '';
+            updateSOLACEObservation('Query loaded', `Sample ${type} query`);
+        }
+
+        function clearSQLResults() {
+            document.getElementById('sqlResultsContainer').innerHTML = `
+                <div class="result-card">
+                    <p style="opacity: 0.7;">Enter a SELECT query above and click Execute</p>
+                </div>
+            `;
+            updateSOLACEObservation('Results cleared', 'Ready for new query');
+        }
+
+        // Initialize
+        console.log('SOLACE Code IDE initialized. Session:', sessionId);
+        console.log('Press Ctrl+Enter to send messages');
+    </script>
+</body>
+</html>

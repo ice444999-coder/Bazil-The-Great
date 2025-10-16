@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fixing Auth...</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 40px;
+            text-align: center;
+        }
+        .status { font-size: 18px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Clearing expired token...</h1>
+    <div class="status" id="status">Working...</div>
+    
+    <script>
+        localStorage.clear();
+        document.getElementById('status').innerHTML = '✅ Cleared! Redirecting to auto-login...';
+        setTimeout(() => {
+            window.location.href = '/auto-login-trading.html';
+        }, 1000);
+    </script>
+</body>
+</html>

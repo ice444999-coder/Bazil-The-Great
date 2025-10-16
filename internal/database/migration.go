@@ -16,7 +16,7 @@ func AutoMigrateAll(db *gorm.DB) error {
 	// Add all your models here
 	 &models.User{},
 	 &models.Chat{},
-	 &models.Trade{},
+	 // &models.Trade{}, // SKIP - Already migrated, causes conflict
 	 &models.Setting{},
 	 &models.Ledger{},
 	 &models.Balance{},
@@ -43,5 +43,7 @@ func AutoMigrateAll(db *gorm.DB) error {
 	 &models.MarketDataCache{},
 	 &models.StrategyMutation{},
 	 &models.RiskEvent{},
+	 // ACE Framework (Agentic Context Engineering)
+	 &models.PlaybookRule{},
 	)
 }

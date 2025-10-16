@@ -1659,6 +1659,204 @@
                 }
             }
         },
+        "/trading/close": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Close an open trade and calculate P\u0026L",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Close Sandbox Trade",
+                "parameters": [
+                    {
+                        "description": "Trade ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CloseTradeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SandboxTradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trading/close-all": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Emergency close all open positions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Close All Trades (Kill-Switch)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CloseAllTradesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trading/execute": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "SOLACE executes a sandbox trade with reasoning",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Execute Sandbox Trade",
+                "parameters": [
+                    {
+                        "description": "Trade Execution",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExecuteTradeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SandboxTradeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/trading/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get sandbox trade history with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Get Trade History",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of trades (default 50)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SandboxTradeResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/trading/open": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all currently open sandbox trades",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Get Open Trades",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SandboxTradeResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/trading/performance": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get comprehensive trading performance metrics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sandbox Trading"
+                ],
+                "summary": "Get Trading Performance",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TradingPerformanceResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
                 "description": "Authenticate a user and return JWT",
@@ -1994,6 +2192,28 @@
                 }
             }
         },
+        "dto.CloseAllTradesResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "trades_closed": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CloseTradeRequest": {
+            "type": "object",
+            "required": [
+                "trade_id"
+            ],
+            "properties": {
+                "trade_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CoinDTO": {
             "type": "object",
             "properties": {
@@ -2217,6 +2437,38 @@
                 },
                 "success": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.ExecuteTradeRequest": {
+            "type": "object",
+            "required": [
+                "direction",
+                "reasoning",
+                "session_id",
+                "size_usd",
+                "trading_pair"
+            ],
+            "properties": {
+                "direction": {
+                    "description": "BUY or SELL",
+                    "type": "string"
+                },
+                "reasoning": {
+                    "description": "Why SOLACE made this trade",
+                    "type": "string"
+                },
+                "session_id": {
+                    "description": "UUID of conversation session",
+                    "type": "string"
+                },
+                "size_usd": {
+                    "description": "Amount in USD",
+                    "type": "number"
+                },
+                "trading_pair": {
+                    "description": "BTC/USDC, ETH/USDC, SOL/USDC",
+                    "type": "string"
                 }
             }
         },
@@ -2509,6 +2761,56 @@
                 }
             }
         },
+        "dto.SandboxTradeResponse": {
+            "type": "object",
+            "properties": {
+                "closed_at": {
+                    "type": "string"
+                },
+                "direction": {
+                    "type": "string"
+                },
+                "entry_price": {
+                    "type": "number"
+                },
+                "exit_price": {
+                    "type": "number"
+                },
+                "fees": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "market_conditions": {
+                    "type": "object"
+                },
+                "opened_at": {
+                    "type": "string"
+                },
+                "profit_loss": {
+                    "type": "number"
+                },
+                "profit_loss_percent": {
+                    "type": "number"
+                },
+                "reasoning": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "trade_hash": {
+                    "type": "string"
+                },
+                "trading_pair": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SemanticSearchRequest": {
             "type": "object",
             "required": [
@@ -2645,6 +2947,59 @@
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TradingPerformanceResponse": {
+            "type": "object",
+            "properties": {
+                "avg_loss": {
+                    "type": "number"
+                },
+                "avg_profit": {
+                    "type": "number"
+                },
+                "calculated_at": {
+                    "type": "string"
+                },
+                "kelly_criterion": {
+                    "type": "number"
+                },
+                "largest_loss": {
+                    "type": "number"
+                },
+                "largest_win": {
+                    "type": "number"
+                },
+                "losing_trades": {
+                    "type": "integer"
+                },
+                "risk_of_ruin": {
+                    "type": "number"
+                },
+                "sharpe_ratio": {
+                    "type": "number"
+                },
+                "sortino_ratio": {
+                    "type": "number"
+                },
+                "strategy_version": {
+                    "type": "integer"
+                },
+                "total_profit_loss": {
+                    "type": "number"
+                },
+                "total_trades": {
+                    "type": "integer"
+                },
+                "var_5_percent": {
+                    "type": "number"
+                },
+                "win_rate": {
+                    "type": "number"
+                },
+                "winning_trades": {
                     "type": "integer"
                 }
             }

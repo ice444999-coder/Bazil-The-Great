@@ -4,15 +4,26 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"ares_api/config"
+	"ares_api/internal/api/handlers"
 	"ares_api/internal/api/routes"
 	"ares_api/internal/common"
+	appConfig "ares_api/internal/config"
 	"ares_api/internal/database"
+	"ares_api/internal/eventbus"
+	"ares_api/internal/grpo"
+	"ares_api/internal/logger"
 	"ares_api/internal/middleware"
+	"ares_api/internal/observability"
+	"ares_api/internal/registry"
+	"ares_api/internal/subscribers"
 
 	"ares_api/internal/docs"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -33,22 +44,132 @@ func generateSwagger() {
 }
 
 func main() {
+	// 🔧 Load environment variables first!
+	// Try multiple paths in case executable is run from different locations
+	envPaths := []string{".env", "../.env", "../../.env", "c:\\ARES_Workspace\\ARES_API\\.env"}
+	loaded := false
+	for _, path := range envPaths {
+		if err := godotenv.Load(path); err == nil {
+			log.Printf("✅ .env file loaded successfully from: %s", path)
+			loaded = true
+			break
+		}
+	}
+	if !loaded {
+		log.Println("⚠️ No .env file found in any expected location, using system environment variables")
+	}
+
 	// Load server port from env, fallback to 8080
 	port := config.GetEnv("SERVER_PORT", "8080")
 
 	// Setup logger
 	common.SetupLogger()
 
-	// Generate Swagger docs
-	generateSwagger()
+	// Generate Swagger docs (skip if swag not installed)
+	// generateSwagger()
 
 	// Initialize PostgreSQL DB
 	db := database.InitDB()
+
+	// � Initialize Config Manager (Section 5 - Hot-reload config)
+	configManager := appConfig.NewManager(db, "ares-api")
+	defer configManager.Close()
+	log.Println("✅ Config manager initialized with hot-reload support")
+
+	// Get EventBus type from config (defaults to in-memory)
+	eventbusType := configManager.GetString("eventbus.type", "memory")
+	redisURL := ""
+	if eventbusType == "redis" {
+		redisURL = configManager.GetString("eventbus.redis_url", "localhost:6379")
+	}
+
+	// 🚀 Initialize EventBus (Section 4 - Enhanced with Redis support)
+	ebInterface := eventbus.NewEventBusWithRedis(redisURL)
+	log.Printf("✅ EventBus initialized (type: %s)", eventbusType)
+
+	// Type assert to *EventBus for legacy code compatibility
+	var eb *eventbus.EventBus
+	if eventbusType == "memory" || redisURL == "" {
+		eb = ebInterface.(*eventbus.EventBus)
+	} else {
+		// For Redis, we need to adapt - for now fallback to in-memory if needed
+		if ebConcrete, ok := ebInterface.(*eventbus.EventBus); ok {
+			eb = ebConcrete
+		} else {
+			log.Println("⚠️  Using in-memory EventBus for legacy compatibility")
+			eb = eventbus.NewEventBus()
+		}
+	}
+
+	// 🔍 Initialize Enhanced Observability (Section 6 - Distributed tracing + metrics)
+	obsLogger := observability.NewLogger(db, "ares-api")
+	metricsCollector := observability.NewMetricsCollector(db, "ares-api")
+	log.Println("✅ Enhanced observability initialized (tracing + metrics)")
+
+	// � Initialize Centralized Logger (Option B - Consolidate & Clean Up)
+	centralLogger := logger.NewLogger("ARES_API", db)
+	logger.SetGlobalLogger(centralLogger)
+	logger.Info("Centralized logging system initialized")
+
+	// 🔍 Initialize Audit Logger (Option A - Complete Integration)
+	auditLogger := logger.NewAuditLogger(db, eb)
+	auditLogger.Start()
+
+	// � Initialize Event Subscribers (Phase 2 Integration)
+	auditSubscriber := subscribers.NewTradeAuditSubscriber(db)
+	auditSubscriber.Subscribe(eb)
+
+	analyticsSubscriber := subscribers.NewAnalyticsSubscriber()
+	analyticsSubscriber.Subscribe(eb)
+
+	log.Println("✅ Event subscribers initialized (audit + analytics)")
+
+	// 💾 Initialize Database Write Queue (Phase 3 - Graceful Degradation)
+	writeQueue := database.NewWriteQueue(db, 1000)
+	log.Println("✅ Write queue initialized (max: 1000, retry: 5s)")
+
+	// Make write queue available globally for critical operations
+	// Note: In production, inject this into services that need it
+	_ = writeQueue // Prevent unused variable error for now
+
+	// 🧠 Initialize GRPO Learning System (SOLACE reward-based evolution)
+	grpoUpdater := grpo.NewUpdater(db, 0.01, 10) // 0.01 learning rate, 10-min intervals
+	if err := grpoUpdater.Start(); err != nil {
+		log.Printf("⚠️ GRPO updater failed to start: %v", err)
+	} else {
+		log.Println("✅ GRPO learning system initialized (lr=0.01, interval=10min)")
+	}
+	grpoAgent := grpoUpdater.GetAgent()
+
+	// 🧠 Initialize SOLACE Δ3-2 Consciousness Substrate
+	// DISABLED: Master Memory System deployed manually via migrations/001_master_memory_system.sql
+	// if err := database.InitializeConsciousnessSubstrate(db); err != nil {
+	// 	log.Printf("⚠️ Consciousness substrate initialization failed: %v", err)
+	// 	log.Println("   Continuing with existing schema...")
+	// }
+
+	// 📋 Register this service in the service registry (Phase 1 - Modular Architecture)
+	if err := registry.RegisterService(db, "ares-api", "1.0.0", 8080, "http://localhost:8080/health"); err != nil {
+		log.Printf("⚠️ Service registration failed: %v", err)
+	}
+
+	// 💓 Start heartbeat to keep service status updated
+	go registry.ServiceHeartbeat(db, "ares-api", 30*time.Second)
 
 	// Setup Gin
 	gin.SetMode("debug") // or "release"
 	r := gin.Default()
 	r.Use(middleware.CORSMiddleware())
+
+	// Add cache-busting middleware for HTML files
+	r.Use(func(c *gin.Context) {
+		if len(c.Request.URL.Path) >= 5 && c.Request.URL.Path[len(c.Request.URL.Path)-5:] == ".html" {
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+		}
+		c.Next()
+	})
 
 	// Swagger metadata
 	docs.SwaggerInfo.Title = "ARES Platform API"
@@ -64,14 +185,74 @@ func main() {
 	// @name Authorization
 	// @description Type "Bearer" followed by a space and your JWT token (e.g., "Bearer <token>")
 
+	// NOTE: Health endpoint moved to routes.RegisterRoutes() for standardization (Phase 1)
+
 	// Swagger endpoint
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Static files for Monaco Editor
 	r.Static("/static", "./static")
 
-	// Register API routes with DB dependency
-	routes.RegisterRoutes(r, db)
+	// Serve HTML pages - with proper MIME types and cache control
+	r.GET("/web/*filepath", func(c *gin.Context) {
+		filepath := c.Param("filepath")
+		fullPath := "./web" + filepath
+
+		// Set proper cache headers for HTML
+		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		c.Header("Pragma", "no-cache")
+		c.Header("Expires", "0")
+
+		c.File(fullPath)
+	})
+
+	// Legacy routes for backwards compatibility
+	r.StaticFile("/trading.html", "./web/trading.html")
+	r.StaticFile("/dashboard.html", "./web/dashboard.html")
+	r.StaticFile("/editor.html", "./static/editor.html")
+	r.StaticFile("/code-ide.html", "./web/code-ide.html") // SOLACE Code IDE
+
+	// Serve React SPA from frontend/dist (for future use)
+	r.Static("/assets", "./frontend/dist/assets")
+	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
+
+	// SPA catch-all route - serve trading by default
+	r.NoRoute(func(c *gin.Context) {
+		// Don't intercept API routes
+		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+			c.JSON(404, gin.H{"error": "API endpoint not found"})
+			return
+		}
+		// Serve trading page as default
+		c.File("./web/trading.html")
+	})
+
+	// Register API routes with DB dependency, EventBus, and GRPO Agent (Phase 2 + GRPO)
+	routes.RegisterRoutes(r, db, eb, grpoAgent)
+
+	// 📊 Add analytics endpoint (Phase 2 Integration)
+	r.GET("/api/v1/analytics/trading", func(c *gin.Context) {
+		stats := analyticsSubscriber.GetStats()
+		c.JSON(200, gin.H{
+			"status":    "success",
+			"analytics": stats,
+		})
+	})
+
+	// 🎛️ Register Modular Architecture endpoints (Sections 3-6)
+	configHandler := handlers.NewConfigHandler(db, configManager)
+	configHandler.RegisterRoutes(r.Group("/api/v1"))
+
+	observabilityHandler := handlers.NewObservabilityHandler(db, obsLogger)
+	observabilityHandler.RegisterRoutes(r.Group("/api/v1"))
+
+	log.Println("✅ Modular architecture endpoints registered (config + observability)")
+
+	// Record startup metric
+	metricsCollector.RecordCounter("ares.startup", 1, map[string]string{
+		"version": "1.0.0",
+		"mode":    gin.Mode(),
+	})
 
 	// Start server
 	addr := ":" + port

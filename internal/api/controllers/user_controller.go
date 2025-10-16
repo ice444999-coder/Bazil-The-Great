@@ -96,3 +96,38 @@ func (uc *UserController) RefreshToken(c *gin.Context) {
 		AccessToken: newAccessToken,
 	})
 }
+
+// @Summary Get User Profile
+// @Description Get current user's profile information
+// @Tags Auth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Security BearerAuth
+// @Router /users/profile [get]
+func (uc *UserController) GetProfile(c *gin.Context) {
+	// Get userID from JWT middleware context
+	userIDInterface, exists := c.Get("userID")
+	if !exists {
+		common.JSON(c, http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	userID := userIDInterface.(uint)
+
+	// Get user from service
+	user, err := uc.Service.GetUserByID(userID)
+	if err != nil {
+		common.JSON(c, http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	// Return user profile (without password)
+	common.JSON(c, http.StatusOK, gin.H{
+		"id":       user.ID,
+		"username": user.Username,
+		"email":    user.Email,
+		"created_at": user.CreatedAt,
+	})
+}

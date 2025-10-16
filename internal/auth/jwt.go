@@ -2,14 +2,38 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
-var refreshSecret = []byte(os.Getenv("JWT_REFRESH_SECRET")) // set in .env
+var (
+	jwtSecret     []byte
+	refreshSecret []byte
+	once          sync.Once
+)
+
+// initSecrets initializes JWT secrets from environment (lazy-loaded)
+func initSecrets() {
+	once.Do(func() {
+		jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+		refreshSecret = []byte(os.Getenv("JWT_REFRESH_SECRET"))
+
+		if len(jwtSecret) == 0 {
+			log.Println("⚠️  WARNING: JWT_SECRET is empty! Using fallback (INSECURE)")
+			jwtSecret = []byte("fallback-secret-change-me")
+		}
+		if len(refreshSecret) == 0 {
+			log.Println("⚠️  WARNING: JWT_REFRESH_SECRET is empty! Using JWT_SECRET as fallback")
+			refreshSecret = jwtSecret
+		}
+
+		log.Printf("✅ JWT secrets initialized (JWT_SECRET: %d bytes, REFRESH_SECRET: %d bytes)", len(jwtSecret), len(refreshSecret))
+	})
+}
 
 // Claims defines JWT claims for access token
 type Claims struct {
@@ -25,6 +49,8 @@ type RefreshClaims struct {
 
 // GenerateJWT generates an access token (short-lived)
 func GenerateJWT(userID uint) (string, error) {
+	initSecrets() // Ensure secrets are loaded
+
 	claims := &Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -40,6 +66,8 @@ func GenerateJWT(userID uint) (string, error) {
 
 // GenerateRefreshToken generates a refresh token (long-lived)
 func GenerateRefreshToken(userID uint) (string, error) {
+	initSecrets() // Ensure secrets are loaded
+
 	claims := &RefreshClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -55,6 +83,8 @@ func GenerateRefreshToken(userID uint) (string, error) {
 
 // ValidateJWT validates access token
 func ValidateJWT(tokenStr string) (*Claims, error) {
+	initSecrets() // Ensure secrets are loaded
+
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -75,6 +105,8 @@ func ValidateJWT(tokenStr string) (*Claims, error) {
 
 // ValidateRefreshToken validates refresh token
 func ValidateRefreshToken(tokenStr string) (*RefreshClaims, error) {
+	initSecrets() // Ensure secrets are loaded
+
 	token, err := jwt.ParseWithClaims(tokenStr, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")

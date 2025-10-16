@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SOLACE Chat - Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .user {
+            background: #e3f2fd;
+            text-align: right;
+        }
+        .solace {
+            background: #f3e5f5;
+            text-align: left;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+        #sendBtn {
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #sendBtn:hover {
+            background: #1565c0;
+        }
+        #sendBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat with SOLACE (DeepSeek 14B)</h1>
+    <div id="messages"></div>
+    <div id="input-container">
+        <input type="text" id="messageInput" placeholder="Type your message..." />
+        <button id="sendBtn">Send</button>
+    </div>
+
+    <script>
+        // Get token from login
+        const token = localStorage.getItem('ares_token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login.html';
+        }
+
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(role, content) {
+            const div = document.createElement('div');
+            div.className = 'message ' + role;
+            div.textContent = content;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Show user message
+            addMessage('user', message);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/v1/agent/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+
+                const data = await response.json();
+                
+                // Show SOLACE response
+                addMessage('solace', data.response || 'No response');
+            } catch (error) {
+                addMessage('solace', 'Error: ' + error.message);
+                console.error(error);
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Send on button click
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Send on Enter key
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Load chat history
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/v1/agent/chat/history', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.messages) {
+                        data.messages.forEach(msg => {
+                            addMessage(msg.role === 'user' ? 'user' : 'solace', msg.content);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+
+        loadHistory();
+        messageInput.focus();
+    </script>
+</body>
+</html>

@@ -133,6 +133,20 @@ definitions:
       total_files:
         type: integer
     type: object
+  dto.CloseAllTradesResponse:
+    properties:
+      message:
+        type: string
+      trades_closed:
+        type: integer
+    type: object
+  dto.CloseTradeRequest:
+    properties:
+      trade_id:
+        type: integer
+    required:
+    - trade_id
+    type: object
   dto.CoinDTO:
     properties:
       id:
@@ -279,6 +293,30 @@ definitions:
         type: string
       success:
         type: boolean
+    type: object
+  dto.ExecuteTradeRequest:
+    properties:
+      direction:
+        description: BUY or SELL
+        type: string
+      reasoning:
+        description: Why SOLACE made this trade
+        type: string
+      session_id:
+        description: UUID of conversation session
+        type: string
+      size_usd:
+        description: Amount in USD
+        type: number
+      trading_pair:
+        description: BTC/USDC, ETH/USDC, SOL/USDC
+        type: string
+    required:
+    - direction
+    - reasoning
+    - session_id
+    - size_usd
+    - trading_pair
     type: object
   dto.FileFragment:
     properties:
@@ -474,6 +512,39 @@ definitions:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
+  dto.SandboxTradeResponse:
+    properties:
+      closed_at:
+        type: string
+      direction:
+        type: string
+      entry_price:
+        type: number
+      exit_price:
+        type: number
+      fees:
+        type: number
+      id:
+        type: integer
+      market_conditions:
+        type: object
+      opened_at:
+        type: string
+      profit_loss:
+        type: number
+      profit_loss_percent:
+        type: number
+      reasoning:
+        type: string
+      size:
+        type: number
+      status:
+        type: string
+      trade_hash:
+        type: string
+      trading_pair:
+        type: string
+    type: object
   dto.SemanticSearchRequest:
     properties:
       limit:
@@ -567,6 +638,41 @@ definitions:
       updated_at:
         type: string
       user_id:
+        type: integer
+    type: object
+  dto.TradingPerformanceResponse:
+    properties:
+      avg_loss:
+        type: number
+      avg_profit:
+        type: number
+      calculated_at:
+        type: string
+      kelly_criterion:
+        type: number
+      largest_loss:
+        type: number
+      largest_win:
+        type: number
+      losing_trades:
+        type: integer
+      risk_of_ruin:
+        type: number
+      sharpe_ratio:
+        type: number
+      sortino_ratio:
+        type: number
+      strategy_version:
+        type: integer
+      total_profit_loss:
+        type: number
+      total_trades:
+        type: integer
+      var_5_percent:
+        type: number
+      win_rate:
+        type: number
+      winning_trades:
         type: integer
     type: object
 info:
@@ -1619,6 +1725,127 @@ paths:
       summary: Get trading performance stats
       tags:
       - Trading
+  /trading/close:
+    post:
+      consumes:
+      - application/json
+      description: Close an open trade and calculate P&L
+      parameters:
+      - description: Trade ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CloseTradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SandboxTradeResponse'
+      security:
+      - BearerAuth: []
+      summary: Close Sandbox Trade
+      tags:
+      - Sandbox Trading
+  /trading/close-all:
+    post:
+      description: Emergency close all open positions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CloseAllTradesResponse'
+      security:
+      - BearerAuth: []
+      summary: Close All Trades (Kill-Switch)
+      tags:
+      - Sandbox Trading
+  /trading/execute:
+    post:
+      consumes:
+      - application/json
+      description: SOLACE executes a sandbox trade with reasoning
+      parameters:
+      - description: Trade Execution
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ExecuteTradeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SandboxTradeResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute Sandbox Trade
+      tags:
+      - Sandbox Trading
+  /trading/history:
+    get:
+      description: Get sandbox trade history with pagination
+      parameters:
+      - description: Number of trades (default 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SandboxTradeResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get Trade History
+      tags:
+      - Sandbox Trading
+  /trading/open:
+    get:
+      description: Get all currently open sandbox trades
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SandboxTradeResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get Open Trades
+      tags:
+      - Sandbox Trading
+  /trading/performance:
+    get:
+      description: Get comprehensive trading performance metrics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TradingPerformanceResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Trading Performance
+      tags:
+      - Sandbox Trading
   /users/login:
     post:
       consumes:

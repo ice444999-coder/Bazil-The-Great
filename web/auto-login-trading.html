@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Login - ARES Trading</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner"></div>
+        <h2>🚀 Auto-logging in as solace_ai...</h2>
+        <p>Redirecting to Trading Dashboard...</p>
+    </div>
+
+    <script>
+        async function autoLogin() {
+            try {
+                // Login
+                const response = await fetch('/api/v1/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'solace_ai',
+                        password: 'test123'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                
+                // Store token and user data
+                localStorage.setItem('ares_token', data.access_token);
+                localStorage.setItem('ares_user', JSON.stringify({
+                    username: 'solace_ai',
+                    id: data.user_id
+                }));
+
+                // Redirect to trading page
+                setTimeout(() => {
+                    window.location.href = '/trading.html';
+                }, 500);
+
+            } catch (error) {
+                console.error('Auto-login failed:', error);
+                document.querySelector('.loading').innerHTML = `
+                    <h2>❌ Auto-login failed</h2>
+                    <p>${error.message}</p>
+                    <p><a href="/login.html" style="color: white;">Go to login page</a></p>
+                `;
+            }
+        }
+
+        // Auto-login on page load
+        autoLogin();
+    </script>
+</body>
+</html>
