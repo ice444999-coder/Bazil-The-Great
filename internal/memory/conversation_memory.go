@@ -30,8 +30,8 @@ func NewConversationMemory(db *gorm.DB, sessionID string, summarizer func(contex
 	return &ConversationSummaryBufferMemory{
 		DB:            db,
 		SessionID:     sessionID,
-		MaxTokenLimit: 2000, // ~2000 tokens before summarization
-		KeepLastN:     5,    // Keep last 5 messages verbatim
+		MaxTokenLimit: 500, // CONSERVATIVE: ~500 tokens before summarization (keeps context small)
+		KeepLastN:     3,   // Keep last 3 messages verbatim (user + assistant + user)
 		llmSummarizer: summarizer,
 	}
 }
@@ -118,13 +118,16 @@ func (m *ConversationSummaryBufferMemory) formatMessages(messages []Message) str
 	return builder.String()
 }
 
-// estimateTokens - Rough token estimation (4 chars = 1 token)
+// estimateTokens - Conservative token estimation (3 chars = 1 token for safety)
+// OpenAI's tokenizer averages ~4 chars/token, but we use 3 to be conservative
 func (m *ConversationSummaryBufferMemory) estimateTokens(messages []Message) int {
 	totalChars := 0
 	for _, msg := range messages {
-		totalChars += len(msg.Content)
+		// Count content + metadata (role, timestamp formatting adds ~20 chars per message)
+		totalChars += len(msg.Content) + len(msg.Role) + 20
 	}
-	return totalChars / 4
+	// Use 3 chars/token (more conservative than 4) to avoid underestimating
+	return totalChars / 3
 }
 
 // Clear - Reset conversation memory

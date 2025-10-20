@@ -5,6 +5,8 @@ import (
 	"ares_api/internal/common"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,6 +39,46 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Set userID in context for downstream handlers
 		c.Set("userID", claims.UserID)
+		c.Next()
+	}
+}
+
+// RateLimiter implements basic rate limiting
+func RateLimiter(requests int, window time.Duration) gin.HandlerFunc {
+	// Simple in-memory rate limiter (for production, use Redis)
+	type client struct {
+		count   int
+		resetAt time.Time
+	}
+
+	clients := make(map[string]*client)
+	var mu sync.Mutex
+
+	return func(c *gin.Context) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		ip := c.ClientIP()
+		now := time.Now()
+
+		if cl, exists := clients[ip]; exists {
+			if now.After(cl.resetAt) {
+				cl.count = 1
+				cl.resetAt = now.Add(window)
+			} else if cl.count >= requests {
+				c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+				c.Abort()
+				return
+			} else {
+				cl.count++
+			}
+		} else {
+			clients[ip] = &client{
+				count:   1,
+				resetAt: now.Add(window),
+			}
+		}
+
 		c.Next()
 	}
 }

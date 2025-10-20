@@ -38,7 +38,6 @@ type Event struct {
 // NewEventBus creates a new in-memory event bus
 func NewEventBus() *EventBus {
 	ctx, cancel := context.WithCancel(context.Background())
-	log.Println("[EVENTBUS] ✅ Initialized in-memory EventBus")
 	return &EventBus{
 		subscribers: make(map[string][]chan []byte),
 		ctx:         ctx,

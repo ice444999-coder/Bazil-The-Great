@@ -101,8 +101,25 @@ func (m *Manager) Reload() error {
 		newCache[cfg.ConfigKey] = value
 	}
 
+	// Only log if configs actually changed
+	configsChanged := len(newCache) != len(m.cache)
+	if !configsChanged {
+		// Check if any values changed
+		for key, newVal := range newCache {
+			oldVal, exists := m.cache[key]
+			if !exists || fmt.Sprintf("%v", newVal) != fmt.Sprintf("%v", oldVal) {
+				configsChanged = true
+				break
+			}
+		}
+	}
+
 	m.cache = newCache
-	log.Printf("[CONFIG] ✅ Reloaded %d configs for %s", len(newCache), m.serviceName)
+
+	if configsChanged {
+		log.Printf("[CONFIG] ✅ Reloaded %d configs for %s (changes detected)", len(newCache), m.serviceName)
+	}
+	// No log spam if nothing changed
 	return nil
 }
 

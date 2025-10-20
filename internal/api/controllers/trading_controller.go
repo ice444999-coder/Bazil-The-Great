@@ -399,3 +399,276 @@ func (c *TradingController) GetPerformance(ctx *gin.Context) {
 
 	common.JSON(ctx, http.StatusOK, response)
 }
+
+// ============================================================================
+// MULTI-STRATEGY API ENDPOINTS
+// ============================================================================
+
+// GetStrategyList - Get all available trading strategies
+// @Summary List Trading Strategies
+// @Description Get list of all available trading strategies with descriptions
+// @Tags Strategy
+// @Produce json
+// @Success 200 {object} dto.StrategyListResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/list [get]
+func (c *TradingController) GetStrategyList(ctx *gin.Context) {
+	// Return hardcoded strategy list for now
+	strategyDTOs := []dto.StrategyInfo{
+		{
+			Name:        "RSI_Oversold",
+			Description: "Buys when RSI indicates oversold conditions",
+			RiskLevel:   "Medium",
+		},
+		{
+			Name:        "MACD_Divergence",
+			Description: "Trades on MACD signal line crossovers",
+			RiskLevel:   "Medium",
+		},
+		{
+			Name:        "Trend_Following",
+			Description: "Follows EMA trends for momentum trading",
+			RiskLevel:   "Low",
+		},
+		{
+			Name:        "Support_Bounce",
+			Description: "Buys at support levels, sells at resistance",
+			RiskLevel:   "High",
+		},
+		{
+			Name:        "Volume_Spike",
+			Description: "Trades on unusual volume patterns",
+			RiskLevel:   "High",
+		},
+	}
+
+	response := dto.StrategyListResponse{
+		Strategies: strategyDTOs,
+		Total:      len(strategyDTOs),
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// GetStrategyMetrics - Get performance metrics for a specific strategy
+// @Summary Get Strategy Metrics
+// @Description Get detailed performance metrics for a specific strategy
+// @Tags Strategy
+// @Produce json
+// @Param name path string true "Strategy Name" example:"RSI_Oversold"
+// @Success 200 {object} dto.StrategyMetricsResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/{name}/metrics [get]
+func (c *TradingController) GetStrategyMetrics(ctx *gin.Context) {
+	strategyName := ctx.Param("name")
+	userID := ctx.GetUint("userID")
+
+	metrics, err := c.TradingService.GetStrategyMetrics(userID, strategyName)
+	if err != nil {
+		common.JSON(ctx, http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := dto.StrategyMetricsResponse{
+		StrategyName:      metrics.StrategyName,
+		TotalTrades:       metrics.TotalTrades,
+		WinningTrades:     metrics.WinningTrades,
+		LosingTrades:      metrics.LosingTrades,
+		WinRate:           metrics.WinRate,
+		TotalProfitLoss:   metrics.TotalProfitLoss,
+		AverageProfitLoss: metrics.AverageProfitLoss,
+		SharpeRatio:       metrics.SharpeRatio,
+		MaxDrawdown:       metrics.MaxDrawdown,
+		CurrentBalance:    metrics.CurrentBalance,
+		LastUpdated:       metrics.LastUpdated,
+		CanPromoteToLive:  metrics.CanPromoteToLive,
+		MissingCriteria:   metrics.MissingCriteria,
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// GetStrategySandboxTrades - Get sandbox trades for a specific strategy
+// @Summary Get Strategy Sandbox Trades
+// @Description Get all sandbox trades executed by a specific strategy
+// @Tags Strategy
+// @Produce json
+// @Param name path string true "Strategy Name" example:"RSI_Oversold"
+// @Param limit query int false "Number of trades to return" default:50
+// @Success 200 {object} dto.StrategySandboxTradesResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/{name}/sandbox-trades [get]
+func (c *TradingController) GetStrategySandboxTrades(ctx *gin.Context) {
+	strategyName := ctx.Param("name")
+	userID := ctx.GetUint("userID")
+
+	// Parse limit query parameter
+	limitStr := ctx.DefaultQuery("limit", "50")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 50
+	}
+
+	trades, err := c.TradingService.GetStrategySandboxTrades(userID, strategyName, limit)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Convert to DTOs
+	tradeDTOs := make([]dto.SandboxTradeResponse, 0, len(trades))
+	for _, trade := range trades {
+		tradeDTOs = append(tradeDTOs, dto.SandboxTradeResponse{
+			ID:                trade.ID,
+			TradingPair:       trade.TradingPair,
+			Direction:         trade.Direction,
+			Size:              trade.Size,
+			EntryPrice:        trade.EntryPrice,
+			ExitPrice:         trade.ExitPrice,
+			ProfitLoss:        trade.ProfitLoss,
+			ProfitLossPercent: trade.ProfitLossPercent,
+			Fees:              trade.Fees,
+			Status:            trade.Status,
+			OpenedAt:          trade.OpenedAt,
+			ClosedAt:          trade.ClosedAt,
+			Reasoning:         trade.Reasoning,
+			MarketConditions:  trade.MarketConditions,
+			TradeHash:         trade.TradeHash,
+		})
+	}
+
+	response := dto.StrategySandboxTradesResponse{
+		StrategyName: strategyName,
+		Trades:       tradeDTOs,
+		Total:        len(tradeDTOs),
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// ToggleStrategy - Enable/disable a specific strategy
+// @Summary Toggle Strategy
+// @Description Enable or disable a specific trading strategy
+// @Tags Strategy
+// @Accept json
+// @Produce json
+// @Param name path string true "Strategy Name" example:"RSI_Oversold"
+// @Success 200 {object} dto.StrategyToggleResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/{name}/toggle [post]
+func (c *TradingController) ToggleStrategy(ctx *gin.Context) {
+	strategyName := ctx.Param("name")
+	userID := ctx.GetUint("userID")
+
+	newStatus, err := c.TradingService.ToggleStrategy(userID, strategyName)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Log to ledger
+	action := "enabled"
+	if !newStatus {
+		action = "disabled"
+	}
+	_ = c.LedgerService.Append(
+		userID,
+		"ToggleStrategy",
+		fmt.Sprintf("Strategy '%s' %s", strategyName, action),
+	)
+
+	response := dto.StrategyToggleResponse{
+		StrategyName: strategyName,
+		Enabled:      newStatus,
+		Message:      fmt.Sprintf("Strategy '%s' successfully %s", strategyName, action),
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// PromoteStrategyToLive - Promote strategy from sandbox to live trading
+// @Summary Promote Strategy to Live
+// @Description Promote a strategy from sandbox to live trading (requires minimum criteria)
+// @Tags Strategy
+// @Accept json
+// @Produce json
+// @Param name path string true "Strategy Name" example:"RSI_Oversold"
+// @Success 200 {object} dto.StrategyPromoteResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/{name}/promote-to-live [post]
+func (c *TradingController) PromoteStrategyToLive(ctx *gin.Context) {
+	strategyName := ctx.Param("name")
+	userID := ctx.GetUint("userID")
+
+	// Check if strategy meets promotion criteria
+	canPromote, missingCriteria, err := c.TradingService.CanPromoteStrategy(userID, strategyName)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !canPromote {
+		common.JSON(ctx, http.StatusBadRequest, gin.H{
+			"error":            "Strategy does not meet promotion criteria",
+			"missing_criteria": missingCriteria,
+		})
+		return
+	}
+
+	// Promote strategy
+	err = c.TradingService.PromoteStrategy(userID, strategyName)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Log to ledger
+	_ = c.LedgerService.Append(
+		userID,
+		"PromoteStrategy",
+		fmt.Sprintf("Strategy '%s' promoted to LIVE trading", strategyName),
+	)
+
+	response := dto.StrategyPromoteResponse{
+		StrategyName: strategyName,
+		Status:       "LIVE",
+		Message:      fmt.Sprintf("Strategy '%s' successfully promoted to live trading", strategyName),
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}
+
+// GetMasterMetrics - Get aggregated metrics across all strategies
+// @Summary Get Master Metrics
+// @Description Get aggregated performance metrics across all trading strategies
+// @Tags Strategy
+// @Produce json
+// @Success 200 {object} dto.MasterMetricsResponse
+// @Security BearerAuth
+// @Router /api/v1/strategy/master-metrics [get]
+func (c *TradingController) GetMasterMetrics(ctx *gin.Context) {
+	userID := ctx.GetUint("userID")
+
+	metrics, err := c.TradingService.GetMasterMetrics(userID)
+	if err != nil {
+		common.JSON(ctx, http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := dto.MasterMetricsResponse{
+		TotalStrategies:  metrics.TotalStrategies,
+		ActiveStrategies: metrics.ActiveStrategies,
+		TotalSignals:     metrics.TotalSignals,
+		BuySignals:       metrics.BuySignals,
+		SellSignals:      metrics.SellSignals,
+		HoldSignals:      metrics.HoldSignals,
+		TotalTrades:      metrics.TotalTrades,
+		TotalProfitLoss:  metrics.TotalProfitLoss,
+		OverallWinRate:   metrics.OverallWinRate,
+		BestStrategy:     metrics.BestStrategy,
+		WorstStrategy:    metrics.WorstStrategy,
+		LastUpdated:      metrics.LastUpdated,
+	}
+
+	common.JSON(ctx, http.StatusOK, response)
+}

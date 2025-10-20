@@ -1,0 +1,357 @@
+```
+================================================================================
+FILE: coordinator.py (1,236 lines total - Updated: 2025-10-17)
+================================================================================
+
+IMPORTS (Lines 16-33):
+=====================
+- import os
+- import sys
+- import time
+- import json
+- import logging
+- import argparse
+- from datetime import datetime
+- from typing import Optional, Dict, Any, List
+- import psycopg2
+- import psycopg2.extras
+- from openai import OpenAI
+- from anthropic import Anthropic
+- from dotenv import load_dotenv
+- import requests
+- import asyncio
+- import websockets
+- from file_operations import read_file, write_file, list_directory
+
+CLASSES (1 total):
+==================
+AgentCoordinator (lines 67-802)
+  
+  Methods (16 total):
+  -------------------
+  1. __init__(db_config)                           [line 70]
+  2. _init_api_clients()                           [line 81]
+  3. connect_db()                                  [line 110]
+  4. close_db()                                    [line 120]
+  5. get_pending_tasks()                           [line 126]
+  6. update_task_status(task_id, status, ...)     [line 147]
+  7. update_agent_status(agent_name, status, ...)  [line 176]
+  8. log_task_history(agent_name, task_id, ...)   [line 190]
+  9. query_architecture_rules(feature_type)        [line 206]
+  10. execute_with_solace(task)                    [line 244]
+  11. ⭐ _execute_tool(function_name, args)        [line 550] ✅ EXISTS
+  12. execute_with_forge(task)                     [line 593]
+  13. execute_with_architect(task)                 [line 630]
+  14. execute_with_sentinel(task)                  [line 668]
+  15. execute_task(task)                           [line 706]
+  16. run(interval)                                [line 771]
+
+TOP-LEVEL FUNCTIONS (6 total):
+===============================
+1. get_db_connection()                             [line 805]
+   - Standalone database connection helper
+   
+2. query_architecture_rules(feature_type)          [line 816]
+   - Standalone SQL query function (also exists as class method)
+   
+3. get_openai_tools()                              [line 868]
+   - Returns list of 4 OpenAI function tool definitions
+   - Tools: read_file, write_file, list_directory, query_architecture
+   
+4. handle_chat_message(message, websocket)         [line 955]
+   - Async function for OpenAI function calling integration
+   - Processes chat with function calling loop (max 5 iterations)
+   
+5. handle_websocket(websocket, path)               [line 1073]
+   - Async WebSocket connection handler
+   - Supports 6 message types (see below)
+   
+6. start_websocket_server()                        [line 1173]
+   - Async WebSocket server starter on port 8765
+
+MAIN BLOCK:
+===========
+✅ YES - Both exist:
+  - def main()                                     [line 1188]
+  - if __name__ == '__main__':                     [line 1233]
+
+WEBSOCKET MESSAGE PROTOCOL (Currently Implemented):
+====================================================
+
+CLIENT → SERVER (6 message types):
+-----------------------------------
+✅ 1. ping
+   - Purpose: Health check
+   - Data: None
+   - Response: {"type": "pong", "timestamp": "..."}
+
+✅ 2. read_file
+   - Purpose: Read file contents
+   - Data: {"path": "..."}
+   - Response: {"type": "file_content", "path": "...", "content": "..."}
+
+✅ 3. write_file
+   - Purpose: Write/create file
+   - Data: {"path": "...", "content": "..."}
+   - Response: {"type": "write_success", "path": "..."}
+
+✅ 4. list_directory
+   - Purpose: List directory contents
+   - Data: {"path": "...", "recursive": true, "max_depth": 5}
+   - Response: {"type": "directory_listing", "path": "...", "files": [...]}
+
+✅ 5. chat
+   - Purpose: Chat with SOLACE using OpenAI function calling
+   - Data: {"message": "..."}
+   - Response: {"type": "chat_response", "message": "..."}
+   - Note: Sends status updates during execution
+
+✅ 6. get_architecture
+   - Purpose: Query architecture rules from database
+   - Data: {"feature_type": "..." (optional)}
+   - Response: {"type": "architecture_rules", "rules": [...], "count": N}
+
+SERVER → CLIENT (Response types):
+----------------------------------
+✅ pong                    - Health check response
+✅ file_content            - File read result
+✅ write_success           - File write confirmation
+✅ directory_listing       - Directory contents
+✅ chat_response           - OpenAI chat response
+✅ architecture_rules      - Architecture query result
+✅ status                  - Function execution status (during OpenAI calls)
+✅ error                   - Error message
+
+================================================================================
+MISSING MESSAGE TYPES (From Phase A Spec):
+================================================================================
+
+❌ MISSING CLIENT → SERVER:
+---------------------------
+7. query_schema
+   - Data: {"table_name": "..."}
+   - Response: {"type": "database_schema", "schema": {...}}
+
+8. create_backup
+   - Data: {"workspace_path": "..."}
+   - Response: {"type": "backup_created", "backup_path": "..."}
+
+9. restore_backup
+   - Data: {"backup_path": "...", "workspace_path": "..."}
+   - Response: {"type": "restore_complete"}
+
+10. execute_command
+    - Data: {"command": "...", "cwd": "..."}
+    - Response: {"type": "command_output", "stdout": "...", "stderr": "..."}
+
+❌ MISSING SERVER → CLIENT:
+---------------------------
+- database_schema          - Database schema query result
+- backup_created           - Backup creation confirmation
+- restore_complete         - Backup restore confirmation
+- command_output           - Command execution result
+
+================================================================================
+_execute_tool() METHOD ANALYSIS:
+================================================================================
+
+✅ EXISTS at line 550
+
+CURRENT IMPLEMENTATION:
+-----------------------
+- Location: Inside AgentCoordinator class
+- Purpose: Execute SOLACE orchestration tools by calling ARES API
+- Base URL: http://localhost:8080/api/v1/solace-orch
+- HTTP Method: GET for queries, POST for operations
+
+MAPPED ENDPOINTS (14 functions):
+---------------------------------
+✅ read_file              → POST /file/read
+✅ list_directory         → POST /file/list
+✅ get_architecture_rules → GET /architecture/rules
+✅ search_architecture_rules → POST /architecture/search
+✅ create_user_request    → POST /orchestrate/request
+✅ analyze_request        → POST /orchestrate/analyze/:id
+✅ generate_instructions  → POST /orchestrate/generate/:id
+✅ get_next_instruction   → GET /orchestrate/next
+✅ scan_repository        → POST /orchestrate/scan
+✅ write_file             → POST /file/write
+✅ create_backup          → POST /backup/create
+✅ execute_command        → POST /command/execute
+✅ restore_from_backup    → POST /backup/restore
+✅ verify_system_running  → GET /system/verify
+
+NOTE: This method calls the Go backend API, NOT the Python file_operations.py
+      The WebSocket handlers use file_operations.py directly.
+
+================================================================================
+OPENAI FUNCTION CALLING INTEGRATION:
+================================================================================
+
+✅ COMPLETE (Lines 868-1065)
+
+SYSTEM PROMPT:
+--------------
+"You are SOLACE, an AI assistant with direct file system access. You help 
+David build the ARES system. You can read/write files, list directories, 
+and query architecture rules."
+
+FUNCTION TOOLS (4 defined):
+---------------------------
+1. read_file(path)
+   - Read file contents from repository
+
+2. write_file(path, content)
+   - Write/create files in repository
+
+3. list_directory(path, recursive=True, max_depth=5)
+   - List directory contents recursively
+
+4. query_architecture(feature_type=None)
+   - Query architecture rules from database
+
+EXECUTION FLOW:
+---------------
+1. User sends: {"type": "chat", "data": {"message": "List files"}}
+2. handle_websocket() receives message
+3. Calls handle_chat_message(message, websocket)
+4. Creates OpenAI client with gpt-4-turbo-preview
+5. Loop up to 5 iterations:
+   a. Call OpenAI API with 4 function tools
+   b. If tool_calls exist:
+      - Send status: {"type": "status", "message": "Executing..."}
+      - Execute function (read_file/write_file/list_directory/query_architecture)
+      - Add result to conversation
+      - Continue loop
+   c. Else: Return final response
+6. Send final response: {"type": "chat_response", "message": "..."}
+
+STATUS UPDATES:
+---------------
+During function execution, client receives:
+{"type": "status", "message": "Executing function_name..."}
+
+ERROR HANDLING:
+---------------
+✅ Validates OPENAI_API_KEY exists
+✅ Catches JSON parsing errors in function arguments
+✅ Handles OpenAI API errors gracefully
+✅ Iteration limit prevents infinite loops (max 5)
+
+================================================================================
+ARCHITECTURE SUMMARY:
+================================================================================
+
+AGENT EXECUTION LAYER:
+----------------------
+- AgentCoordinator class manages 4 agents: SOLACE, FORGE, ARCHITECT, SENTINEL
+- Connects to PostgreSQL (ares_db) for task queue and agent status
+- Uses OpenAI (SOLACE), Claude (FORGE), Ollama (ARCHITECT/SENTINEL)
+- Polls task_queue table for status='assigned' tasks
+- Executes tasks with appropriate agent
+
+WEBSOCKET REAL-TIME LAYER:
+---------------------------
+- Async WebSocket server on port 8765
+- Handles 6 message types for SOLACE interaction
+- Integrates OpenAI function calling for autonomous operations
+- Uses file_operations.py for direct file system access
+- Status updates during long-running operations
+
+BACKEND INTEGRATION LAYER:
+---------------------------
+- _execute_tool() method calls Go backend API endpoints
+- 14 orchestration functions mapped to REST API
+- Base URL: http://localhost:8080/api/v1/solace-orch
+- Used by SOLACE agent during task execution
+
+DATABASE LAYER:
+---------------
+- PostgreSQL connection via psycopg2
+- Tables: task_queue, agent_status, task_history, architecture_rules
+- Supports transactions and rollback
+- RealDictCursor for easy JSON serialization
+
+================================================================================
+TESTING STATUS:
+================================================================================
+
+✅ Code Complete:
+  - OpenAI function calling integration (lines 868-1065)
+  - WebSocket server with 6 message types (lines 1073-1170)
+  - File operations integration
+  - Architecture query integration
+
+⏳ Testing Pending:
+  - Need to execute test_openai_chat.py
+  - Need to verify WebSocket message flow
+  - Need to confirm OpenAI function calling works end-to-end
+  - Need to test all 6 message types
+
+📝 Documentation:
+  - INSTRUCTION_5_COMPLETE.md (quick reference)
+  - INSTRUCTION_5_COMPLETION_REPORT.md (detailed report)
+  - test_openai_integration.ps1 (test runner script)
+  - test_openai_chat.py (test client)
+
+================================================================================
+CRITICAL GAPS (From Phase A Spec):
+================================================================================
+
+🚨 GAP #1: Missing 4 WebSocket Message Types
+--------------------------------------------
+Need to add handlers for:
+1. query_schema (database table schema inspection)
+2. create_backup (workspace backup creation)
+3. restore_backup (workspace backup restoration)
+4. execute_command (shell command execution)
+
+These are referenced in _execute_tool() but not in WebSocket handlers!
+
+🚨 GAP #2: Inconsistent Function Access
+---------------------------------------
+- _execute_tool() calls Go backend API endpoints
+- WebSocket handlers call Python file_operations.py directly
+- Need to decide: Should WebSocket also use Go API?
+
+🚨 GAP #3: OpenAI Tools Don't Match _execute_tool()
+---------------------------------------------------
+OpenAI function calling defines 4 tools:
+- read_file, write_file, list_directory, query_architecture
+
+But _execute_tool() has 14 functions including:
+- create_backup, execute_command, scan_repository, etc.
+
+Should OpenAI have access to all 14 functions?
+
+================================================================================
+RECOMMENDATIONS:
+================================================================================
+
+1. ✅ Complete testing of existing OpenAI integration
+   - Run test_openai_integration.ps1
+   - Verify all 6 message types work
+   - Gather evidence for INSTRUCTION_5 completion
+
+2. 🔧 Add missing WebSocket message handlers
+   - query_schema
+   - create_backup
+   - restore_backup
+   - execute_command
+
+3. 🔧 Align OpenAI tools with _execute_tool() capabilities
+   - Add backup/restore/execute to OpenAI function definitions
+   - Enable SOLACE to use full orchestration suite
+
+4. 📖 Document dual-layer architecture
+   - WebSocket layer (Python file_operations.py)
+   - Backend API layer (Go ARES API)
+   - Clarify when to use each
+
+5. 🧪 Create integration tests
+   - Test WebSocket → OpenAI → file_operations flow
+   - Test AgentCoordinator → _execute_tool() → Go API flow
+   - Test end-to-end task execution
+
+================================================================================
+```

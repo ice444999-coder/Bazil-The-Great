@@ -57,6 +57,24 @@ func (r *TradingRepository) GetTradesBySession(sessionID uuid.UUID) ([]models.Sa
 	return trades, err
 }
 
+// GetTradesByStrategy gets all trades for a user filtered by strategy name
+func (r *TradingRepository) GetTradesByStrategy(userID uint, strategyName string) ([]models.SandboxTrade, error) {
+	var trades []models.SandboxTrade
+	err := r.DB.Where("user_id = ? AND strategy_name = ?", userID, strategyName).
+		Order("opened_at DESC").
+		Find(&trades).Error
+	return trades, err
+}
+
+// GetAllTrades gets all trades for a user (used for aggregated metrics)
+func (r *TradingRepository) GetAllTrades(userID uint) ([]models.SandboxTrade, error) {
+	var trades []models.SandboxTrade
+	err := r.DB.Where("user_id = ?", userID).
+		Order("opened_at DESC").
+		Find(&trades).Error
+	return trades, err
+}
+
 // UpdateTrade updates an existing trade
 func (r *TradingRepository) UpdateTrade(trade *models.SandboxTrade) error {
 	return r.DB.Save(trade).Error

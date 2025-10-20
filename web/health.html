@@ -14,8 +14,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: #0B0E11;
+            color: #EAECEF;
         }
 
         .container {
@@ -85,9 +85,23 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .nav-item.active {
-            background: rgba(255,255,255,0.2);
-            border-left: 3px solid white;
+        
+        /* ENHANCED NAVIGATION ACTIVE STATE - High Specificity */
+        .sidebar .nav-menu a.nav-item.active,
+        nav.nav-menu a.nav-item.active,
+        div.nav-menu a.nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-left: 4px solid #fff !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        /* Hover effect for nav items */
+        .sidebar .nav-menu a.nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.15) !important;
+            transform: translateX(2px);
+            transition: all 0.2s ease;
         }
 
         .logout-btn {
@@ -370,25 +384,41 @@
                     <span class="icon">📊</span>
                     <span>Trading</span>
                 </a>
+                <a href="/solace-trading.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>SOLACE Consciousness</span>
+                </a>
+                <a href="/forge-dashboard.html" class="nav-item">
+                    <span class="icon">🎓</span>
+                    <span>FORGE Apprenticeship</span>
+                </a>
+                <a href="/code-ide.html" class="nav-item">
+                    <span class="icon">🤖</span>
+                    <span>Code IDE</span>
+                </a>
                 <a href="/chat.html" class="nav-item">
                     <span class="icon">💬</span>
-                    <span>Chat with SOLACE</span>
+                    <span>Chat</span>
+                </a>
+                <a href="/solace-control.html" class="nav-item">
+                    <span class="icon">🎛️</span>
+                    <span>SOLACE Control</span>
                 </a>
                 <a href="/editor.html" class="nav-item">
                     <span class="icon">📝</span>
-                    <span>Code Editor</span>
+                    <span>Editor</span>
                 </a>
                 <a href="/memory.html" class="nav-item">
                     <span class="icon">🧠</span>
-                    <span>Memory System</span>
+                    <span>Memory</span>
                 </a>
                 <a href="/vision.html" class="nav-item">
                     <span class="icon">👁️</span>
-                    <span>SOLACE Vision</span>
+                    <span>Vision</span>
                 </a>
                 <a href="/health.html" class="nav-item active">
                     <span class="icon">❤️</span>
-                    <span>System Health</span>
+                    <span>Health</span>
                 </a>
             </nav>
 
@@ -635,18 +665,37 @@
         // Fetch health data
         async function fetchHealthData() {
             try {
-                const response = await fetch('/api/v1/monitoring/health', {
+                const response = await fetch('/api/v1/health/detailed', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     updateHealthUI(data);
+                } else {
+                    console.error('Health API error:', response.status, response.statusText);
+                    showError(`API returned ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Error fetching health data:', error);
-                showError();
+                showError(`Connection failed: ${error.message}. Is ARES API running on port 8080?`);
             }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message || 'Unable to fetch health data from API';
+            errorDiv.style.cssText = 'position:fixed;top:20px;right:20px;background:#ef4444;color:white;padding:15px 20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:9999;max-width:400px;';
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+            
+            // Set loading state in UI
+            document.getElementById('overallStatus').textContent = 'Unable to connect to API';
+            document.querySelectorAll('.status-badge').forEach(badge => {
+                badge.textContent = 'Unknown';
+                badge.className = 'status-badge warning';
+            });
         }
 
         function updateHealthUI(data) {

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES - SOLACE Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: #0B0E11;
+            color: #EAECEF;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* ARES Sidebar (Purple) */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .user-info {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-info .role {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        
+        /* ENHANCED NAVIGATION ACTIVE STATE - High Specificity */
+        .sidebar .nav-menu a.nav-item.active,
+        nav.nav-menu a.nav-item.active,
+        div.nav-menu a.nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-left: 4px solid #fff !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        /* Hover effect for nav items */
+        .sidebar .nav-menu a.nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.15) !important;
+            transform: translateX(2px);
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            margin: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0B0E11;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 30px;
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #EAECEF;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #848E9C;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        /* Start/Stop Button */
+        .control-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .control-button.running {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .control-button.running:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: scale(1.05);
+        }
+
+        .control-button.stopped {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+
+        .control-button.stopped:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transform: scale(1.05);
+        }
+
+        .button-status {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: #EAECEF;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.running {
+            background: #10b981;
+        }
+
+        .status-dot.stopped {
+            background: #6b7280;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            background: #0B0E11;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .message-sender {
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .sender-david {
+            color: #10b981; /* Green like Enki in screenshot */
+        }
+
+        .sender-solace {
+            color: #a855f7; /* Purple/magenta like SOLACE in screenshot */
+        }
+
+        .sender-claude {
+            color: #06b6d4; /* Cyan for Claude */
+        }
+
+        .message-text {
+            color: #d1d5db; /* Light gray for message text */
+        }
+
+        .timestamp {
+            color: #6b7280;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            padding: 20px 30px;
+            background: #1E2329;
+            border-top: 1px solid #2B3139;
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #0B0E11;
+            border: 1px solid #2B3139;
+            color: #EAECEF;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Scrollbar Styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #1E2329;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>ARES</h1>
+                <p>Autonomous Trading System</p>
+            </div>
+
+            <div class="user-info">
+                <div class="username">David</div>
+                <div class="role">System Administrator</div>
+            </div>
+
+            <div class="nav-menu">
+                <a href="/dashboard.html" class="nav-item">
+                    <span>🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/trading.html" class="nav-item">
+                    <span>📊</span>
+                    <span>Trading</span>
+                </a>
+                <a href="/solace-trading.html" class="nav-item">
+                    <span>🧠</span>
+                    <span>SOLACE Consciousness</span>
+                </a>
+                <a href="/forge-dashboard.html" class="nav-item">
+                    <span>�</span>
+                    <span>FORGE Apprenticeship</span>
+                </a>
+                <a href="/code-ide.html" class="nav-item">
+                    <span>🤖</span>
+                    <span>Code IDE</span>
+                </a>
+                <a href="/chat.html" class="nav-item">
+                    <span>�</span>
+                    <span>Chat</span>
+                </a>
+                <a href="/solace-control.html" class="nav-item active">
+                    <span>🎛️</span>
+                    <span>SOLACE Control</span>
+                </a>
+                <a href="/editor.html" class="nav-item">
+                    <span>📝</span>
+                    <span>Editor</span>
+                </a>
+                <a href="/memory.html" class="nav-item">
+                    <span>🧠</span>
+                    <span>Memory</span>
+                </a>
+                <a href="/vision.html" class="nav-item">
+                    <span>�️</span>
+                    <span>Vision</span>
+                </a>
+                <a href="/health.html" class="nav-item">
+                    <span>❤️</span>
+                    <span>Health</span>
+                </a>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2>SOLACE Control Center</h2>
+                <p>Start/Stop autonomous operation and communicate with SOLACE</p>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <button id="controlButton" class="control-button stopped" onclick="toggleSOLACE()">
+                    <span id="buttonText">START</span>
+                    <span class="button-status" id="buttonStatus">Autonomous mode offline</span>
+                </button>
+                <div class="status-indicator">
+                    <div class="status-dot stopped" id="statusDot"></div>
+                    <span id="statusText">SOLACE is currently stopped</span>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message">
+                        <span class="message-sender sender-claude">Claude:</span>
+                        <span class="message-text">SOLACE Control Center initialized. You can start SOLACE's autonomous operation using the button above, and communicate with him here.</span>
+                        <span class="timestamp">Just now</span>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="messageInput" 
+                        placeholder="Type a message to SOLACE..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let messageHistory = [];
+
+        // Load initial state from API
+        async function loadSOLACEStatus() {
+            try {
+                const response = await fetch('/api/v1/solace/status');
+                const data = await response.json();
+                isRunning = data.autonomous_mode_active || false;
+                updateUI();
+            } catch (error) {
+                console.error('Failed to load SOLACE status:', error);
+            }
+        }
+
+        // Load chat history
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/v1/solace/chat/history');
+                const data = await response.json();
+                messageHistory = data.messages || [];
+                renderMessages();
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+            }
+        }
+
+        // Toggle SOLACE autonomous mode
+        async function toggleSOLACE() {
+            const button = document.getElementById('controlButton');
+            button.disabled = true;
+
+            try {
+                const endpoint = isRunning ? '/api/v1/solace/stop' : '/api/v1/solace/start';
+                const response = await fetch(endpoint, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    isRunning = !isRunning;
+                    updateUI();
+                    
+                    // Add system message
+                    addMessage('claude', `SOLACE autonomous mode ${isRunning ? 'STARTED' : 'STOPPED'}. ${data.message || ''}`);
+                } else {
+                    alert('Failed to toggle SOLACE: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error communicating with SOLACE: ' + error.message);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // Update UI based on running state
+        function updateUI() {
+            const button = document.getElementById('controlButton');
+            const buttonText = document.getElementById('buttonText');
+            const buttonStatus = document.getElementById('buttonStatus');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            if (isRunning) {
+                button.className = 'control-button running';
+                buttonText.textContent = 'STOP';
+                buttonStatus.textContent = 'Autonomous mode active';
+                statusDot.className = 'status-dot running';
+                statusText.textContent = 'SOLACE is running autonomously';
+            } else {
+                button.className = 'control-button stopped';
+                buttonText.textContent = 'START';
+                buttonStatus.textContent = 'Autonomous mode offline';
+                statusDot.className = 'status-dot stopped';
+                statusText.textContent = 'SOLACE is currently stopped';
+            }
+        }
+
+        // Send message to SOLACE
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message immediately
+            addMessage('david', message);
+            input.value = '';
+
+            // Send to backend
+            try {
+                const response = await fetch('/api/v1/solace/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: message,
+                        sender: 'David'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.response) {
+                    // Add SOLACE's response
+                    addMessage('solace', data.response);
+                }
+
+                // If Claude also responded (you mediated), add that too
+                if (data.claude_response) {
+                    addMessage('claude', data.claude_response);
+                }
+            } catch (error) {
+                addMessage('claude', 'Error: Could not send message to SOLACE. ' + error.message);
+            }
+        }
+
+        // Handle Enter key in input
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(sender, text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const senderClass = `sender-${sender}`;
+            const senderName = sender === 'david' ? 'David' : sender === 'solace' ? 'SOLACE' : 'Claude';
+            
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.innerHTML = `
+                <span class="message-sender ${senderClass}">${senderName}:</span>
+                <span class="message-text">${escapeHtml(text)}</span>
+                <span class="timestamp">${timeStr}</span>
+            `;
+
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Store in history
+            messageHistory.push({ sender, text, timestamp: now.toISOString() });
+        }
+
+        // Render all messages from history
+        function renderMessages() {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+
+            messageHistory.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+
+                const senderClass = `sender-${msg.sender}`;
+                const senderName = msg.sender === 'david' ? 'David' : msg.sender === 'solace' ? 'SOLACE' : 'Claude';
+                
+                const time = new Date(msg.timestamp);
+                const timeStr = time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                messageDiv.innerHTML = `
+                    <span class="message-sender ${senderClass}">${senderName}:</span>
+                    <span class="message-text">${escapeHtml(msg.text)}</span>
+                    <span class="timestamp">${timeStr}</span>
+                `;
+
+                messagesDiv.appendChild(messageDiv);
+            });
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Poll for new messages (in case other sources add messages)
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/v1/solace/chat/updates');
+                const data = await response.json();
+                
+                if (data.new_messages && data.new_messages.length > 0) {
+                    data.new_messages.forEach(msg => {
+                        addMessage(msg.sender, msg.text);
+                    });
+                }
+            } catch (error) {
+                // Silently fail - don't spam console
+            }
+        }, 3000); // Check every 3 seconds
+
+        // Logout
+        function logout() {
+            window.location.href = '/login.html';
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            loadSOLACEStatus();
+            loadChatHistory();
+        };
+    </script>
+</body>
+</html>

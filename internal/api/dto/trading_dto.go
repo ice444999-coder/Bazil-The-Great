@@ -72,3 +72,75 @@ type TradingPerformanceResponse struct {
 	StrategyVersion int       `json:"strategy_version"`
 	CalculatedAt    time.Time `json:"calculated_at"`
 }
+
+// ============================================================================
+// MULTI-STRATEGY DTOs
+// ============================================================================
+
+// StrategyInfo - Basic strategy information
+type StrategyInfo struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	RiskLevel   string `json:"risk_level"`
+}
+
+// StrategyListResponse - Response for GET /api/v1/strategy/list
+type StrategyListResponse struct {
+	Strategies []StrategyInfo `json:"strategies"`
+	Total      int            `json:"total"`
+}
+
+// StrategyMetricsResponse - Response for GET /api/v1/strategy/:name/metrics
+type StrategyMetricsResponse struct {
+	StrategyName      string    `json:"strategy_name"`
+	TotalTrades       int       `json:"total_trades"`
+	WinningTrades     int       `json:"winning_trades"`
+	LosingTrades      int       `json:"losing_trades"`
+	WinRate           float64   `json:"win_rate"`
+	TotalProfitLoss   float64   `json:"total_profit_loss"`
+	AverageProfitLoss float64   `json:"average_profit_loss"`
+	SharpeRatio       float64   `json:"sharpe_ratio"`
+	MaxDrawdown       float64   `json:"max_drawdown"`
+	CurrentBalance    float64   `json:"current_balance"`
+	LastUpdated       time.Time `json:"last_updated"`
+	CanPromoteToLive  bool      `json:"can_promote_to_live"`
+	MissingCriteria   []string  `json:"missing_criteria,omitempty"`
+}
+
+// StrategySandboxTradesResponse - Response for GET /api/v1/strategy/:name/sandbox-trades
+type StrategySandboxTradesResponse struct {
+	StrategyName string                 `json:"strategy_name"`
+	Trades       []SandboxTradeResponse `json:"trades"`
+	Total        int                    `json:"total"`
+}
+
+// StrategyToggleResponse - Response for POST /api/v1/strategy/:name/toggle
+type StrategyToggleResponse struct {
+	StrategyName string `json:"strategy_name"`
+	Enabled      bool   `json:"enabled"`
+	Message      string `json:"message"`
+}
+
+// StrategyPromoteResponse - Response for POST /api/v1/strategy/:name/promote-to-live
+type StrategyPromoteResponse struct {
+	StrategyName string    `json:"strategy_name"`
+	Status       string    `json:"status"`
+	Message      string    `json:"message"`
+	PromotedAt   time.Time `json:"promoted_at"`
+}
+
+// MasterMetricsResponse - Response for GET /api/v1/strategy/master-metrics
+type MasterMetricsResponse struct {
+	TotalStrategies  int       `json:"total_strategies"`
+	ActiveStrategies int       `json:"active_strategies"`
+	TotalSignals     int       `json:"total_signals"`
+	BuySignals       int       `json:"buy_signals"`
+	SellSignals      int       `json:"sell_signals"`
+	HoldSignals      int       `json:"hold_signals"`
+	TotalTrades      int       `json:"total_trades"`
+	TotalProfitLoss  float64   `json:"total_profit_loss"`
+	OverallWinRate   float64   `json:"overall_win_rate"`
+	BestStrategy     string    `json:"best_strategy"`
+	WorstStrategy    string    `json:"worst_strategy"`
+	LastUpdated      time.Time `json:"last_updated"`
+}

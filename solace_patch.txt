@@ -1,0 +1,60 @@
+--- a/internal/agent/solace.go
++++ b/internal/agent/solace.go
+@@ -19,6 +19,7 @@ import (
+ 	"sync"
+ 	"time"
+
++	gorillaws "github.com/gorilla/websocket"
+ 	"gorm.io/gorm"
+ )
+
+@@ -1915,3 +1916,48 @@ func (s *SOLACE) runTests(dir string) (*TestResult, error) {
+ type TestResult struct {
+ 	Passed bool
+ 	Output string
+ }
++
++// ================================================================================
++// NAVIGATION UPDATE HANDLER - Dynamic nav wiring fix
++// ================================================================================
++
++// NavUpdateHandler - Dynamically updates nav states via WebSocket
++func (s *SOLACE) NavUpdateHandler() http.HandlerFunc {
++	upgrader := gorillaws.Upgrader{
++		CheckOrigin: func(r *http.Request) bool {
++			return true // Allow all origins in development
++		},
++	}
++
++	return func(w http.ResponseWriter, r *http.Request) {
++		conn, err := upgrader.Upgrade(w, r, nil)
++		if err != nil {
++			log.Println("WS upgrade failed:", err)
++			return
++		}
++		defer conn.Close()
++
++		for {
++			_, msg, err := conn.ReadMessage()
++			if err != nil {
++				return
++			}
++
++			page := string(msg)
++			webPath := "web" + page
++			if strings.HasPrefix(page, "/") && fileExists(webPath) {
++				// Log navigation update
++				log.Printf("📍 Nav updated to: %s", page)
++				conn.WriteMessage(gorillaws.TextMessage, []byte("Nav updated to "+page))
++			} else {
++				conn.WriteMessage(gorillaws.TextMessage, []byte("Invalid page: "+page))
++			}
++		}
++	}
++}
++
++// fileExists - Helper to check if file exists
++func fileExists(filename string) bool {
++	_, err := os.Stat(filename)
++	return !os.IsNotExist(err)
++}

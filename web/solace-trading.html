@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARES - SOLACE Consciousness Trading</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -85,9 +86,23 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .nav-item.active {
-            background: rgba(255,255,255,0.2);
-            border-left: 3px solid white;
+        
+        /* ENHANCED NAVIGATION ACTIVE STATE - High Specificity */
+        .sidebar .nav-menu a.nav-item.active,
+        nav.nav-menu a.nav-item.active,
+        div.nav-menu a.nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-left: 4px solid #fff !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        /* Hover effect for nav items */
+        .sidebar .nav-menu a.nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.15) !important;
+            transform: translateX(2px);
+            transition: all 0.2s ease;
         }
 
         .logout-btn {
@@ -406,13 +421,25 @@
                     <span>🧠</span>
                     <span>SOLACE Consciousness</span>
                 </a>
+                <a href="/forge-dashboard.html" class="nav-item">
+                    <span>🎓</span>
+                    <span>FORGE Apprenticeship</span>
+                </a>
                 <a href="/web/code-ide.html" class="nav-item">
                     <span>🤖</span>
-                    <span>Code IDE (SOLACE)</span>
+                    <span>Code IDE</span>
                 </a>
                 <a href="/chat.html" class="nav-item">
                     <span>💬</span>
                     <span>Chat</span>
+                </a>
+                <a href="/solace-control.html" class="nav-item">
+                    <span>🎛️</span>
+                    <span>SOLACE Control</span>
+                </a>
+                <a href="/editor.html" class="nav-item">
+                    <span>📝</span>
+                    <span>Editor</span>
                 </a>
                 <a href="/memory.html" class="nav-item">
                     <span>🧠</span>
@@ -421,6 +448,10 @@
                 <a href="/vision.html" class="nav-item">
                     <span>👁️</span>
                     <span>Vision</span>
+                </a>
+                <a href="/health.html" class="nav-item">
+                    <span>❤️</span>
+                    <span>Health</span>
                 </a>
             </div>
 
@@ -471,6 +502,16 @@
                     <strong>Current Win Rate:</strong> <span id="current-win-rate">45.0%</span> | 
                     <strong>Total Trades:</strong> <span id="total-trades">127</span> | 
                     <strong>Remaining:</strong> <span id="remaining-progress">15.0%</span> to autonomous mode
+                </div>
+            </div>
+
+            <!-- 3D Consciousness Visualization -->
+            <div class="card" style="margin-bottom: 25px;">
+                <h3>🌌 SOLACE Consciousness Architecture</h3>
+                <div id="consciousness-3d" style="width: 100%; height: 400px; background: #000; border-radius: 8px; position: relative;">
+                    <div style="position: absolute; top: 10px; right: 10px; z-index: 10; font-size: 11px; color: #848E9C;">
+                        Click nodes to view memory system stats
+                    </div>
                 </div>
             </div>
 
@@ -668,6 +709,189 @@
             window.location.href = '/login.html';
         }
 
+        // 3D Consciousness Visualization with Three.js
+        let scene, camera, renderer, mainSphere, nodes = [], raycaster, mouse;
+        
+        function init3DVisualization() {
+            const container = document.getElementById('consciousness-3d');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000000, 10, 50);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 15;
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setClearColor(0x000000, 1);
+            container.appendChild(renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0x667eea, 2, 50);
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
+            
+            // Main Sphere (SOLACE Kernel)
+            const sphereGeometry = new THREE.SphereGeometry(2, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({
+                color: 0x667eea,
+                emissive: 0x764ba2,
+                emissiveIntensity: 0.5,
+                shininess: 100,
+                transparent: true,
+                opacity: 0.9
+            });
+            mainSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            scene.add(mainSphere);
+            
+            // Add glow effect to main sphere
+            const glowGeometry = new THREE.SphereGeometry(2.3, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x667eea,
+                transparent: true,
+                opacity: 0.2
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            mainSphere.add(glow);
+            
+            // Memory System Nodes (6 orbiting spheres)
+            const memoryTypes = [
+                { name: 'Episodic', color: 0x0ECB81, description: 'Trading history & experiences' },
+                { name: 'Semantic', color: 0xF0B90B, description: 'Market knowledge & concepts' },
+                { name: 'Procedural', color: 0xF6465D, description: 'Trading strategies & skills' },
+                { name: 'Prospective', color: 0x00D4FF, description: 'Future planning & goals' },
+                { name: 'Working', color: 0xFF6B9D, description: 'Active decision making' },
+                { name: 'Sensory', color: 0x9D4EDD, description: 'Real-time market data' }
+            ];
+            
+            memoryTypes.forEach((mem, i) => {
+                const angle = (i / memoryTypes.length) * Math.PI * 2;
+                const radius = 6;
+                
+                const nodeGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+                const nodeMaterial = new THREE.MeshPhongMaterial({
+                    color: mem.color,
+                    emissive: mem.color,
+                    emissiveIntensity: 0.3,
+                    shininess: 50
+                });
+                const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+                
+                node.userData = {
+                    name: mem.name,
+                    description: mem.description,
+                    angle: angle,
+                    radius: radius,
+                    speed: 0.001 + Math.random() * 0.001
+                };
+                
+                node.position.x = Math.cos(angle) * radius;
+                node.position.y = Math.sin(angle) * radius;
+                scene.add(node);
+                nodes.push(node);
+                
+                // Connection line to center
+                const lineMaterial = new THREE.LineBasicMaterial({
+                    color: mem.color,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(node.position.x, node.position.y, 0)
+                ]);
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                scene.add(line);
+                node.userData.line = line;
+            });
+            
+            // Stars background
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+            const starsVertices = [];
+            for (let i = 0; i < 1000; i++) {
+                const x = (Math.random() - 0.5) * 100;
+                const y = (Math.random() - 0.5) * 100;
+                const z = (Math.random() - 0.5) * 100;
+                starsVertices.push(x, y, z);
+            }
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(stars);
+            
+            // Raycaster for mouse interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            container.addEventListener('click', onNodeClick);
+            
+            // Animation loop
+            animate3D();
+        }
+        
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            
+            // Rotate main sphere
+            mainSphere.rotation.y += 0.002;
+            mainSphere.rotation.x += 0.001;
+            
+            // Orbit memory nodes
+            nodes.forEach(node => {
+                node.userData.angle += node.userData.speed;
+                node.position.x = Math.cos(node.userData.angle) * node.userData.radius;
+                node.position.y = Math.sin(node.userData.angle) * node.userData.radius;
+                node.rotation.y += 0.01;
+                
+                // Update connection line
+                if (node.userData.line) {
+                    const positions = node.userData.line.geometry.attributes.position.array;
+                    positions[3] = node.position.x;
+                    positions[4] = node.position.y;
+                    positions[5] = node.position.z;
+                    node.userData.line.geometry.attributes.position.needsUpdate = true;
+                }
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        function onNodeClick(event) {
+            const container = document.getElementById('consciousness-3d');
+            const rect = container.getBoundingClientRect();
+            
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodes);
+            
+            if (intersects.length > 0) {
+                const node = intersects[0].object;
+                showMemoryStats(node.userData);
+            }
+        }
+        
+        function showMemoryStats(nodeData) {
+            const stats = {
+                'Episodic': { count: 1247, size: '23.4 MB', lastAccess: '2 sec ago' },
+                'Semantic': { count: 3891, size: '67.2 MB', lastAccess: '1 sec ago' },
+                'Procedural': { count: 542, size: '12.8 MB', lastAccess: '5 sec ago' },
+                'Prospective': { count: 89, size: '3.1 MB', lastAccess: '15 sec ago' },
+                'Working': { count: 45, size: '1.2 MB', lastAccess: 'Active' },
+                'Sensory': { count: 12845, size: '156.7 MB', lastAccess: 'Active' }
+            };
+            
+            const data = stats[nodeData.name];
+            alert(`${nodeData.name} Memory System\n\n${nodeData.description}\n\nMemories: ${data.count}\nSize: ${data.size}\nLast Access: ${data.lastAccess}`);
+        }
+
         // Initialize page
         setTimeout(() => {
             initTradingViewChart(currentSymbol);
@@ -675,6 +899,7 @@
             fetchPerformance();
             fetchDecisions();
             fetchApprovalQueue();
+            init3DVisualization();
         }, 100);
 
         // Auto-refresh data

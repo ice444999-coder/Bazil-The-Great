@@ -30,6 +30,10 @@ go.work.sum
 .env.local
 .env.*.local
 
+# Allow encrypted versions
+!.env.enc
+!.env.claude.enc
+
 # Editor/IDE
 # .idea/
 # .vscode/

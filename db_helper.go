@@ -22,8 +22,8 @@ func main() {
 
 	query := os.Args[1]
 
-	// Connection string
-	connStr := "host=localhost port=5432 user=ARES password=ARESISWAKING dbname=ares_db sslmode=disable"
+	// Connection string - matches ARES_API .env settings
+	connStr := "host=localhost port=5433 user=postgres password=ARESISWAKING dbname=ares_pgvector sslmode=disable"
 
 	// Connect
 	db, err := sql.Open("postgres", connStr)

@@ -18,6 +18,7 @@ import (
 	"ares_api/internal/middleware"
 	"ares_api/internal/observability"
 	"ares_api/internal/registry"
+	"ares_api/internal/services"
 	"ares_api/internal/subscribers"
 
 	"ares_api/internal/docs"
@@ -148,6 +149,18 @@ func main() {
 	// 	log.Println("   Continuing with existing schema...")
 	// }
 
+	// 🔍 SOLACE Orchestration Services
+	orchestrationService := services.NewOrchestrationService(db)
+	repoInspectionService := services.NewRepoInspectionService(db, "C:\\ARES_Workspace\\ARES_API")
+
+	// Run initial repository scan asynchronously to avoid blocking startup
+	// TEMPORARILY DISABLED: causing server crash
+	// go inspectRepoAsync(repoInspectionService)
+
+	// Prevent unused variable warnings
+	_ = orchestrationService
+	_ = repoInspectionService
+
 	// 📋 Register this service in the service registry (Phase 1 - Modular Architecture)
 	if err := registry.RegisterService(db, "ares-api", "1.0.0", 8080, "http://localhost:8080/health"); err != nil {
 		log.Printf("⚠️ Service registration failed: %v", err)
@@ -239,6 +252,19 @@ func main() {
 		})
 	})
 
+	// 🔄 Initialize WebSocket Hub for real-time dashboard updates (Task #9)
+	wsHub := handlers.NewWebSocketHub(eb)
+	go wsHub.Run()
+	log.Println("✅ WebSocket hub started for real-time updates")
+
+	// WebSocket endpoint for dashboard
+	r.GET("/ws", func(c *gin.Context) {
+		wsHub.HandleWebSocket(c.Writer, c.Request)
+	})
+
+	// Serve real-time dashboard
+	r.StaticFile("/dashboard_realtime.html", "./web/dashboard_realtime.html")
+
 	// 🎛️ Register Modular Architecture endpoints (Sections 3-6)
 	configHandler := handlers.NewConfigHandler(db, configManager)
 	configHandler.RegisterRoutes(r.Group("/api/v1"))
@@ -259,5 +285,15 @@ func main() {
 	log.Printf("🚀 Server running at http://localhost%s", addr)
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("❌ Failed to start server: %v", err)
+	}
+}
+
+// inspectRepoAsync performs repository inspection asynchronously
+func inspectRepoAsync(service *services.RepoInspectionService) {
+	log.Println("🔍 Starting asynchronous repository inspection...")
+	if err := service.ScanRepository(); err != nil {
+		log.Printf("⚠️ Repository inspection failed: %v", err)
+	} else {
+		log.Println("✅ Repository inspection completed")
 	}
 }

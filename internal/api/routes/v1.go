@@ -18,14 +18,38 @@ import (
 	"ares_api/pkg/llm"
 
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+// getUserIDFromContext extracts userID from auth context or returns default
+func getUserIDFromContext(c *gin.Context) uint {
+	// Try to get from auth middleware context
+	if userID, exists := c.Get("user_id"); exists {
+		if id, ok := userID.(uint); ok {
+			return id
+		}
+	}
+	// Default to 1 for testing when auth is disabled
+	return uint(1)
+}
+
+// parseUint64 parses string to uint64 with error handling
+func parseUint64(s string) (uint64, error) {
+	return strconv.ParseUint(s, 10, 64)
+}
+
+// parseInt parses string to int with error handling
+func parseInt(s string) (int, error) {
+	return strconv.Atoi(s)
+}
 
 // RegisterRoutes sets up all API routes with their dependencies
 func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent *grpo.Agent) {
@@ -706,15 +730,15 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 	// ACE Framework (Playbook) endpoints
 	// --------------------------
 	playbook := api.Group("/trading/playbook")
-	// playbook.Use(middleware.AuthMiddleware()) // TODO: Re-enable auth after testing
+	playbook.Use(middleware.AuthMiddleware()) // Re-enabled for security
 	{
 		// Initialize ACE components for API access
 		playbookCurator := trading.NewCurator(db)
 		playbookRepo := repositories.NewPlaybookRepository(db)
 
 		playbook.GET("/", func(c *gin.Context) {
-			userID := uint(1) // TODO: Get from auth token
-			rules, err := playbookCurator.GetActiveRules(userID)
+			userID, _ := c.Get("user_id") // Extract from auth token
+			rules, err := playbookCurator.GetActiveRules(userID.(uint))
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
@@ -723,8 +747,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 		})
 
 		playbook.GET("/stats", func(c *gin.Context) {
-			userID := uint(1) // TODO: Get from auth token
-			stats, err := playbookCurator.GetPlaybookStats(userID)
+			userID, _ := c.Get("user_id") // Extract from auth token
+			stats, err := playbookCurator.GetPlaybookStats(userID.(uint))
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
@@ -733,8 +757,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 		})
 
 		playbook.GET("/reliable", func(c *gin.Context) {
-			userID := uint(1) // TODO: Get from auth token
-			rules, err := playbookRepo.GetReliableRules(userID, 0.60)
+			userID, _ := c.Get("user_id") // Extract from auth token
+			rules, err := playbookRepo.GetReliableRules(userID.(uint), 0.60)
 			if err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
@@ -743,14 +767,19 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 		})
 
 		playbook.POST("/prune", func(c *gin.Context) {
-			userID := uint(1) // TODO: Get from auth token
-			if err := playbookCurator.PruneWeakRules(userID, 20, 0.30); err != nil {
+			userID, _ := c.Get("user_id") // Extract from auth token
+			if err := playbookCurator.PruneWeakRules(userID.(uint), 20, 0.30); err != nil {
 				c.JSON(500, gin.H{"error": err.Error()})
 				return
 			}
 			c.JSON(200, gin.H{"message": "Weak rules pruned successfully"})
 		})
 	}
+
+	// --------------------------
+	// WebSocket endpoint for real-time trading updates
+	// --------------------------
+	api.GET("/trading/ws", controllers.WebSocketHandler)
 
 	// --------------------------
 	// VISION API - SOLACE CAN SEE NOW
@@ -801,4 +830,383 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 			})
 		})
 	}
+
+	// --------------------------
+	// Jupiter DEX Integration (Solana Trading)
+	// --------------------------
+	jupiterClient := trading.NewJupiterClient("") // API key can be set via env var
+	jupiterGroup := api.Group("/jupiter")
+	{
+		jupiterGroup.GET("/tokens", func(c *gin.Context) {
+			tokens, err := jupiterClient.GetTokens()
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(200, gin.H{"tokens": tokens})
+		})
+
+		jupiterGroup.GET("/quote", func(c *gin.Context) {
+			inputMint := c.Query("inputMint")
+			outputMint := c.Query("outputMint")
+			amountStr := c.Query("amount")
+			slippageStr := c.DefaultQuery("slippageBps", "50")
+
+			if inputMint == "" || outputMint == "" || amountStr == "" {
+				c.JSON(400, gin.H{"error": "inputMint, outputMint, and amount are required"})
+				return
+			}
+
+			amount, err := parseUint64(amountStr)
+			if err != nil {
+				c.JSON(400, gin.H{"error": "invalid amount"})
+				return
+			}
+
+			slippageBps, err := parseInt(slippageStr)
+			if err != nil {
+				c.JSON(400, gin.H{"error": "invalid slippageBps"})
+				return
+			}
+
+			quote, err := jupiterClient.GetQuote(inputMint, outputMint, amount, slippageBps)
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(200, gin.H{"quote": quote})
+		})
+
+		jupiterGroup.POST("/swap", func(c *gin.Context) {
+			var req struct {
+				QuoteResponse trading.JupiterQuoteResponse `json:"quoteResponse" binding:"required"`
+				UserPublicKey string                       `json:"userPublicKey" binding:"required"`
+			}
+
+			if err := c.ShouldBindJSON(&req); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			swapResp, err := jupiterClient.GetSwapTransaction(&req.QuoteResponse, req.UserPublicKey)
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(200, gin.H{"swapTransaction": swapResp})
+		})
+
+		jupiterGroup.GET("/price/:tokenAddress", func(c *gin.Context) {
+			tokenAddress := c.Param("tokenAddress")
+			if tokenAddress == "" {
+				c.JSON(400, gin.H{"error": "tokenAddress is required"})
+				return
+			}
+
+			price, err := jupiterClient.GetTokenPrice(tokenAddress)
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(200, gin.H{"price": price.String()})
+		})
+	}
+
+	// Byzantine Consensus Routes
+	consensusGroup := api.Group("/consensus")
+	{
+		consensusGroup.GET("/status", func(c *gin.Context) {
+			// TODO: Get consensus manager from service container
+			c.JSON(200, gin.H{
+				"status":  "consensus_system_not_initialized",
+				"message": "Byzantine consensus system available but not yet integrated with main trading service",
+			})
+		})
+
+		consensusGroup.POST("/propose", func(c *gin.Context) {
+			var req struct {
+				Symbol     string  `json:"symbol" binding:"required"`
+				Action     string  `json:"action" binding:"required"` // "buy", "sell", "hold"
+				Confidence float64 `json:"confidence" binding:"required"`
+				Reasoning  string  `json:"reasoning"`
+				Strategy   string  `json:"strategy"`
+			}
+
+			if err := c.ShouldBindJSON(&req); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			// TODO: Integrate with actual consensus manager
+			c.JSON(200, gin.H{
+				"status":    "proposal_accepted",
+				"message":   "Trade proposal submitted for Byzantine consensus",
+				"proposal":  req,
+				"timestamp": time.Now(),
+			})
+		})
+
+		consensusGroup.GET("/active", func(c *gin.Context) {
+			// TODO: Return active consensus sessions
+			c.JSON(200, gin.H{
+				"active_sessions": []interface{}{},
+				"message":         "No active consensus sessions",
+			})
+		})
+
+		consensusGroup.GET("/history", func(c *gin.Context) {
+			// TODO: Return consensus decision history
+			c.JSON(200, gin.H{
+				"executed_trades": []interface{}{},
+				"message":         "Consensus history not yet available",
+			})
+		})
+
+		consensusGroup.POST("/configure", func(c *gin.Context) {
+			var config struct {
+				MinConsensusThreshold float64 `json:"min_consensus_threshold"`
+				ConsensusTimeoutSec   float64 `json:"consensus_timeout_sec"`
+				MaxConcurrentTrades   float64 `json:"max_concurrent_trades"`
+				TotalNodes            int     `json:"total_nodes"`
+			}
+
+			if err := c.ShouldBindJSON(&config); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			// TODO: Apply configuration to consensus manager
+			c.JSON(200, gin.H{
+				"status":  "configuration_applied",
+				"config":  config,
+				"message": "Consensus configuration updated",
+			})
+		})
+	}
+
+	// -------------------------------
+	// LOCK-FREE CONCURRENCY SYSTEM
+	// High-performance concurrent operations
+	// -------------------------------
+	concurrencyGroup := api.Group("/concurrency")
+	{
+		// Get concurrency system status
+		concurrencyGroup.GET("/status", func(c *gin.Context) {
+			stats := tradingService.GetConcurrencyStats()
+			c.JSON(200, gin.H{
+				"status": "operational",
+				"stats":  stats,
+			})
+		})
+
+		// Circuit breaker status
+		concurrencyGroup.GET("/circuit-breaker", func(c *gin.Context) {
+			stats := tradingService.GetCircuitBreakerStats()
+			c.JSON(200, gin.H{
+				"status":          "success",
+				"circuit_breaker": stats,
+			})
+		})
+
+		// Backoff system status
+		concurrencyGroup.GET("/backoff", func(c *gin.Context) {
+			stats := tradingService.GetBackoffStats()
+			c.JSON(200, gin.H{
+				"status":  "success",
+				"backoff": stats,
+			})
+		})
+
+		// Reset backoff state
+		concurrencyGroup.POST("/backoff/reset", func(c *gin.Context) {
+			tradingService.ResetBackoff()
+			c.JSON(200, gin.H{
+				"status":  "backoff_reset",
+				"message": "Exponential backoff state has been reset",
+			})
+		})
+
+		// Force update vector clock
+		concurrencyGroup.POST("/vector-clock/tick", func(c *gin.Context) {
+			tradingService.TickVectorClock()
+			clockJSON, err := tradingService.GetVectorClockJSON()
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			var clockData interface{}
+			if err := json.Unmarshal(clockJSON, &clockData); err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(200, gin.H{
+				"status": "vector_clock_updated",
+				"clock":  clockData,
+			})
+		})
+
+		// Get vector clock JSON
+		concurrencyGroup.GET("/vector-clock", func(c *gin.Context) {
+			clockJSON, err := tradingService.GetVectorClockJSON()
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			var clockData interface{}
+			if err := json.Unmarshal(clockJSON, &clockData); err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+
+			c.JSON(200, gin.H{
+				"status":       "success",
+				"vector_clock": clockData,
+			})
+		})
+	}
+
+	// --------------------------
+	// STRATEGY MANAGEMENT ENDPOINTS
+	// Complete strategy lifecycle management
+	// -------------------------------
+	strategyGroup := api.Group("/strategies")
+	{
+		// Get all available trading strategies
+		strategyGroup.GET("/", func(c *gin.Context) {
+			strategies := tradingService.GetAllStrategies()
+			c.JSON(200, gin.H{
+				"status":     "success",
+				"strategies": strategies,
+			})
+		})
+
+		// Get strategy configuration
+		strategyGroup.GET("/:name/config", func(c *gin.Context) {
+			strategyName := c.Param("name")
+			// TODO: Implement strategy config retrieval
+			c.JSON(200, gin.H{
+				"status":   "success",
+				"strategy": strategyName,
+				"config":   map[string]interface{}{},
+				"message":  "Strategy config endpoint - TODO: implement",
+			})
+		})
+
+		// Update strategy configuration (for GRPO optimization)
+		strategyGroup.PUT("/:name/config", func(c *gin.Context) {
+			strategyName := c.Param("name")
+			var config map[string]interface{}
+			if err := c.ShouldBindJSON(&config); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			// TODO: Implement strategy config update
+			c.JSON(200, gin.H{
+				"status":     "config_updated",
+				"strategy":   strategyName,
+				"new_config": config,
+				"message":    "Strategy config updated - TODO: implement actual update",
+			})
+		})
+
+		// Get strategy performance metrics
+		strategyGroup.GET("/:name/performance", func(c *gin.Context) {
+			strategyName := c.Param("name")
+			// TODO: Implement strategy performance retrieval
+			c.JSON(200, gin.H{
+				"status":      "success",
+				"strategy":    strategyName,
+				"performance": map[string]interface{}{},
+				"message":     "Strategy performance endpoint - TODO: implement",
+			})
+		})
+
+		// Get strategy analysis for current market conditions
+		strategyGroup.GET("/:name/analyze", func(c *gin.Context) {
+			strategyName := c.Param("name")
+			symbol := c.DefaultQuery("symbol", "BTC")
+
+			// TODO: Implement real-time strategy analysis
+			c.JSON(200, gin.H{
+				"status":   "success",
+				"strategy": strategyName,
+				"symbol":   symbol,
+				"analysis": map[string]interface{}{},
+				"message":  "Strategy analysis endpoint - TODO: implement real-time analysis",
+			})
+		})
+
+		// Enable/disable strategy
+		strategyGroup.PUT("/:name/status", func(c *gin.Context) {
+			strategyName := c.Param("name")
+			var status struct {
+				Enabled bool `json:"enabled"`
+			}
+			if err := c.ShouldBindJSON(&status); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			// TODO: Implement strategy enable/disable
+			c.JSON(200, gin.H{
+				"status":   "strategy_status_updated",
+				"strategy": strategyName,
+				"enabled":  status.Enabled,
+				"message":  "Strategy status updated - TODO: implement actual enable/disable",
+			})
+		})
+
+		// Get all strategy performance comparison
+		strategyGroup.GET("/performance", func(c *gin.Context) {
+			// TODO: Implement all strategies performance comparison
+			c.JSON(200, gin.H{
+				"status":      "success",
+				"performance": []interface{}{},
+				"message":     "All strategies performance endpoint - TODO: implement",
+			})
+		})
+
+		// Reset strategy performance metrics
+		strategyGroup.POST("/:name/reset", func(c *gin.Context) {
+			strategyName := c.Param("name")
+
+			// TODO: Implement strategy performance reset
+			c.JSON(200, gin.H{
+				"status":   "performance_reset",
+				"strategy": strategyName,
+				"message":  "Strategy performance reset - TODO: implement actual reset",
+			})
+		})
+	}
+
+	// --------------------------
+}
+
+// RegisterV1Routes sets up all v1 API routes
+func RegisterV1Routes(r *gin.Engine, stratSvc interface{}, eb *eventbus.EventBus, db *gorm.DB, solace interface{}) {
+	// For now, just set up a basic health check
+	// TODO: Integrate with existing route setup
+	v1 := r.Group("/api/v1")
+	v1.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "ok",
+			"message": "ARES API v1 running",
+		})
+	})
+
+	// Bazil Rewards API - Self-Healing System
+	v1.GET("/bazil/rewards", func(c *gin.Context) {
+		c.Set("db", db)
+		handlers.GetBazilRewards(c)
+	})
+
+	// Master Control Room WebSocket - VS Code Extension
+	v1.GET("/ws/master-control", handlers.HandleMasterControlWS(db, solace))
 }

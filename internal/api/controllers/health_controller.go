@@ -127,3 +127,29 @@ func (hc *HealthController) GetServiceRegistry(c *gin.Context) {
 		"count":    len(services),
 	})
 }
+
+// GetHelloWorld godoc
+// @Summary Health endpoint that returns a hello world message
+// @Description Returns a hello world message
+// @Tags Health
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /health/hello-world [get]
+func (hc *HealthController) GetHelloWorld(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Hello, world!",
+	})
+}
+
+// GetNewHealthCheck godoc
+// @Summary New health check endpoint
+// @Description Returns a custom message
+// @Tags Health
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /health/new-check [get]
+func (hc *HealthController) GetNewHealthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "New health check endpoint is working correctly!",
+	})
+}

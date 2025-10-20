@@ -14,6 +14,7 @@ import (
 type AuditLogger struct {
 	db       *gorm.DB
 	eventBus *eventbus.EventBus
+	debug    bool
 }
 
 // NewAuditLogger creates a new audit logger
@@ -21,6 +22,7 @@ func NewAuditLogger(db *gorm.DB, eb *eventbus.EventBus) *AuditLogger {
 	return &AuditLogger{
 		db:       db,
 		eventBus: eb,
+		debug:    true, // Set to false in production
 	}
 }
 
@@ -98,8 +100,9 @@ func (al *AuditLogger) LogWarn(service, message string) {
 
 // LogDebug logs debug messages with service context (only in debug mode)
 func (al *AuditLogger) LogDebug(service, message string) {
-	// TODO: Add debug mode check
-	log.Printf("[%s][DEBUG] %s", service, message)
+	if al.debug {
+		log.Printf("[%s][DEBUG] %s", service, message)
+	}
 }
 
 // SystemLog represents a log entry in the database

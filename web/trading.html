@@ -85,9 +85,23 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .nav-item.active {
-            background: rgba(255,255,255,0.2);
-            border-left: 3px solid white;
+        
+        /* ENHANCED NAVIGATION ACTIVE STATE - High Specificity */
+        .sidebar .nav-menu a.nav-item.active,
+        nav.nav-menu a.nav-item.active,
+        div.nav-menu a.nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-left: 4px solid #fff !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        /* Hover effect for nav items */
+        .sidebar .nav-menu a.nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.15) !important;
+            transform: translateX(2px);
+            transition: all 0.2s ease;
         }
 
         .logout-btn {
@@ -333,6 +347,122 @@
             color: #0ECB81;
         }
 
+        /* Market Type Tabs */
+        .market-tabs {
+            display: flex;
+            gap: 0;
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+            padding: 0 16px;
+        }
+
+        .market-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #848E9C;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .market-tab:hover {
+            color: #EAECEF;
+        }
+
+        .market-tab.active {
+            color: #F0B90B;
+            border-bottom-color: #F0B90B;
+        }
+
+        /* Position Tracker */
+        .position-tracker {
+            background: #1E2329;
+            border-bottom: 1px solid #2B3139;
+            padding: 12px 16px;
+        }
+
+        .position-tracker h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .position-card {
+            background: #0B0E11;
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .position-symbol {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .position-type {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .position-type.long {
+            background: rgba(14, 203, 129, 0.15);
+            color: #0ECB81;
+        }
+
+        .position-type.short {
+            background: rgba(246, 70, 93, 0.15);
+            color: #F6465D;
+        }
+
+        .position-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            font-size: 11px;
+        }
+
+        .position-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .position-detail-label {
+            color: #848E9C;
+        }
+
+        .position-detail-value {
+            color: #EAECEF;
+            font-weight: 500;
+        }
+
+        .position-pnl {
+            font-weight: 600;
+        }
+
+        .position-pnl.positive {
+            color: #0ECB81;
+        }
+
+        .position-pnl.negative {
+            color: #F6465D;
+        }
+
         /* Trading Form */
         .trading-form {
             height: 500px;
@@ -465,27 +595,35 @@
                     <span>🧠</span>
                     <span>SOLACE Consciousness</span>
                 </a>
+                <a href="/forge-dashboard.html" class="nav-item">
+                    <span>🎓</span>
+                    <span>FORGE Apprenticeship</span>
+                </a>
                 <a href="/web/code-ide.html" class="nav-item">
                     <span>🤖</span>
                     <span>Code IDE (SOLACE)</span>
                 </a>
-                <a href="/dashboard.html" class="nav-item">
+                <a href="/chat.html" class="nav-item">
                     <span>💬</span>
                     <span>Chat</span>
+                </a>
+                <a href="/solace-control.html" class="nav-item">
+                    <span>🎛️</span>
+                    <span>SOLACE Control</span>
                 </a>
                 <a href="/editor.html" class="nav-item">
                     <span>📝</span>
                     <span>Editor</span>
                 </a>
-                <a href="/dashboard.html" class="nav-item">
+                <a href="/memory.html" class="nav-item">
                     <span>🧠</span>
                     <span>Memory</span>
                 </a>
-                <a href="/dashboard.html" class="nav-item">
+                <a href="/vision.html" class="nav-item">
                     <span>👁️</span>
                     <span>Vision</span>
                 </a>
-                <a href="/dashboard.html" class="nav-item">
+                <a href="/health.html" class="nav-item">
                     <span>❤️</span>
                     <span>Health</span>
                 </a>
@@ -496,6 +634,25 @@
 
         <!-- Binance-Style Trading Content -->
         <div class="trading-content">
+            <!-- Market Type Tabs -->
+            <div class="market-tabs">
+                <button class="market-tab active" onclick="switchMarket('spot')">Spot</button>
+                <button class="market-tab" onclick="switchMarket('futures')">Futures</button>
+                <button class="market-tab" onclick="switchMarket('margin')">Margin</button>
+                <button class="market-tab" onclick="switchMarket('options')">Options</button>
+            </div>
+
+            <!-- Position Tracker -->
+            <div class="position-tracker" id="positionTracker" style="display: none;">
+                <h4>
+                    <span>Open Positions</span>
+                    <span style="font-size: 12px; font-weight: normal; color: #848E9C;">Total P&L: <span id="totalPnL" class="position-pnl positive">+$0.00</span></span>
+                </h4>
+                <div id="positionsList">
+                    <!-- Positions will be dynamically added here -->
+                </div>
+            </div>
+
             <!-- Top Header Bar -->
             <div class="trading-header">
                 <div class="symbol-selector">
@@ -648,11 +805,32 @@
                         <!-- Order Type -->
                         <div class="form-group">
                             <label>Order Type</label>
-                            <select id="orderType">
+                            <select id="orderType" onchange="updateOrderFields()">
                                 <option value="market">Market</option>
                                 <option value="limit">Limit</option>
                                 <option value="stop-limit">Stop Limit</option>
+                                <option value="stop-loss">Stop Loss</option>
+                                <option value="trailing-stop">Trailing Stop</option>
+                                <option value="oco">OCO (One-Cancels-Other)</option>
                             </select>
+                        </div>
+
+                        <!-- Price (for limit orders) -->
+                        <div class="form-group" id="priceField" style="display: none;">
+                            <label>Price (USDT)</label>
+                            <input type="text" id="price" placeholder="0.00" />
+                        </div>
+
+                        <!-- Stop Price (for stop orders) -->
+                        <div class="form-group" id="stopPriceField" style="display: none;">
+                            <label>Stop Price (USDT)</label>
+                            <input type="text" id="stopPrice" placeholder="0.00" />
+                        </div>
+
+                        <!-- Trailing Distance (for trailing stop) -->
+                        <div class="form-group" id="trailingDistanceField" style="display: none;">
+                            <label>Trailing Distance (%)</label>
+                            <input type="text" id="trailingDistance" placeholder="0.00" />
                         </div>
 
                         <!-- Amount -->
@@ -665,6 +843,16 @@
                         <div class="form-group">
                             <label>Total (USDT)</label>
                             <input type="text" id="total" placeholder="0.00" />
+                        </div>
+
+                        <!-- Stop Loss & Take Profit -->
+                        <div class="form-group" id="slTpFields" style="display: none;">
+                            <label>Stop Loss (USDT) - Optional</label>
+                            <input type="text" id="stopLoss" placeholder="0.00" />
+                        </div>
+                        <div class="form-group" id="slTpFields2" style="display: none;">
+                            <label>Take Profit (USDT) - Optional</label>
+                            <input type="text" id="takeProfit" placeholder="0.00" />
                         </div>
 
                         <!-- Submit Button -->
@@ -689,6 +877,8 @@
         let currentTimeframe = '1H';
         let tradeType = 'buy';
         let tvWidget = null;
+        let currentMarket = 'spot';
+        let openPositions = [];
 
         // Initialize TradingView Chart
         function initTradingViewChart(symbol) {
@@ -798,6 +988,139 @@
             // fetch('/api/v1/trading/execute', { method: 'POST', body: JSON.stringify(trade) })
         }
 
+        function switchMarket(market) {
+            currentMarket = market;
+            document.querySelectorAll('.market-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show position tracker for futures/margin
+            const tracker = document.getElementById('positionTracker');
+            if (market === 'futures' || market === 'margin') {
+                tracker.style.display = 'block';
+                loadPositions();
+            } else {
+                tracker.style.display = 'none';
+            }
+            
+            // Update form title
+            document.querySelector('.trading-form h4').textContent = 
+                market.charAt(0).toUpperCase() + market.slice(1) + ' Trading';
+        }
+
+        function updateOrderFields() {
+            const orderType = document.getElementById('orderType').value;
+            const priceField = document.getElementById('priceField');
+            const stopPriceField = document.getElementById('stopPriceField');
+            const trailingField = document.getElementById('trailingDistanceField');
+            const slTpFields = document.getElementById('slTpFields');
+            const slTpFields2 = document.getElementById('slTpFields2');
+            
+            // Hide all optional fields first
+            priceField.style.display = 'none';
+            stopPriceField.style.display = 'none';
+            trailingField.style.display = 'none';
+            slTpFields.style.display = 'none';
+            slTpFields2.style.display = 'none';
+            
+            // Show relevant fields based on order type
+            if (orderType === 'limit' || orderType === 'oco') {
+                priceField.style.display = 'block';
+            }
+            if (orderType === 'stop-limit' || orderType === 'stop-loss' || orderType === 'oco') {
+                stopPriceField.style.display = 'block';
+            }
+            if (orderType === 'trailing-stop') {
+                trailingField.style.display = 'block';
+            }
+            if (orderType === 'limit' || orderType === 'market') {
+                slTpFields.style.display = 'block';
+                slTpFields2.style.display = 'block';
+            }
+        }
+
+        function loadPositions() {
+            // Simulate loading positions (replace with real API call)
+            openPositions = [
+                {
+                    symbol: 'BTCUSDT',
+                    type: 'long',
+                    size: 0.125,
+                    entryPrice: 66200,
+                    currentPrice: 66500,
+                    pnl: 37.50,
+                    pnlPercent: 0.45
+                },
+                {
+                    symbol: 'ETHUSDT',
+                    type: 'short',
+                    size: 2.5,
+                    entryPrice: 2480,
+                    currentPrice: 2450,
+                    pnl: 75.00,
+                    pnlPercent: 3.03
+                }
+            ];
+            
+            renderPositions();
+        }
+
+        function renderPositions() {
+            const container = document.getElementById('positionsList');
+            if (openPositions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #848E9C; padding: 10px;">No open positions</div>';
+                document.getElementById('totalPnL').textContent = '$0.00';
+                document.getElementById('totalPnL').className = 'position-pnl';
+                return;
+            }
+            
+            let totalPnL = 0;
+            const html = openPositions.map(pos => {
+                totalPnL += pos.pnl;
+                const pnlClass = pos.pnl >= 0 ? 'positive' : 'negative';
+                return `
+                    <div class="position-card">
+                        <div class="position-header">
+                            <div class="position-symbol">${pos.symbol}</div>
+                            <div class="position-type ${pos.type}">${pos.type.toUpperCase()}</div>
+                        </div>
+                        <div class="position-details">
+                            <div class="position-detail">
+                                <span class="position-detail-label">Size</span>
+                                <span class="position-detail-value">${pos.size}</span>
+                            </div>
+                            <div class="position-detail">
+                                <span class="position-detail-label">Entry</span>
+                                <span class="position-detail-value">$${pos.entryPrice.toFixed(2)}</span>
+                            </div>
+                            <div class="position-detail">
+                                <span class="position-detail-label">Current</span>
+                                <span class="position-detail-value">$${pos.currentPrice.toFixed(2)}</span>
+                            </div>
+                            <div class="position-detail">
+                                <span class="position-detail-label">P&L</span>
+                                <span class="position-detail-value position-pnl ${pnlClass}">
+                                    ${pos.pnl >= 0 ? '+' : ''}$${pos.pnl.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="position-detail">
+                                <span class="position-detail-label">P&L %</span>
+                                <span class="position-detail-value position-pnl ${pnlClass}">
+                                    ${pos.pnlPercent >= 0 ? '+' : ''}${pos.pnlPercent.toFixed(2)}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+            
+            // Update total P&L
+            const totalPnLClass = totalPnL >= 0 ? 'positive' : 'negative';
+            document.getElementById('totalPnL').textContent = `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`;
+            document.getElementById('totalPnL').className = `position-pnl ${totalPnLClass}`;
+        }
+
         function logout() {
             localStorage.removeItem('ares_token');
             localStorage.removeItem('ares_user');
@@ -810,7 +1133,160 @@
             const newPrice = basePrice + (Math.random() - 0.5) * 100;
             document.getElementById('currentPrice').textContent = '$' + newPrice.toFixed(2);
             document.getElementById('obCurrentPrice').textContent = '$' + newPrice.toFixed(2);
+            
+            // Update position prices and P&L if positions exist
+            if (openPositions.length > 0) {
+                openPositions.forEach(pos => {
+                    pos.currentPrice = pos.entryPrice + (Math.random() - 0.5) * 100;
+                    if (pos.type === 'long') {
+                        pos.pnl = (pos.currentPrice - pos.entryPrice) * pos.size;
+                    } else {
+                        pos.pnl = (pos.entryPrice - pos.currentPrice) * pos.size;
+                    }
+                    pos.pnlPercent = (pos.pnl / (pos.entryPrice * pos.size)) * 100;
+                });
+                renderPositions();
+            }
         }, 3000);
+
+        // WebSocket Connection for Real-Time Updates
+        let ws = null;
+        let wsReconnectInterval = null;
+
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.hostname}:8080/api/v1/trading/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('🟢 WebSocket connected to ARES Trading');
+                clearInterval(wsReconnectInterval);
+                showNotification('Real-time connection established', 'success');
+            };
+            
+            ws.onmessage = function(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('📨 WebSocket message:', message);
+                    
+                    switch(message.type) {
+                        case 'connected':
+                            console.log('✅ Connected to ARES WebSocket:', message.data.message);
+                            break;
+                            
+                        case 'trade_executed':
+                            // Show trade notification
+                            const trade = message.data;
+                            showNotification(
+                                `Trade Executed: ${trade.side} ${trade.amount} ${trade.symbol} @ $${trade.price}`,
+                                'success'
+                            );
+                            // Refresh positions or trades list if needed
+                            break;
+                            
+                        case 'price_update':
+                            // Update price display
+                            const priceData = message.data;
+                            if (priceData.symbol === currentSymbol) {
+                                document.getElementById('currentPrice').textContent = '$' + priceData.price.toFixed(2);
+                                document.getElementById('obCurrentPrice').textContent = '$' + priceData.price.toFixed(2);
+                            }
+                            break;
+                            
+                        case 'solace_decision':
+                            // Show SOLACE decision notification
+                            const decision = message.data;
+                            showNotification(
+                                `SOLACE: ${decision.decision} (${(decision.confidence * 100).toFixed(0)}% confidence)`,
+                                'info'
+                            );
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('❌ WebSocket error:', error);
+            };
+            
+            ws.onclose = function() {
+                console.log('🔴 WebSocket disconnected');
+                showNotification('Real-time connection lost. Reconnecting...', 'warning');
+                
+                // Attempt to reconnect after 5 seconds
+                wsReconnectInterval = setInterval(() => {
+                    console.log('🔄 Attempting to reconnect WebSocket...');
+                    connectWebSocket();
+                }, 5000);
+            };
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#0ECB81' : type === 'warning' ? '#F0B90B' : type === 'error' ? '#F6465D' : '#667eea'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                max-width: 400px;
+                font-size: 14px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Connect WebSocket on page load
+        connectWebSocket();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close();
+            }
+            clearInterval(wsReconnectInterval);
+        });
     </script>
 </body>
 </html>

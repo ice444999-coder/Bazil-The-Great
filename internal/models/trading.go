@@ -16,11 +16,12 @@ type SandboxTrade struct {
 	SessionID uuid.UUID `gorm:"type:uuid;not null" json:"session_id"`
 
 	// Trade Details
-	TradingPair string  `gorm:"size:50;not null" json:"trading_pair"` // BTC/USDC, ETH/USDC
-	Direction   string  `gorm:"size:4;not null" json:"direction"`     // BUY, SELL
-	Size        float64 `gorm:"type:decimal(18,8);not null" json:"size"`
-	EntryPrice  float64 `gorm:"type:decimal(18,8);not null" json:"entry_price"`
-	ExitPrice   *float64 `gorm:"type:decimal(18,8)" json:"exit_price,omitempty"`
+	TradingPair  string   `gorm:"size:50;not null" json:"trading_pair"` // BTC/USDC, ETH/USDC
+	Direction    string   `gorm:"size:4;not null" json:"direction"`     // BUY, SELL
+	Size         float64  `gorm:"type:decimal(18,8);not null" json:"size"`
+	EntryPrice   float64  `gorm:"type:decimal(18,8);not null" json:"entry_price"`
+	ExitPrice    *float64 `gorm:"type:decimal(18,8)" json:"exit_price,omitempty"`
+	StrategyName *string  `gorm:"size:50" json:"strategy_name,omitempty"` // Multi-strategy support
 
 	// Financial Results
 	ProfitLoss        *float64 `gorm:"type:decimal(18,8)" json:"profit_loss,omitempty"`
@@ -33,9 +34,9 @@ type SandboxTrade struct {
 	ClosedAt *time.Time `json:"closed_at,omitempty"`
 
 	// SOLACE Learning Data
-	Reasoning        string  `gorm:"type:text;not null" json:"reasoning"`
-	MarketConditions JSONB   `gorm:"type:jsonb" json:"market_conditions"`
-	SentimentScore   *float64 `gorm:"type:decimal(5,4)" json:"sentiment_score,omitempty"` // -1.0 to 1.0
+	Reasoning        string   `gorm:"type:text;not null" json:"reasoning"`
+	MarketConditions JSONB    `gorm:"type:jsonb" json:"market_conditions"`
+	SentimentScore   *float64 `gorm:"type:decimal(5,4)" json:"sentiment_score,omitempty"`  // -1.0 to 1.0
 	ConfidenceScore  *float64 `gorm:"type:decimal(5,4)" json:"confidence_score,omitempty"` // 0.0 to 1.0
 
 	// Benchmark & Performance
@@ -44,13 +45,13 @@ type SandboxTrade struct {
 	SortinoRatio   *float64 `gorm:"type:decimal(10,4)" json:"sortino_ratio,omitempty"`
 
 	// Market Regime
-	MarketRegime      *string  `gorm:"size:20" json:"market_regime,omitempty"` // BULL, BEAR, CHOP, VOLATILITY_SPIKE, UNKNOWN
-	RegimeConfidence  *float64 `gorm:"type:decimal(5,4)" json:"regime_confidence,omitempty"`
+	MarketRegime     *string  `gorm:"size:20" json:"market_regime,omitempty"` // BULL, BEAR, CHOP, VOLATILITY_SPIKE, UNKNOWN
+	RegimeConfidence *float64 `gorm:"type:decimal(5,4)" json:"regime_confidence,omitempty"`
 
 	// Audit Trail
-	TradeHash      string `gorm:"size:64;not null;unique" json:"trade_hash"`
-	LineageTrail   JSONB  `gorm:"type:jsonb" json:"lineage_trail"`
-	SolaceOverride bool   `gorm:"default:false" json:"solace_override"`
+	TradeHash      string  `gorm:"size:64;not null;unique" json:"trade_hash"`
+	LineageTrail   JSONB   `gorm:"type:jsonb" json:"lineage_trail"`
+	SolaceOverride bool    `gorm:"default:false" json:"solace_override"`
 	OverrideReason *string `gorm:"type:text" json:"override_reason,omitempty"`
 
 	// Timestamps
@@ -68,9 +69,9 @@ type TradingPerformance struct {
 	CalculatedAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"calculated_at"`
 
 	// Trade Statistics
-	TotalTrades   int     `gorm:"default:0" json:"total_trades"`
-	WinningTrades int     `gorm:"default:0" json:"winning_trades"`
-	LosingTrades  int     `gorm:"default:0" json:"losing_trades"`
+	TotalTrades   int      `gorm:"default:0" json:"total_trades"`
+	WinningTrades int      `gorm:"default:0" json:"winning_trades"`
+	LosingTrades  int      `gorm:"default:0" json:"losing_trades"`
 	WinRate       *float64 `gorm:"type:decimal(5,2)" json:"win_rate,omitempty"` // Percentage
 
 	// Financial Metrics
@@ -81,11 +82,11 @@ type TradingPerformance struct {
 	LargestLoss     *float64 `gorm:"type:decimal(18,8)" json:"largest_loss,omitempty"`
 
 	// Risk Metrics
-	SharpeRatio           *float64 `gorm:"type:decimal(10,4)" json:"sharpe_ratio,omitempty"`
-	SortinoRatio          *float64 `gorm:"type:decimal(10,4)" json:"sortino_ratio,omitempty"`
-	MaxDrawdown           *float64 `gorm:"type:decimal(10,4)" json:"max_drawdown,omitempty"`
-	MaxDrawdownPercent    *float64 `gorm:"type:decimal(5,2)" json:"max_drawdown_percent,omitempty"`
-	CurrentDrawdown       *float64 `gorm:"type:decimal(10,4)" json:"current_drawdown,omitempty"`
+	SharpeRatio        *float64 `gorm:"type:decimal(10,4)" json:"sharpe_ratio,omitempty"`
+	SortinoRatio       *float64 `gorm:"type:decimal(10,4)" json:"sortino_ratio,omitempty"`
+	MaxDrawdown        *float64 `gorm:"type:decimal(10,4)" json:"max_drawdown,omitempty"`
+	MaxDrawdownPercent *float64 `gorm:"type:decimal(5,2)" json:"max_drawdown_percent,omitempty"`
+	CurrentDrawdown    *float64 `gorm:"type:decimal(10,4)" json:"current_drawdown,omitempty"`
 
 	// Position Sizing
 	AvgPositionSize *float64 `gorm:"type:decimal(18,8)" json:"avg_position_size,omitempty"`
@@ -106,7 +107,7 @@ type TradingPerformance struct {
 // MarketDataCache stores OHLCV data and technical indicators
 type MarketDataCache struct {
 	ID          uint   `gorm:"primaryKey" json:"id"`
-	Symbol      string `gorm:"size:20;not null" json:"symbol"`           // BTC, ETH, SOL
+	Symbol      string `gorm:"size:20;not null" json:"symbol"`       // BTC, ETH, SOL
 	TradingPair string `gorm:"size:50;not null" json:"trading_pair"` // BTC/USDC
 
 	// OHLCV Data
@@ -156,15 +157,15 @@ type StrategyMutation struct {
 	MutationReason string  `gorm:"type:text;not null" json:"mutation_reason"`
 
 	// Performance Before/After
-	SharpeBefore   *float64 `gorm:"type:decimal(10,4)" json:"sharpe_before,omitempty"`
-	SharpeAfter    *float64 `gorm:"type:decimal(10,4)" json:"sharpe_after,omitempty"`
-	SortinoBefore  *float64 `gorm:"type:decimal(10,4)" json:"sortino_before,omitempty"`
-	SortinoAfter   *float64 `gorm:"type:decimal(10,4)" json:"sortino_after,omitempty"`
-	WinRateBefore  *float64 `gorm:"type:decimal(5,2)" json:"win_rate_before,omitempty"`
-	WinRateAfter   *float64 `gorm:"type:decimal(5,2)" json:"win_rate_after,omitempty"`
+	SharpeBefore  *float64 `gorm:"type:decimal(10,4)" json:"sharpe_before,omitempty"`
+	SharpeAfter   *float64 `gorm:"type:decimal(10,4)" json:"sharpe_after,omitempty"`
+	SortinoBefore *float64 `gorm:"type:decimal(10,4)" json:"sortino_before,omitempty"`
+	SortinoAfter  *float64 `gorm:"type:decimal(10,4)" json:"sortino_after,omitempty"`
+	WinRateBefore *float64 `gorm:"type:decimal(5,2)" json:"win_rate_before,omitempty"`
+	WinRateAfter  *float64 `gorm:"type:decimal(5,2)" json:"win_rate_after,omitempty"`
 
 	// Approval Status
-	Status     string  `gorm:"size:20;not null" json:"status"` // TESTING, APPROVED, REJECTED, DEPLOYED
+	Status     string  `gorm:"size:20;not null" json:"status"`       // TESTING, APPROVED, REJECTED, DEPLOYED
 	ApprovedBy *string `gorm:"size:50" json:"approved_by,omitempty"` // SOLACE, USER, BENCHMARK
 
 	// Timestamps
@@ -174,9 +175,9 @@ type StrategyMutation struct {
 
 // RiskEvent logs kill-switch activations and risk breaches
 type RiskEvent struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	UserID   uint   `gorm:"not null" json:"user_id"`
-	User     User   `gorm:"foreignKey:UserID" json:"-"`
+	ID     uint `gorm:"primaryKey" json:"id"`
+	UserID uint `gorm:"not null" json:"user_id"`
+	User   User `gorm:"foreignKey:UserID" json:"-"`
 
 	EventType string `gorm:"size:50;not null" json:"event_type"` // DRAWDOWN_LIMIT, VAR_BREACH, KILL_SWITCH
 	Severity  string `gorm:"size:20;not null" json:"severity"`   // INFO, WARNING, CRITICAL
@@ -236,4 +237,41 @@ func (st *SandboxTrade) BeforeCreate(tx *gorm.DB) error {
 func generateTradeHash(trade *SandboxTrade) string {
 	// TODO: Implement proper SHA256 hash
 	return uuid.New().String()[:32]
+}
+
+// ============================================================================
+// MULTI-STRATEGY MODELS
+// ============================================================================
+
+// StrategyMetrics represents performance metrics for a single strategy
+type StrategyMetrics struct {
+	StrategyName      string    `json:"strategy_name"`
+	TotalTrades       int       `json:"total_trades"`
+	WinningTrades     int       `json:"winning_trades"`
+	LosingTrades      int       `json:"losing_trades"`
+	WinRate           float64   `json:"win_rate"`
+	TotalProfitLoss   float64   `json:"total_profit_loss"`
+	AverageProfitLoss float64   `json:"average_profit_loss"`
+	SharpeRatio       float64   `json:"sharpe_ratio"`
+	MaxDrawdown       float64   `json:"max_drawdown"`
+	CurrentBalance    float64   `json:"current_balance"`
+	LastUpdated       time.Time `json:"last_updated"`
+	CanPromoteToLive  bool      `json:"can_promote_to_live"`
+	MissingCriteria   []string  `json:"missing_criteria,omitempty"`
+}
+
+// MasterMetrics represents aggregated metrics across all strategies
+type MasterMetrics struct {
+	TotalStrategies  int       `json:"total_strategies"`
+	ActiveStrategies int       `json:"active_strategies"`
+	TotalSignals     int       `json:"total_signals"`
+	BuySignals       int       `json:"buy_signals"`
+	SellSignals      int       `json:"sell_signals"`
+	HoldSignals      int       `json:"hold_signals"`
+	TotalTrades      int       `json:"total_trades"`
+	TotalProfitLoss  float64   `json:"total_profit_loss"`
+	OverallWinRate   float64   `json:"overall_win_rate"`
+	BestStrategy     string    `json:"best_strategy"`
+	WorstStrategy    string    `json:"worst_strategy"`
+	LastUpdated      time.Time `json:"last_updated"`
 }

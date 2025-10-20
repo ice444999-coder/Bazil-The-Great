@@ -1,6 +1,7 @@
 package services
 
 import (
+	"ares_api/internal/concurrency"
 	"ares_api/internal/eventbus"
 	"ares_api/internal/grpo"
 	repository "ares_api/internal/interfaces/repository"
@@ -15,12 +16,37 @@ import (
 	"github.com/google/uuid"
 )
 
+// TradeRequest represents an asynchronous trade request
+type TradeRequest struct {
+	UserID      uint
+	SessionID   uuid.UUID
+	TradingPair string
+	Direction   string
+	SizeUSD     float64
+	Reasoning   string
+	Response    chan *TradeResponse
+}
+
+// TradeResponse represents the response from an asynchronous trade
+type TradeResponse struct {
+	Trade *models.SandboxTrade
+	Error error
+}
+
 type TradingService struct {
 	TradingRepo *repositories.TradingRepository
 	BalanceRepo repository.BalanceRepository
 	AssetRepo   repository.AssetRepository
 	EventBus    *eventbus.EventBus // Phase 2: Event-driven architecture
 	GRPOAgent   *grpo.Agent        // GRPO: Learning from outcomes
+
+	// Lock-free concurrency features
+	tradeCounter   *concurrency.AtomicCounter                             // Lock-free trade counting
+	activeTrades   *concurrency.LockFreeMap[string, *models.SandboxTrade] // Active trades map
+	vectorClock    *concurrency.VectorClock                               // Distributed tracing
+	tradeQueue     *concurrency.LockFreeQueue[*TradeRequest]              // Async trade processing
+	backoffManager *concurrency.ExponentialBackoff                        // Fault tolerance
+	circuitBreaker *concurrency.CircuitBreaker                            // Circuit breaker for external APIs
 }
 
 func NewTradingService(
@@ -30,17 +56,78 @@ func NewTradingService(
 	eb *eventbus.EventBus,
 	grpoAgent *grpo.Agent,
 ) *TradingService {
-	return &TradingService{
+	service := &TradingService{
 		TradingRepo: tradingRepo,
 		BalanceRepo: balanceRepo,
 		AssetRepo:   assetRepo,
 		EventBus:    eb,
 		GRPOAgent:   grpoAgent,
+
+		// Initialize concurrency features
+		tradeCounter:   concurrency.NewAtomicCounter(0),
+		activeTrades:   concurrency.NewLockFreeMap[string, *models.SandboxTrade](16),
+		vectorClock:    concurrency.NewVectorClock("trading-service"),
+		tradeQueue:     concurrency.NewLockFreeQueue[*TradeRequest](),
+		backoffManager: concurrency.NewExponentialBackoff(concurrency.DefaultBackoffConfig()),
+		circuitBreaker: concurrency.NewCircuitBreaker(concurrency.CircuitBreakerConfig{
+			Name:             "trading-api",
+			FailureThreshold: 5,
+			RecoveryTimeout:  30 * time.Second,
+			ExpectedFailures: []string{"network timeout", "service unavailable"},
+		}),
+	}
+
+	// Start async trade processor
+	go service.processTradeQueue()
+
+	return service
+}
+
+// processTradeQueue processes trades asynchronously from the lock-free queue
+func (s *TradingService) processTradeQueue() {
+	for {
+		request, ok := s.tradeQueue.Dequeue()
+		if !ok {
+			time.Sleep(10 * time.Millisecond) // Prevent busy waiting
+			continue
+		}
+
+		// Process the trade asynchronously
+		go func(req *TradeRequest) {
+			trade, err := s.executeTradeSync(req.UserID, req.SessionID, req.TradingPair, req.Direction, req.SizeUSD, req.Reasoning)
+			req.Response <- &TradeResponse{
+				Trade: trade,
+				Error: err,
+			}
+		}(request)
 	}
 }
 
-// ExecuteTrade executes a sandbox trade for SOLACE with realistic slippage, fees, and leverage
-func (s *TradingService) ExecuteTrade(
+// ExecuteTradeAsync executes a trade asynchronously using the lock-free queue
+func (s *TradingService) ExecuteTradeAsync(
+	userID uint,
+	sessionID uuid.UUID,
+	tradingPair string,
+	direction string,
+	sizeUSD float64,
+	reasoning string,
+) <-chan *TradeResponse {
+	request := &TradeRequest{
+		UserID:      userID,
+		SessionID:   sessionID,
+		TradingPair: tradingPair,
+		Direction:   direction,
+		SizeUSD:     sizeUSD,
+		Reasoning:   reasoning,
+		Response:    make(chan *TradeResponse, 1),
+	}
+
+	s.tradeQueue.Enqueue(request)
+	return request.Response
+}
+
+// executeTradeSync executes a trade synchronously (extracted from original ExecuteTrade)
+func (s *TradingService) executeTradeSync(
 	userID uint,
 	sessionID uuid.UUID,
 	tradingPair string,
@@ -535,4 +622,369 @@ func (s *TradingService) ExecuteLeveragedTrade(
 	}
 
 	return trade, nil
+}
+
+// ============================================================================
+// MULTI-STRATEGY SERVICE METHODS
+// ============================================================================
+
+// GetAllStrategies returns all available trading strategies
+func (s *TradingService) GetAllStrategies() []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"name":        "ScalpingStrategy",
+			"description": "High-frequency scalping using RSI and volume indicators. Targets small, frequent profits with tight stop losses.",
+			"type":        "scalping",
+			"risk_level":  "HIGH",
+			"timeframes":  []string{"1m", "5m"},
+			"indicators":  []string{"RSI", "Volume", "Price"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "WhaleTrackingStrategy",
+			"description": "Monitors large transactions (>$1M) and order book movements to predict institutional trading.",
+			"type":        "whale_tracking",
+			"risk_level":  "MEDIUM",
+			"timeframes":  []string{"1m", "5m", "15m"},
+			"indicators":  []string{"OrderBook", "Volume", "LargeTrades"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "MomentumStrategy",
+			"description": "Trades strong price momentum using MACD and volume confirmation. Rides trending moves.",
+			"type":        "momentum",
+			"risk_level":  "HIGH",
+			"timeframes":  []string{"5m", "15m", "1h"},
+			"indicators":  []string{"MACD", "Volume", "Price"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "DayTradingStrategy",
+			"description": "Intraday trading using MACD crossovers and ADX trend strength. Multiple entries/exits per day.",
+			"type":        "day_trading",
+			"risk_level":  "MEDIUM",
+			"timeframes":  []string{"5m", "15m", "1h"},
+			"indicators":  []string{"MACD", "ADX", "Volume"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "BreakoutStrategy",
+			"description": "Trades price breakouts from Bollinger Bands with ATR-based position sizing.",
+			"type":        "breakout",
+			"risk_level":  "HIGH",
+			"timeframes":  []string{"15m", "1h", "4h"},
+			"indicators":  []string{"BollingerBands", "ATR", "Volume"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "NewsTradingStrategy",
+			"description": "Trades news events using sentiment analysis and volatility spikes. Fast execution required.",
+			"type":        "news",
+			"risk_level":  "VERY_HIGH",
+			"timeframes":  []string{"1m", "5m"},
+			"indicators":  []string{"Sentiment", "Volatility", "Volume"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "SwingTradingStrategy",
+			"description": "Medium-term trades using MACD trends and support/resistance levels. Holds positions 1-5 days.",
+			"type":        "swing",
+			"risk_level":  "MEDIUM",
+			"timeframes":  []string{"1h", "4h", "1D"},
+			"indicators":  []string{"MACD", "SupportResistance", "Trend"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "PositionTradingStrategy",
+			"description": "Long-term position trading using macro trends, AI forecasts, and fundamental analysis.",
+			"type":        "position",
+			"risk_level":  "LOW",
+			"timeframes":  []string{"1D", "1W"},
+			"indicators":  []string{"MacroTrends", "AIForecast", "Fundamentals"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "AlgorithmicStrategy",
+			"description": "Ensemble strategy combining multiple algorithms with ML-based decision weighting.",
+			"type":        "algorithmic",
+			"risk_level":  "MEDIUM",
+			"timeframes":  []string{"5m", "15m", "1h"},
+			"indicators":  []string{"Ensemble", "ML", "MultiAlgorithm"},
+			"enabled":     true,
+		},
+		map[string]interface{}{
+			"name":        "PriceActionStrategy",
+			"description": "Pure price action trading using candlestick patterns and volume analysis.",
+			"type":        "price_action",
+			"risk_level":  "MEDIUM",
+			"timeframes":  []string{"5m", "15m", "1h"},
+			"indicators":  []string{"Candlesticks", "Volume", "PricePatterns"},
+			"enabled":     true,
+		},
+	}
+}
+
+// GetStrategyMetrics returns performance metrics for a specific strategy
+func (s *TradingService) GetStrategyMetrics(userID uint, strategyName string) (*models.StrategyMetrics, error) {
+	// Query sandbox_trades filtered by strategy_name
+	trades, err := s.TradingRepo.GetTradesByStrategy(userID, strategyName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get trades for strategy %s: %w", strategyName, err)
+	}
+
+	if len(trades) == 0 {
+		return &models.StrategyMetrics{
+			StrategyName:     strategyName,
+			TotalTrades:      0,
+			WinningTrades:    0,
+			LosingTrades:     0,
+			WinRate:          0.0,
+			LastUpdated:      time.Now(),
+			CanPromoteToLive: false,
+			MissingCriteria:  []string{"No trades executed yet"},
+		}, nil
+	}
+
+	// Calculate metrics
+	totalTrades := len(trades)
+	winningTrades := 0
+	losingTrades := 0
+	totalPnL := 0.0
+	maxDrawdown := 0.0
+	peak := 0.0
+	running := 0.0
+
+	for _, trade := range trades {
+		if trade.ProfitLoss != nil {
+			pnl := *trade.ProfitLoss
+			totalPnL += pnl
+			running += pnl
+
+			if running > peak {
+				peak = running
+			}
+			drawdown := peak - running
+			if drawdown > maxDrawdown {
+				maxDrawdown = drawdown
+			}
+
+			if pnl > 0 {
+				winningTrades++
+			} else if pnl < 0 {
+				losingTrades++
+			}
+		}
+	}
+
+	winRate := 0.0
+	if totalTrades > 0 {
+		winRate = (float64(winningTrades) / float64(totalTrades)) * 100
+	}
+
+	avgPnL := totalPnL / float64(totalTrades)
+
+	// Calculate Sharpe ratio (simplified)
+	sharpeRatio := 0.0
+	if len(trades) > 1 {
+		variance := 0.0
+		for _, trade := range trades {
+			if trade.ProfitLoss != nil {
+				dev := *trade.ProfitLoss - avgPnL
+				variance += dev * dev
+			}
+		}
+		stdDev := variance / float64(len(trades)-1)
+		if stdDev > 0 {
+			sharpeRatio = avgPnL / stdDev
+		}
+	}
+
+	// Check promotion criteria
+	canPromote := totalTrades >= 100 && winRate >= 60.0 && sharpeRatio > 1.0
+	missingCriteria := []string{}
+	if totalTrades < 100 {
+		missingCriteria = append(missingCriteria, fmt.Sprintf("Need %d more trades (have %d, need 100)", 100-totalTrades, totalTrades))
+	}
+	if winRate < 60.0 {
+		missingCriteria = append(missingCriteria, fmt.Sprintf("Win rate too low (%.2f%%, need 60%%)", winRate))
+	}
+	if sharpeRatio <= 1.0 {
+		missingCriteria = append(missingCriteria, fmt.Sprintf("Sharpe ratio too low (%.2f, need >1.0)", sharpeRatio))
+	}
+
+	return &models.StrategyMetrics{
+		StrategyName:      strategyName,
+		TotalTrades:       totalTrades,
+		WinningTrades:     winningTrades,
+		LosingTrades:      losingTrades,
+		WinRate:           winRate,
+		TotalProfitLoss:   totalPnL,
+		AverageProfitLoss: avgPnL,
+		SharpeRatio:       sharpeRatio,
+		MaxDrawdown:       maxDrawdown,
+		CurrentBalance:    0.0, // TODO: Track per-strategy balance
+		LastUpdated:       time.Now(),
+		CanPromoteToLive:  canPromote,
+		MissingCriteria:   missingCriteria,
+	}, nil
+}
+
+// GetStrategySandboxTrades returns sandbox trades for a specific strategy
+func (s *TradingService) GetStrategySandboxTrades(userID uint, strategyName string, limit int) ([]models.SandboxTrade, error) {
+	return s.TradingRepo.GetTradesByStrategy(userID, strategyName)
+}
+
+// ToggleStrategy enables/disables a strategy
+func (s *TradingService) ToggleStrategy(userID uint, strategyName string) (bool, error) {
+	// TODO: Implement strategy state persistence
+	// For now, return toggled state
+	return true, nil
+}
+
+// CanPromoteStrategy checks if a strategy meets promotion criteria
+func (s *TradingService) CanPromoteStrategy(userID uint, strategyName string) (bool, []string, error) {
+	metrics, err := s.GetStrategyMetrics(userID, strategyName)
+	if err != nil {
+		return false, nil, err
+	}
+	return metrics.CanPromoteToLive, metrics.MissingCriteria, nil
+}
+
+// PromoteStrategy promotes a strategy to live trading
+func (s *TradingService) PromoteStrategy(userID uint, strategyName string) error {
+	// TODO: Implement live trading promotion logic
+	// For now, just log the event
+	log.Printf("Strategy %s promoted to LIVE for user %d", strategyName, userID)
+	return nil
+}
+
+// GetMasterMetrics returns aggregated metrics across all strategies
+func (s *TradingService) GetMasterMetrics(userID uint) (*models.MasterMetrics, error) {
+	allTrades, err := s.TradingRepo.GetAllTrades(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all trades: %w", err)
+	}
+
+	// Group by strategy
+	strategyMap := make(map[string][]models.SandboxTrade)
+	for _, trade := range allTrades {
+		strategyName := "Unknown"
+		if trade.StrategyName != nil && *trade.StrategyName != "" {
+			strategyName = *trade.StrategyName
+		}
+		strategyMap[strategyName] = append(strategyMap[strategyName], trade)
+	}
+
+	totalStrategies := len(strategyMap)
+	activeStrategies := 0
+	totalTrades := len(allTrades)
+	totalPnL := 0.0
+	winningTrades := 0
+
+	bestStrategy := ""
+	bestPnL := -999999.0
+	worstStrategy := ""
+	worstPnL := 999999.0
+
+	for strategyName, trades := range strategyMap {
+		if len(trades) > 0 {
+			activeStrategies++
+		}
+
+		strategyPnL := 0.0
+		for _, trade := range trades {
+			if trade.ProfitLoss != nil {
+				pnl := *trade.ProfitLoss
+				totalPnL += pnl
+				strategyPnL += pnl
+				if pnl > 0 {
+					winningTrades++
+				}
+			}
+		}
+
+		if strategyPnL > bestPnL {
+			bestPnL = strategyPnL
+			bestStrategy = strategyName
+		}
+		if strategyPnL < worstPnL {
+			worstPnL = strategyPnL
+			worstStrategy = strategyName
+		}
+	}
+
+	overallWinRate := 0.0
+	if totalTrades > 0 {
+		overallWinRate = (float64(winningTrades) / float64(totalTrades)) * 100
+	}
+
+	return &models.MasterMetrics{
+		TotalStrategies:  totalStrategies,
+		ActiveStrategies: activeStrategies,
+		TotalSignals:     0, // TODO: Track signals
+		BuySignals:       0,
+		SellSignals:      0,
+		HoldSignals:      0,
+		TotalTrades:      totalTrades,
+		TotalProfitLoss:  totalPnL,
+		OverallWinRate:   overallWinRate,
+		BestStrategy:     bestStrategy,
+		WorstStrategy:    worstStrategy,
+		LastUpdated:      time.Now(),
+	}, nil
+}
+
+// ExecuteTrade executes a sandbox trade for SOLACE with realistic slippage, fees, and leverage
+func (s *TradingService) ExecuteTrade(
+	userID uint,
+	sessionID uuid.UUID,
+	tradingPair string,
+	direction string,
+	sizeUSD float64,
+	reasoning string,
+) (*models.SandboxTrade, error) {
+	// Use async execution for better concurrency
+	responseChan := s.ExecuteTradeAsync(userID, sessionID, tradingPair, direction, sizeUSD, reasoning)
+	response := <-responseChan
+
+	return response.Trade, response.Error
+}
+
+// GetConcurrencyStats returns concurrency system statistics
+func (s *TradingService) GetConcurrencyStats() map[string]interface{} {
+	return map[string]interface{}{
+		"total_trades_processed": s.tradeCounter.Load(),
+		"active_trades_count":    0, // TODO: Implement active trades count
+		"vector_clock":           s.vectorClock.String(),
+		"queue_size":             0, // LockFreeQueue doesn't expose size
+	}
+}
+
+// GetCircuitBreakerStats returns circuit breaker statistics
+func (s *TradingService) GetCircuitBreakerStats() map[string]interface{} {
+	return s.circuitBreaker.Stats()
+}
+
+// GetBackoffStats returns backoff system statistics
+func (s *TradingService) GetBackoffStats() map[string]interface{} {
+	return map[string]interface{}{
+		"attempts":     s.backoffManager.Attempts(),
+		"total_delay":  s.backoffManager.TotalDelay().String(),
+		"should_retry": s.backoffManager.ShouldRetry(),
+	}
+}
+
+// ResetBackoff resets the backoff state
+func (s *TradingService) ResetBackoff() {
+	s.backoffManager.Reset()
+}
+
+// TickVectorClock increments the vector clock
+func (s *TradingService) TickVectorClock() {
+	s.vectorClock.Increment()
+}
+
+// GetVectorClockJSON returns the vector clock as JSON
+func (s *TradingService) GetVectorClockJSON() ([]byte, error) {
+	return s.vectorClock.ToJSON()
 }

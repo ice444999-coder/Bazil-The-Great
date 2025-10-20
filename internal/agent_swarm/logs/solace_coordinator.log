@@ -1,0 +1,250 @@
+2025-10-17 07:09:16,153 - INFO - ======================================================================
+2025-10-17 07:09:16,153 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:09:16,153 - INFO - ======================================================================
+2025-10-17 07:09:16,154 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:09:16,167 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:09:16,480 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:09:16,480 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:09:16,838 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:09:16,839 - INFO - ============================================================
+2025-10-17 07:09:16,839 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:09:16,839 - INFO - ============================================================
+2025-10-17 07:09:16,873 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:09:16,873 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:09:16,874 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:12:34,211 - INFO - ======================================================================
+2025-10-17 07:12:34,211 - INFO - Shutdown signal received (Ctrl+C)
+2025-10-17 07:12:34,211 - INFO - Cleaning up processes...
+2025-10-17 07:12:34,211 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:12:34,490 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:12:34,490 - INFO - Cleanup complete. Exiting.
+2025-10-17 07:12:34,491 - INFO - ======================================================================
+2025-10-17 07:17:41,131 - INFO - ======================================================================
+2025-10-17 07:17:41,131 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:17:41,132 - INFO - ======================================================================
+2025-10-17 07:17:41,133 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:17:41,139 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:17:41,445 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:17:41,445 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:17:41,724 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:17:41,724 - INFO - ============================================================
+2025-10-17 07:17:41,724 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:17:41,725 - INFO - ============================================================
+2025-10-17 07:17:41,740 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:17:41,740 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:17:41,740 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:18:57,010 - INFO - ======================================================================
+2025-10-17 07:18:57,010 - INFO - Shutdown signal received (Ctrl+C)
+2025-10-17 07:18:57,011 - INFO - Cleaning up processes...
+2025-10-17 07:18:57,012 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:18:57,306 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:18:57,306 - INFO - Cleanup complete. Exiting.
+2025-10-17 07:18:57,307 - INFO - ======================================================================
+2025-10-17 07:21:39,638 - INFO - ======================================================================
+2025-10-17 07:21:39,639 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:21:39,639 - INFO - ======================================================================
+2025-10-17 07:21:39,639 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:21:39,642 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:21:39,915 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:21:39,915 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:21:40,208 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:21:40,208 - INFO - ============================================================
+2025-10-17 07:21:40,208 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:21:40,208 - INFO - ============================================================
+2025-10-17 07:21:40,221 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:21:40,221 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:21:40,221 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:21:52,442 - INFO - ======================================================================
+2025-10-17 07:21:52,442 - INFO - Shutdown signal received (Ctrl+C)
+2025-10-17 07:21:52,442 - INFO - Cleaning up processes...
+2025-10-17 07:21:52,443 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:21:52,728 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:21:52,728 - INFO - Cleanup complete. Exiting.
+2025-10-17 07:21:52,729 - INFO - ======================================================================
+2025-10-17 07:22:03,411 - INFO - ======================================================================
+2025-10-17 07:22:03,412 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:22:03,412 - INFO - ======================================================================
+2025-10-17 07:22:03,412 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:22:03,414 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:22:03,692 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:22:03,692 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:22:03,956 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:22:03,956 - INFO - ============================================================
+2025-10-17 07:22:03,956 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:22:03,956 - INFO - ============================================================
+2025-10-17 07:22:03,968 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:22:03,969 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:22:03,969 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:25:16,900 - INFO - ======================================================================
+2025-10-17 07:25:16,901 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:25:16,901 - INFO - ======================================================================
+2025-10-17 07:25:16,901 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:25:16,903 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:25:17,160 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:25:17,160 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:25:17,423 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:25:17,424 - INFO - ============================================================
+2025-10-17 07:25:17,424 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:25:17,424 - INFO - ============================================================
+2025-10-17 07:25:17,438 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:25:17,438 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:25:17,438 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:25:31,564 - INFO - ======================================================================
+2025-10-17 07:25:31,564 - INFO - Shutdown signal received (Ctrl+C)
+2025-10-17 07:25:31,565 - INFO - Cleaning up processes...
+2025-10-17 07:25:31,566 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:25:31,834 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:25:31,834 - INFO - Cleanup complete. Exiting.
+2025-10-17 07:25:31,835 - INFO - ======================================================================
+2025-10-17 07:25:44,025 - INFO - ======================================================================
+2025-10-17 07:25:44,025 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:25:44,025 - INFO - ======================================================================
+2025-10-17 07:25:44,026 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:25:44,028 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:25:44,285 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:25:44,285 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:25:44,544 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:25:44,545 - INFO - ============================================================
+2025-10-17 07:25:44,545 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:25:44,545 - INFO - ============================================================
+2025-10-17 07:25:44,559 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:25:44,559 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:25:44,559 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:28:39,228 - INFO - ======================================================================
+2025-10-17 07:28:39,228 - INFO - SOLACE Coordinator Starting...
+2025-10-17 07:28:39,228 - INFO - ======================================================================
+2025-10-17 07:28:39,228 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 07:28:39,230 - INFO - Checking for existing coordinator processes...
+2025-10-17 07:28:39,492 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 07:28:39,492 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 07:28:39,763 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 07:28:39,763 - INFO - ============================================================
+2025-10-17 07:28:39,764 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 07:28:39,764 - INFO - ============================================================
+2025-10-17 07:28:39,780 - INFO - ✅ WebSocket server started on ws://localhost:8765
+2025-10-17 07:28:39,780 - INFO -    Available message types: ping, read_file, write_file, list_directory, chat
+2025-10-17 07:28:39,780 - INFO -    Press Ctrl+C to stop
+2025-10-17 07:28:53,482 - INFO - [WEBSOCKET] New connection from ('::1', 63595, 0, 0)
+2025-10-17 07:28:53,483 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:28:53,483 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:28:53,483 - INFO - [CHAT] Received message: 
+2025-10-17 07:28:53,789 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:28:57,408 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:28:57,408 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:28:57,409 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:28:57,410 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:28:57,410 - INFO - [CHAT] Received message: 
+2025-10-17 07:28:57,663 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:29:00,182 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:29:00,183 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:29:00,186 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:29:00,187 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:29:00,187 - INFO - [CHAT] Received message: 
+2025-10-17 07:29:00,473 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:29:02,783 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:29:02,784 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:29:02,788 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:29:02,788 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:29:02,789 - INFO - [CHAT] Received message: 
+2025-10-17 07:29:02,982 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:29:05,008 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:29:05,009 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:29:05,010 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:29:05,011 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:29:05,011 - INFO - [CHAT] Received message: 
+2025-10-17 07:29:05,231 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:29:07,242 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:29:07,244 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:46:51,457 - INFO - [WEBSOCKET] New connection from ('::1', 59854, 0, 0)
+2025-10-17 07:46:51,461 - INFO - [WEBSOCKET] Received message type: ping
+2025-10-17 07:46:51,461 - INFO - [WEBSOCKET] ✓ Sent response for ping
+2025-10-17 07:46:52,472 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 07:46:52,474 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 07:46:52,475 - INFO - [CHAT] Received message: 
+2025-10-17 07:46:52,764 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 07:46:55,891 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 07:46:55,893 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 07:46:56,911 - INFO - [WEBSOCKET] New connection from ('::1', 59865, 0, 0)
+2025-10-17 07:49:41,878 - INFO - [WEBSOCKET] Connection closed: ('::1', 59865, 0, 0)
+2025-10-17 08:10:49,241 - INFO - ======================================================================
+2025-10-17 08:10:49,241 - INFO - SOLACE Coordinator Starting...
+2025-10-17 08:10:49,241 - INFO - ======================================================================
+2025-10-17 08:10:49,242 - INFO - Signal handler registered (Ctrl+C for graceful shutdown)
+2025-10-17 08:10:49,246 - INFO - Checking for existing coordinator processes...
+2025-10-17 08:10:49,612 - INFO - ✓ Cleaned up existing coordinator processes
+2025-10-17 08:10:49,612 - INFO - Checking for orphaned PowerShell processes...
+2025-10-17 08:10:49,904 - INFO - ✓ Cleaned up orphaned PowerShell processes
+2025-10-17 08:10:49,904 - INFO - ============================================================
+2025-10-17 08:10:49,905 - INFO - Starting SOLACE WebSocket Server
+2025-10-17 08:10:49,905 - INFO - ============================================================
+2025-10-17 08:10:49,929 - ERROR - [WEBSOCKET] Server error: [Errno 10048] error while attempting to bind on address ('::1', 8765, 0, 0): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+2025-10-17 09:58:47,384 - INFO - [WEBSOCKET] New connection from ('127.0.0.1', 62188)
+2025-10-17 09:59:30,899 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 09:59:30,900 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 09:59:30,900 - INFO - [CHAT] Received message: 
+2025-10-17 09:59:31,130 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 09:59:34,932 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 09:59:34,933 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:07:50,582 - INFO - [WEBSOCKET] New connection from ('127.0.0.1', 64982)
+2025-10-17 10:08:10,575 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:08:10,576 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:08:10,576 - INFO - [CHAT] Received message: 
+2025-10-17 10:08:10,799 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:08:13,787 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:08:13,789 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:08:22,089 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:08:22,089 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:08:22,090 - INFO - [CHAT] Received message: 
+2025-10-17 10:08:22,304 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:08:24,762 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:08:24,764 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:08:33,300 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:08:33,301 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:08:33,302 - INFO - [CHAT] Received message: 
+2025-10-17 10:08:33,507 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:08:35,013 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:08:35,015 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:13:47,974 - INFO - [WEBSOCKET] Connection closed: ('127.0.0.1', 62188)
+2025-10-17 10:13:50,618 - INFO - [WEBSOCKET] New connection from ('127.0.0.1', 59872)
+2025-10-17 10:14:07,046 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:14:07,047 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:14:07,047 - INFO - [CHAT] Received message: 
+2025-10-17 10:14:07,338 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:14:09,233 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:14:09,233 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:14:17,117 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:14:17,118 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:14:17,118 - INFO - [CHAT] Received message: 
+2025-10-17 10:14:17,402 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:14:19,196 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:14:19,198 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:25:03,177 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:25:03,177 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:25:03,178 - INFO - [CHAT] Received message: 
+2025-10-17 10:25:03,453 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:25:04,701 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:25:04,703 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:25:08,779 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:25:08,779 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:25:08,780 - INFO - [CHAT] Received message: 
+2025-10-17 10:25:09,017 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:25:12,242 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:25:12,243 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:25:24,065 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:25:24,065 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:25:24,066 - INFO - [CHAT] Received message: 
+2025-10-17 10:25:24,339 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:25:25,837 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:25:25,839 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:25:40,986 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:25:40,986 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:25:40,986 - INFO - [CHAT] Received message: 
+2025-10-17 10:25:41,188 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:27:13,441 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:27:13,443 - INFO - [WEBSOCKET] ✓ Sent response for chat
+2025-10-17 10:27:13,446 - INFO - [WEBSOCKET] Received message type: chat
+2025-10-17 10:27:13,447 - INFO - [WEBSOCKET] Processing chat message: ...
+2025-10-17 10:27:13,449 - INFO - [CHAT] Received message: 
+2025-10-17 10:27:13,726 - INFO - [CHAT] Starting function calling loop (max 5 iterations)
+2025-10-17 10:27:14,978 - INFO - [CHAT] OpenAI completed, returning final response
+2025-10-17 10:27:14,979 - INFO - [WEBSOCKET] ✓ Sent response for chat

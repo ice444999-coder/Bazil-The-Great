@@ -84,9 +84,23 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .nav-item.active {
-            background: rgba(255,255,255,0.2);
-            border-left: 3px solid white;
+        
+        /* ENHANCED NAVIGATION ACTIVE STATE - High Specificity */
+        .sidebar .nav-menu a.nav-item.active,
+        nav.nav-menu a.nav-item.active,
+        div.nav-menu a.nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-left: 4px solid #fff !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        /* Hover effect for nav items */
+        .sidebar .nav-menu a.nav-item:hover:not(.active) {
+            background: rgba(255,255,255,0.15) !important;
+            transform: translateX(2px);
+            transition: all 0.2s ease;
         }
 
         .logout-btn {
@@ -438,25 +452,41 @@
                     <span class="icon">📊</span>
                     <span>Trading</span>
                 </a>
+                <a href="/solace-trading.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>SOLACE Consciousness</span>
+                </a>
+                <a href="/forge-dashboard.html" class="nav-item">
+                    <span class="icon">🎓</span>
+                    <span>FORGE Apprenticeship</span>
+                </a>
+                <a href="/web/code-ide.html" class="nav-item">
+                    <span class="icon">🤖</span>
+                    <span>Code IDE</span>
+                </a>
                 <a href="/chat.html" class="nav-item active">
                     <span class="icon">💬</span>
-                    <span>Chat with SOLACE</span>
+                    <span>Chat</span>
+                </a>
+                <a href="/solace-control.html" class="nav-item">
+                    <span class="icon">🎛️</span>
+                    <span>SOLACE Control</span>
                 </a>
                 <a href="/editor.html" class="nav-item">
                     <span class="icon">📝</span>
-                    <span>Code Editor</span>
+                    <span>Editor</span>
                 </a>
                 <a href="/memory.html" class="nav-item">
                     <span class="icon">🧠</span>
-                    <span>Memory System</span>
+                    <span>Memory</span>
                 </a>
                 <a href="/vision.html" class="nav-item">
                     <span class="icon">👁️</span>
-                    <span>SOLACE Vision</span>
+                    <span>Vision</span>
                 </a>
                 <a href="/health.html" class="nav-item">
                     <span class="icon">❤️</span>
-                    <span>System Health</span>
+                    <span>Health</span>
                 </a>
             </nav>
 
@@ -699,12 +729,14 @@
 
                     addMessage('solace', responseText, null, thinking);
                 } else {
-                    addMessage('solace', 'Sorry, I encountered an error processing your request.');
+                    const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                    console.error('API Error:', response.status, errorData);
+                    addMessage('solace', `Error (${response.status}): ${errorData.error || 'Failed to process request'}`);
                 }
             } catch (error) {
                 hideTypingIndicator();
-                addMessage('solace', 'Connection error. Please try again.');
                 console.error('Chat error:', error);
+                addMessage('solace', `Connection error: ${error.message}. Please check if ARES API is running on port 8080.`);
             } finally {
                 isTyping = false;
                 sendBtn.disabled = false;
@@ -733,11 +765,149 @@
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
 
+        // WebSocket connection for real-time updates
+        let ws = null;
+        let wsReconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        function connectWebSocket() {
+            try {
+                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsHost = window.location.hostname;
+                const wsPort = '8080'; // ARES API port
+                ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}/ws/chat`);
+
+                ws.onopen = function() {
+                    console.log('WebSocket connected');
+                    wsReconnectAttempts = 0;
+                    
+                    // Update status indicator
+                    const statusIndicator = document.querySelector('.status-indicator');
+                    if (statusIndicator) {
+                        statusIndicator.style.background = '#10b981';
+                    }
+                    
+                    // Send authentication token
+                    if (token) {
+                        ws.send(JSON.stringify({
+                            type: 'auth',
+                            token: token
+                        }));
+                    }
+                };
+
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        switch(data.type) {
+                            case 'message':
+                                // New message from SOLACE
+                                if (data.sender === 'solace') {
+                                    hideTypingIndicator();
+                                    addMessage('solace', data.content);
+                                }
+                                break;
+                                
+                            case 'typing':
+                                // SOLACE is typing
+                                if (data.sender === 'solace') {
+                                    showTypingIndicator();
+                                }
+                                break;
+                                
+                            case 'stop_typing':
+                                // SOLACE stopped typing
+                                hideTypingIndicator();
+                                break;
+                                
+                            case 'status':
+                                // Update SOLACE status
+                                console.log('SOLACE status:', data.status);
+                                break;
+                        }
+                    } catch (err) {
+                        console.error('WebSocket message error:', err);
+                    }
+                };
+
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    
+                    // Update status indicator
+                    const statusIndicator = document.querySelector('.status-indicator');
+                    if (statusIndicator) {
+                        statusIndicator.style.background = '#ef4444';
+                    }
+                };
+
+                ws.onclose = function() {
+                    console.log('WebSocket disconnected');
+                    ws = null;
+                    
+                    // Update status indicator
+                    const statusIndicator = document.querySelector('.status-indicator');
+                    if (statusIndicator) {
+                        statusIndicator.style.background = '#f59e0b';
+                    }
+                    
+                    // Attempt reconnection
+                    if (wsReconnectAttempts < maxReconnectAttempts) {
+                        wsReconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 10000);
+                        console.log(`Reconnecting WebSocket in ${delay}ms (attempt ${wsReconnectAttempts}/${maxReconnectAttempts})...`);
+                        setTimeout(connectWebSocket, delay);
+                    } else {
+                        console.error('Max WebSocket reconnection attempts reached');
+                        addMessage('system', '⚠️ Real-time connection lost. Messages will be sent via API only.');
+                    }
+                };
+            } catch (err) {
+                console.error('Failed to establish WebSocket connection:', err);
+            }
+        }
+
+        // Send message via WebSocket if connected
+        function sendMessageViaWebSocket(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'chat',
+                    content: message
+                }));
+                return true;
+            }
+            return false;
+        }
+
+        // Add system message helper
+        function addSystemMessage(text) {
+            const messagesContainer = document.querySelector('.messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div style="width: 100%; text-align: center; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; font-size: 13px; color: #667eea;">
+                    ${text}
+                </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
         // Load history on page load
         loadChatHistory();
 
-        // Poll for new messages every 5 seconds (in case of multi-user scenario)
+        // Initialize WebSocket connection
+        connectWebSocket();
+
+        // Poll for new messages every 5 seconds (fallback if WebSocket fails)
         setInterval(loadChatHistory, 5000);
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (ws) {
+                ws.close();
+            }
+        });
     </script>
 </body>
 </html>
