@@ -341,7 +341,35 @@
             border-top: 1px solid #2B3139;
             padding-top: 10px;
         }
-    </style>
+            .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+</style>
 </head>
 <body>
     <div class="container">
@@ -410,6 +438,7 @@
         <!-- Main Content -->
         <div class="content">
             <div class="header">
+                <a href="/dashboard.html" class="back-btn">Back</a>
                 <h1>🎓 FORGE Apprenticeship Dashboard</h1>
                 <p style="color: #848E9C;">GitHub Copilot → FORGE Learning System</p>
             </div>
@@ -447,7 +476,7 @@
         // Load FORGE statistics
         async function loadStats() {
             try {
-                const response = await fetch('http://localhost:4000/api/v1/forge/confidence');
+                const response = await fetch('http://localhost:8080/api/v1/forge/confidence');
                 const data = await response.json();
                 
                 const statsGrid = document.getElementById('statsGrid');
@@ -485,7 +514,7 @@
             } catch (error) {
                 console.error('Failed to load FORGE stats:', error);
                 document.getElementById('statsGrid').innerHTML = 
-                    '<div class="loading" style="color: #F6465D;">Failed to connect to ARES API. Is the server running on port 4000?</div>';
+                    '<div class="loading" style="color: #F6465D;">Failed to connect to ARES API. Is the server running on port 8080?</div>';
             }
         }
 

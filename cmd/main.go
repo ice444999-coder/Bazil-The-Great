@@ -220,10 +220,21 @@ func main() {
 	})
 
 	// Legacy routes for backwards compatibility
+	r.StaticFile("/login.html", "./web/login.html")     // CRITICAL: Explicit route for login
+	r.StaticFile("/register.html", "./web/register.html") // CRITICAL: Explicit route for register
 	r.StaticFile("/trading.html", "./web/trading.html")
 	r.StaticFile("/dashboard.html", "./web/dashboard.html")
 	r.StaticFile("/editor.html", "./static/editor.html")
 	r.StaticFile("/code-ide.html", "./web/code-ide.html") // SOLACE Code IDE
+
+	// Additional UI pages
+	r.StaticFile("/chat.html", "./web/chat.html")
+	r.StaticFile("/solace-control.html", "./web/solace-control.html")
+	r.StaticFile("/solace-trading.html", "./web/solace-trading.html")
+	r.StaticFile("/forge-dashboard.html", "./web/forge-dashboard.html")
+	r.StaticFile("/memory.html", "./web/memory.html")
+	r.StaticFile("/vision.html", "./web/vision.html")
+	r.StaticFile("/health.html", "./web/health.html")
 
 	// Serve React SPA from frontend/dist (for future use)
 	r.Static("/assets", "./frontend/dist/assets")

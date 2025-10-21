@@ -340,7 +340,35 @@
         .chat-messages::-webkit-scrollbar-thumb:hover {
             background: #764ba2;
         }
-    </style>
+            .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+</style>
 </head>
 <body>
     <div class="container">
@@ -410,6 +438,7 @@
         <div class="main-content">
             <!-- Header -->
             <div class="header">
+                <a href="/dashboard.html" class="back-btn">Back</a>
                 <h2>SOLACE Control Center</h2>
                 <p>Start/Stop autonomous operation and communicate with SOLACE</p>
             </div>
@@ -458,7 +487,7 @@
         // Load initial state from API
         async function loadSOLACEStatus() {
             try {
-                const response = await fetch('/api/v1/solace/status');
+                const response = await fetch('/api/v1/solace-command/status');
                 const data = await response.json();
                 isRunning = data.autonomous_mode_active || false;
                 updateUI();
@@ -470,7 +499,7 @@
         // Load chat history
         async function loadChatHistory() {
             try {
-                const response = await fetch('/api/v1/solace/chat/history');
+                const response = await fetch('/api/v1/agent/chat/history');
                 const data = await response.json();
                 messageHistory = data.messages || [];
                 renderMessages();
@@ -541,7 +570,7 @@
 
             // Send to backend
             try {
-                const response = await fetch('/api/v1/solace/chat', {
+                const response = await fetch('/api/v1/solace-agent/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -635,7 +664,7 @@
         // Poll for new messages (in case other sources add messages)
         setInterval(async () => {
             try {
-                const response = await fetch('/api/v1/solace/chat/updates');
+                const response = await fetch('/api/v1/solace/stats');
                 const data = await response.json();
                 
                 if (data.new_messages && data.new_messages.length > 0) {

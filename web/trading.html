@@ -137,6 +137,32 @@
             background: #1E2329;
             border-bottom: 1px solid #2B3139;
             gap: 24px;
+            position: relative;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
         }
 
         .symbol-selector {
@@ -655,6 +681,7 @@
 
             <!-- Top Header Bar -->
             <div class="trading-header">
+                <a href="/dashboard.html" class="back-btn">Back</a>
                 <div class="symbol-selector">
                     <span id="currentSymbol">BTCUSDT</span>
                     <select id="symbolSelect" onchange="changeSymbol()">
@@ -869,8 +896,16 @@
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
     <script>
-        // Load user info
-        const userData = JSON.parse(localStorage.getItem('ares_user') || '{"username":"SOLACE_AI"}');
+        // Load user info (safe parsing)
+        let userData = {username: 'SOLACE_AI'};
+        try {
+            const userStr = localStorage.getItem('ares_user');
+            if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+                userData = JSON.parse(userStr);
+            }
+        } catch (e) {
+            console.warn('Failed to parse user data, using default');
+        }
         document.getElementById('username').textContent = userData.username || 'SOLACE_AI';
 
         let currentSymbol = 'BTCUSDT';

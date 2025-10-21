@@ -131,16 +131,47 @@
             padding: 20px 30px;
             background: white;
             border-bottom: 2px solid #f0f0f0;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
         }
 
         .header h2 {
             font-size: 24px;
             margin-bottom: 5px;
+            margin-left: 100px;
         }
 
         .header p {
             color: #666;
             font-size: 14px;
+            margin-left: 100px;
         }
 
         .solace-status {
@@ -498,6 +529,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
+                <a href="/dashboard.html" class="back-btn">Back</a>
                 <h2>Chat with SOLACE</h2>
                 <p>Have a conversation with the autonomous AI agent</p>
                 <div class="solace-status">
@@ -775,7 +807,7 @@
                 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const wsHost = window.location.hostname;
                 const wsPort = '8080'; // ARES API port
-                ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}/ws/chat`);
+                ws = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}/api/v1/solace/ws`);
 
                 ws.onopen = function() {
                     console.log('WebSocket connected');

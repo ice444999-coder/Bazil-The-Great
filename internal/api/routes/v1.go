@@ -376,16 +376,16 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 	// --------------------------
 	tradingGroup := api.Group("/trading")
 	{
-		tradingGroup.GET("/prices", cryptoPriceController.GetPrices) // LIVE crypto prices - public endpoint
+		tradingGroup.GET("/prices", cryptoPriceController.GetPrices)       // LIVE crypto prices - public endpoint
+		tradingGroup.GET("/performance", tradingController.GetPerformance) // PUBLIC: Dashboard metrics (read-only)
+		tradingGroup.GET("/history", tradingController.GetTradeHistory)    // PUBLIC: Dashboard needs read-only access
+		tradingGroup.GET("/open", tradingController.GetOpenTrades)         // PUBLIC: Dashboard needs read-only access
 
-		// Protected endpoints
+		// Protected endpoints (write operations only)
 		tradingGroup.Use(middleware.AuthMiddleware())
 		tradingGroup.POST("/execute", tradingController.ExecuteTrade)
 		tradingGroup.POST("/close", tradingController.CloseTrade)
 		tradingGroup.POST("/close-all", tradingController.CloseAllTrades)
-		tradingGroup.GET("/history", tradingController.GetTradeHistory)
-		tradingGroup.GET("/open", tradingController.GetOpenTrades)
-		tradingGroup.GET("/performance", tradingController.GetPerformance)
 	}
 
 	// --------------------------

@@ -183,7 +183,35 @@
             color: #888;
             font-size: 0.9rem;
         }
-    </style>
+            .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+</style>
 </head>
 <body>
     <div class="container">

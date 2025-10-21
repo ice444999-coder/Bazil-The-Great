@@ -625,7 +625,35 @@
             padding: 8px;
             border: 1px solid #4c1d95;
         }
-    </style>
+            .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+</style>
 </head>
 <body>
     <!-- SOLACE Observation Bar (Always Visible) -->

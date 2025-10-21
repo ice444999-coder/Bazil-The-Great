@@ -444,7 +444,35 @@
             color: white;
             border-color: #667eea;
         }
-    </style>
+            .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 18px;
+        }
+</style>
 </head>
 <body>
     <div class="container">
@@ -515,6 +543,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="header">
+                <a href="/dashboard.html" class="back-btn">Back</a>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <a href="/chat.html" style="text-decoration: none; color: #6C63FF; font-size: 1.5rem;" title="Back to Chat">←</a>
                     <div>
@@ -628,10 +657,10 @@
                 logoutBtn.addEventListener('click', logout);
             }
 
-        // Load memories from conversations endpoint (SOLACE's new endpoint!)
+        // Load memories from snapshots endpoint (6000+ actual memories!)
         async function loadMemories() {
             try {
-                const response = await fetch('/api/v1/memory/conversations', {
+                const response = await fetch('/api/v1/memory/snapshots?limit=10000', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
