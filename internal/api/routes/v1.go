@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -193,6 +194,19 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 	featureFlags := config.DefaultFeatureFlags()
 	metrics := monitoring.NewMetrics()
 	monitoringController := controllers.NewMonitoringController(metrics, featureFlags)
+
+	// Start metrics collection goroutine
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			sqlDB, _ := db.DB()
+			stats := sqlDB.Stats()
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+			metrics.UpdateSystemMetrics(float64(m.Alloc)/1024/1024, runtime.NumGoroutine(), stats.OpenConnections)
+		}
+	}()
 
 	// --------------------------
 	//  BACKGROUND JOB TO PROCESS OPEN LIMIT ORDERS
