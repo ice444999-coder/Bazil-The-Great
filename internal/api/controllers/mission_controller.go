@@ -29,12 +29,12 @@ type MissionController struct {
 // NewMissionController creates a new mission controller
 func NewMissionController(db *gorm.DB) *MissionController {
 	mc := &MissionController{db: db}
-	
+
 	// Auto-migrate the mission_progress table
 	if err := db.AutoMigrate(&MissionProgress{}); err != nil {
 		panic("Failed to migrate mission_progress table: " + err.Error())
 	}
-	
+
 	// Initialize Phase 1 progress if not exists
 	var progress MissionProgress
 	if err := db.Where("phase = ?", 1).First(&progress).Error; err == gorm.ErrRecordNotFound {
@@ -48,7 +48,7 @@ func NewMissionController(db *gorm.DB) *MissionController {
 		}
 		db.Create(&initialProgress)
 	}
-	
+
 	return mc
 }
 
@@ -56,7 +56,7 @@ func NewMissionController(db *gorm.DB) *MissionController {
 // GET /api/mission/progress
 func (mc *MissionController) GetProgress(c *gin.Context) {
 	var progress MissionProgress
-	
+
 	// Get Phase 1 progress
 	if err := mc.db.Where("phase = ?", 1).First(&progress).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -64,10 +64,10 @@ func (mc *MissionController) GetProgress(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// Calculate dynamic percentage based on completed subtasks
 	completionPercentage := (progress.SubtasksCompleted * 100) / progress.SubtasksTotal
-	
+
 	// Update status message based on percentage
 	var statusMessage string
 	switch {
@@ -82,7 +82,7 @@ func (mc *MissionController) GetProgress(c *gin.Context) {
 	default:
 		statusMessage = "✅ Phase 1 operational - Ready for action!"
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"phase":              progress.Phase,
 		"percentage":         completionPercentage,
@@ -100,14 +100,14 @@ func (mc *MissionController) UpdateProgress(c *gin.Context) {
 		SubtasksCompleted int    `json:"subtasks_completed" binding:"required,min=0,max=12"`
 		Notes             string `json:"notes"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request: " + err.Error(),
 		})
 		return
 	}
-	
+
 	var progress MissionProgress
 	if err := mc.db.Where("phase = ?", 1).First(&progress).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -115,12 +115,12 @@ func (mc *MissionController) UpdateProgress(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// Update progress
 	progress.SubtasksCompleted = req.SubtasksCompleted
 	progress.Percentage = (req.SubtasksCompleted * 100) / progress.SubtasksTotal
 	progress.LastUpdated = time.Now()
-	
+
 	// Auto-update status based on new percentage
 	switch {
 	case progress.Percentage < 25:
@@ -134,14 +134,14 @@ func (mc *MissionController) UpdateProgress(c *gin.Context) {
 	default:
 		progress.Status = "operational"
 	}
-	
+
 	if err := mc.db.Save(&progress).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to update progress: " + err.Error(),
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":            "Mission progress updated",
 		"phase":              progress.Phase,
@@ -160,14 +160,14 @@ func (mc *MissionController) IncrementProgress(c *gin.Context) {
 		SubtaskName string `json:"subtask_name"`
 		Notes       string `json:"notes"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request: " + err.Error(),
 		})
 		return
 	}
-	
+
 	var progress MissionProgress
 	if err := mc.db.Where("phase = ?", 1).First(&progress).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -175,13 +175,13 @@ func (mc *MissionController) IncrementProgress(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// Increment if not already at max
 	if progress.SubtasksCompleted < progress.SubtasksTotal {
 		progress.SubtasksCompleted++
 		progress.Percentage = (progress.SubtasksCompleted * 100) / progress.SubtasksTotal
 		progress.LastUpdated = time.Now()
-		
+
 		// Auto-update status
 		switch {
 		case progress.Percentage < 25:
@@ -195,7 +195,7 @@ func (mc *MissionController) IncrementProgress(c *gin.Context) {
 		default:
 			progress.Status = "operational"
 		}
-		
+
 		if err := mc.db.Save(&progress).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to increment progress: " + err.Error(),
@@ -203,7 +203,7 @@ func (mc *MissionController) IncrementProgress(c *gin.Context) {
 			return
 		}
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":            "Subtask completed! 🎯",
 		"subtask_name":       req.SubtaskName,

@@ -74,7 +74,7 @@ func (ac *ApprovalController) RequestApproval(c *gin.Context) {
 // POST /api/approve/:subtask_id
 func (ac *ApprovalController) ApproveSubtask(c *gin.Context) {
 	subtaskID := c.Param("subtask_id")
-	
+
 	var req struct {
 		ApprovedBy string `json:"approved_by"`
 		Notes      string `json:"notes"`
@@ -86,11 +86,11 @@ func (ac *ApprovalController) ApproveSubtask(c *gin.Context) {
 	}
 
 	now := time.Now()
-	
+
 	// Find pending approval
 	var approval ApprovalRequest
 	result := ac.db.Where("subtask_id = ? AND status = ?", subtaskID, "pending").First(&approval)
-	
+
 	if result.Error == gorm.ErrRecordNotFound {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No pending approval found for this subtask"})
 		return
@@ -120,7 +120,7 @@ func (ac *ApprovalController) ApproveSubtask(c *gin.Context) {
 // POST /api/approve/:subtask_id/reject
 func (ac *ApprovalController) RejectSubtask(c *gin.Context) {
 	subtaskID := c.Param("subtask_id")
-	
+
 	var req struct {
 		ApprovedBy string `json:"approved_by"`
 		Notes      string `json:"notes"`
@@ -131,11 +131,11 @@ func (ac *ApprovalController) RejectSubtask(c *gin.Context) {
 	}
 
 	now := time.Now()
-	
+
 	// Find pending approval
 	var approval ApprovalRequest
 	result := ac.db.Where("subtask_id = ? AND status = ?", subtaskID, "pending").First(&approval)
-	
+
 	if result.Error == gorm.ErrRecordNotFound {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No pending approval found for this subtask"})
 		return
@@ -260,7 +260,7 @@ func (ac *ApprovalController) WaitForApproval(subtaskID string, timeoutMinutes i
 		case <-ticker.C:
 			var approval ApprovalRequest
 			result := ac.db.Where("subtask_id = ?", subtaskID).Order("requested_at DESC").First(&approval)
-			
+
 			if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 				return false, result.Error
 			}
