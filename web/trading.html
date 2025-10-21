@@ -138,6 +138,190 @@
             font-style: italic;
         }
 
+        /* Trading Bots Section */
+        .trading-bots-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .bots-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .bots-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .bots-add-btn {
+            background: linear-gradient(135deg, #0ECB81 0%, #0A8A5A 100%);
+            border: none;
+            color: white;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bots-add-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(14, 203, 129, 0.5);
+        }
+
+        .bot-card {
+            background: rgba(30, 35, 41, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            animation: botCardFadeIn 0.5s ease-out;
+        }
+
+        .bot-card:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .bot-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .bot-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #EAECEF;
+        }
+
+        .bot-status {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .bot-status.running {
+            background: rgba(14, 203, 129, 0.2);
+            color: #0ECB81;
+            animation: statusPulse 2s infinite;
+        }
+
+        .bot-status.paused {
+            background: rgba(252, 213, 53, 0.2);
+            color: #FCD535;
+        }
+
+        .bot-status.stopped {
+            background: rgba(132, 142, 156, 0.2);
+            color: #848E9C;
+        }
+
+        @keyframes botCardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .bot-strategy {
+            font-size: 10px;
+            color: #848E9C;
+            margin-bottom: 8px;
+        }
+
+        .bot-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .bot-metric {
+            font-size: 10px;
+        }
+
+        .bot-metric-label {
+            color: #848E9C;
+            margin-bottom: 2px;
+        }
+
+        .bot-metric-value {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .bot-metric-value.positive {
+            color: #0ECB81;
+        }
+
+        .bot-metric-value.negative {
+            color: #F6465D;
+        }
+
+        .bot-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .bot-control-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bot-control-btn.start {
+            background: linear-gradient(135deg, #0ECB81 0%, #0A8A5A 100%);
+            color: white;
+        }
+
+        .bot-control-btn.pause {
+            background: linear-gradient(135deg, #FCD535 0%, #C9A828 100%);
+            color: #1E2329;
+        }
+
+        .bot-control-btn.stop {
+            background: linear-gradient(135deg, #F6465D 0%, #C1384A 100%);
+            color: white;
+        }
+
+        .bot-control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .bot-control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .nav-menu {
             flex: 1;
             overflow-y: auto;
@@ -1104,6 +1288,17 @@
                     </div>
                 </div>
                 <div class="mission-status" id="missionStatus">Initializing systems...</div>
+            </div>
+
+            <!-- Trading Bots Section -->
+            <div class="trading-bots-section">
+                <div class="bots-header">
+                    <span class="bots-title">🤖 Trading Bots</span>
+                    <button class="bots-add-btn" onclick="addNewBot()">+ Add</button>
+                </div>
+                <div id="botsList">
+                    <!-- Bots will be dynamically populated here -->
+                </div>
             </div>
 
             <div class="nav-menu">
@@ -2236,6 +2431,181 @@
                 renderPositions();
             }
         }, 3000);
+
+        // ==================== TRADING BOTS SYSTEM ====================
+        const tradingBots = [
+            {
+                id: 1,
+                name: 'RSI Hunter',
+                strategy: 'RSI 8 Oversold/Overbought',
+                status: 'running',
+                trades: 127,
+                winRate: 68.5,
+                pnl: 2847.50,
+                pnlPercent: 14.2
+            },
+            {
+                id: 2,
+                name: 'MACD Divergence',
+                strategy: 'MACD 5-35-5 Crossover',
+                status: 'running',
+                trades: 89,
+                winRate: 72.1,
+                pnl: 3521.30,
+                pnlPercent: 17.6
+            },
+            {
+                id: 3,
+                name: 'Whale Tracker',
+                strategy: 'Follow Whale Orders >$1M',
+                status: 'paused',
+                trades: 23,
+                winRate: 65.2,
+                pnl: -143.20,
+                pnlPercent: -0.7
+            }
+        ];
+
+        function renderBot(bot) {
+            const statusClass = bot.status; // 'running', 'paused', 'stopped'
+            const pnlClass = bot.pnl >= 0 ? 'positive' : 'negative';
+            const pnlSign = bot.pnl >= 0 ? '+' : '';
+            
+            const isRunning = bot.status === 'running';
+            const isPaused = bot.status === 'paused';
+            const isStopped = bot.status === 'stopped';
+            
+            return `
+                <div class="bot-card" data-bot-id="${bot.id}">
+                    <div class="bot-card-header">
+                        <span class="bot-name">${bot.name}</span>
+                        <span class="bot-status ${statusClass}">${bot.status.toUpperCase()}</span>
+                    </div>
+                    <div class="bot-strategy">${bot.strategy}</div>
+                    <div class="bot-metrics">
+                        <div class="bot-metric">
+                            <div class="bot-metric-label">P&L</div>
+                            <div class="bot-metric-value ${pnlClass}">${pnlSign}$${Math.abs(bot.pnl).toFixed(2)} (${pnlSign}${bot.pnlPercent}%)</div>
+                        </div>
+                        <div class="bot-metric">
+                            <div class="bot-metric-label">Win Rate</div>
+                            <div class="bot-metric-value">${bot.winRate}% (${bot.trades})</div>
+                        </div>
+                    </div>
+                    <div class="bot-controls">
+                        <button class="bot-control-btn start" onclick="startBot(${bot.id})" ${isRunning ? 'disabled' : ''}>
+                            ${isRunning ? '▶ Running' : '▶ Start'}
+                        </button>
+                        <button class="bot-control-btn pause" onclick="pauseBot(${bot.id})" ${!isRunning ? 'disabled' : ''}>
+                            ⏸ Pause
+                        </button>
+                        <button class="bot-control-btn stop" onclick="stopBot(${bot.id})" ${isStopped ? 'disabled' : ''}>
+                            ⏹ Stop
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBots() {
+            const botsList = document.getElementById('botsList');
+            if (!botsList) return;
+            
+            botsList.innerHTML = tradingBots.map(bot => renderBot(bot)).join('');
+        }
+
+        function findBot(botId) {
+            return tradingBots.find(bot => bot.id === botId);
+        }
+
+        function startBot(botId) {
+            const bot = findBot(botId);
+            if (bot) {
+                bot.status = 'running';
+                renderBots();
+                console.log(`🤖 Bot ${bot.name} started`);
+                showNotification(`${bot.name} started`, 'success');
+            }
+        }
+
+        function pauseBot(botId) {
+            const bot = findBot(botId);
+            if (bot) {
+                bot.status = 'paused';
+                renderBots();
+                console.log(`⏸ Bot ${bot.name} paused`);
+                showNotification(`${bot.name} paused`, 'warning');
+            }
+        }
+
+        function stopBot(botId) {
+            const bot = findBot(botId);
+            if (bot) {
+                bot.status = 'stopped';
+                renderBots();
+                console.log(`⏹ Bot ${bot.name} stopped`);
+                showNotification(`${bot.name} stopped`, 'error');
+            }
+        }
+
+        function addNewBot() {
+            const botName = prompt('Enter bot name:', 'Custom Bot');
+            if (!botName) return;
+            
+            const strategy = prompt('Enter strategy:', 'Custom Strategy');
+            if (!strategy) return;
+            
+            const newBot = {
+                id: tradingBots.length + 1,
+                name: botName,
+                strategy: strategy,
+                status: 'stopped',
+                trades: 0,
+                winRate: 0,
+                pnl: 0,
+                pnlPercent: 0
+            };
+            
+            tradingBots.push(newBot);
+            renderBots();
+            console.log(`✅ Bot ${botName} created`);
+            showNotification(`Bot ${botName} created`, 'success');
+        }
+
+        // Simulate bot performance updates
+        function updateBotMetrics() {
+            tradingBots.forEach(bot => {
+                if (bot.status === 'running') {
+                    // Simulate a trade (20% chance per update)
+                    if (Math.random() < 0.2) {
+                        bot.trades++;
+                        
+                        // Simulate win/loss based on win rate
+                        const isWin = Math.random() * 100 < bot.winRate;
+                        const tradeProfit = isWin 
+                            ? (Math.random() * 50 + 10)  // Win: $10-60
+                            : -(Math.random() * 30 + 5); // Loss: -$5-35
+                        
+                        bot.pnl += tradeProfit;
+                        bot.pnlPercent = (bot.pnl / 20000) * 100; // Assume $20k starting capital
+                        
+                        // Adjust win rate slightly
+                        const currentWins = Math.round((bot.winRate / 100) * (bot.trades - 1));
+                        const newWins = currentWins + (isWin ? 1 : 0);
+                        bot.winRate = ((newWins / bot.trades) * 100).toFixed(1);
+                        
+                        console.log(`🤖 ${bot.name}: ${isWin ? '✅ WIN' : '❌ LOSS'} ${tradeProfit.toFixed(2)} | Total: $${bot.pnl.toFixed(2)}`);
+                    }
+                }
+            });
+            renderBots();
+        }
+
+        // Initialize bots
+        renderBots();
+
+        // Update bot metrics every 5 seconds
+        setInterval(updateBotMetrics, 5000);
 
         // WebSocket Connection for Real-Time Updates
         let ws = null;
