@@ -868,6 +868,13 @@
             background: #1E2329;
             border-bottom: 1px solid #2B3139;
             padding: 0 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .market-tabs-left {
+            display: flex;
+            gap: 0;
         }
 
         .market-tab {
@@ -889,6 +896,133 @@
         .market-tab.active {
             color: #F0B90B;
             border-bottom-color: #F0B90B;
+        }
+
+        /* Sandbox Mode */
+        .sandbox-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .sandbox-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sandbox-label {
+            font-size: 12px;
+            color: #848E9C;
+            font-weight: 500;
+        }
+
+        .sandbox-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #2B3139;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid #3A4149;
+        }
+
+        .sandbox-toggle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .sandbox-toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .sandbox-toggle.active .sandbox-toggle-knob {
+            transform: translateX(20px);
+        }
+
+        .sandbox-balance {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            animation: balancePulse 2s infinite;
+        }
+
+        .sandbox-balance.hidden {
+            display: none;
+        }
+
+        @keyframes balancePulse {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+            }
+        }
+
+        .sandbox-reset-btn {
+            background: linear-gradient(135deg, #F6465D 0%, #C1384A 100%);
+            border: none;
+            color: white;
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .sandbox-reset-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(246, 70, 93, 0.4);
+        }
+
+        .sandbox-reset-btn.hidden {
+            display: none;
+        }
+
+        .sandbox-mode-indicator {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            z-index: 1000;
+            animation: indicatorFloat 3s infinite;
+            display: none;
+        }
+
+        .sandbox-mode-indicator.active {
+            display: block;
+        }
+
+        @keyframes indicatorFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
         }
 
         /* Position Tracker */
@@ -1353,12 +1487,34 @@
 
         <!-- Binance-Style Trading Content -->
         <div class="trading-content">
+            <!-- Sandbox Mode Indicator (Floating) -->
+            <div class="sandbox-mode-indicator" id="sandboxIndicator">
+                🎮 SANDBOX MODE - Risk-Free Testing
+            </div>
+
             <!-- Market Type Tabs -->
             <div class="market-tabs">
-                <button class="market-tab active" onclick="switchMarket('spot')">Spot</button>
-                <button class="market-tab" onclick="switchMarket('futures')">Futures</button>
-                <button class="market-tab" onclick="switchMarket('margin')">Margin</button>
-                <button class="market-tab" onclick="switchMarket('options')">Options</button>
+                <div class="market-tabs-left">
+                    <button class="market-tab active" onclick="switchMarket('spot')">Spot</button>
+                    <button class="market-tab" onclick="switchMarket('futures')">Futures</button>
+                    <button class="market-tab" onclick="switchMarket('margin')">Margin</button>
+                    <button class="market-tab" onclick="switchMarket('options')">Options</button>
+                </div>
+                
+                <div class="sandbox-controls">
+                    <div class="sandbox-toggle-container">
+                        <span class="sandbox-label">Sandbox Mode</span>
+                        <div class="sandbox-toggle" id="sandboxToggle" onclick="toggleSandboxMode()">
+                            <div class="sandbox-toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="sandbox-balance hidden" id="sandboxBalance">
+                        💰 Paper Balance: $<span id="sandboxBalanceValue">100,000.00</span>
+                    </div>
+                    <button class="sandbox-reset-btn hidden" id="sandboxResetBtn" onclick="resetSandbox()">
+                        🔄 Reset
+                    </button>
+                </div>
             </div>
 
             <!-- Position Tracker -->
@@ -2606,6 +2762,217 @@
 
         // Update bot metrics every 5 seconds
         setInterval(updateBotMetrics, 5000);
+
+        // ==================== SANDBOX MODE SYSTEM ====================
+        let sandboxMode = false;
+        let sandboxBalance = 100000.00; // Starting paper balance: $100,000
+        const sandboxInitialBalance = 100000.00;
+        let sandboxTrades = [];
+        let sandboxStats = {
+            totalTrades: 0,
+            winningTrades: 0,
+            losingTrades: 0,
+            totalProfit: 0,
+            totalLoss: 0,
+            largestWin: 0,
+            largestLoss: 0
+        };
+
+        function toggleSandboxMode() {
+            sandboxMode = !sandboxMode;
+            
+            const toggle = document.getElementById('sandboxToggle');
+            const indicator = document.getElementById('sandboxIndicator');
+            const balanceEl = document.getElementById('sandboxBalance');
+            const resetBtn = document.getElementById('sandboxResetBtn');
+            
+            if (sandboxMode) {
+                // Enable sandbox mode
+                toggle.classList.add('active');
+                indicator.classList.add('active');
+                balanceEl.classList.remove('hidden');
+                resetBtn.classList.remove('hidden');
+                
+                console.log('🎮 SANDBOX MODE ENABLED - All trades are simulated (paper trading)');
+                showNotification('Sandbox Mode Enabled - Paper Trading Active', 'success');
+                
+                // Update balance display
+                updateSandboxBalance();
+            } else {
+                // Disable sandbox mode
+                toggle.classList.remove('active');
+                indicator.classList.remove('active');
+                balanceEl.classList.add('hidden');
+                resetBtn.classList.add('hidden');
+                
+                console.log('💰 SANDBOX MODE DISABLED - Switching to live mode');
+                showNotification('Sandbox Mode Disabled - Live Trading (USE CAUTION)', 'warning');
+            }
+        }
+
+        function updateSandboxBalance() {
+            const balanceEl = document.getElementById('sandboxBalanceValue');
+            if (balanceEl) {
+                balanceEl.textContent = sandboxBalance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                
+                // Update color based on profit/loss
+                const profitLoss = sandboxBalance - sandboxInitialBalance;
+                if (profitLoss > 0) {
+                    balanceEl.style.color = '#0ECB81';
+                } else if (profitLoss < 0) {
+                    balanceEl.style.color = '#F6465D';
+                } else {
+                    balanceEl.style.color = '#667eea';
+                }
+            }
+        }
+
+        function simulateSandboxTrade(side, amount, price) {
+            if (!sandboxMode) return null;
+            
+            // Simulate trade execution with realistic slippage
+            const slippage = (Math.random() * 0.002 - 0.001); // ±0.1% slippage
+            const actualPrice = price * (1 + slippage);
+            const fee = amount * actualPrice * 0.001; // 0.1% trading fee
+            
+            // Simulate market movement after trade
+            const marketMove = (Math.random() - 0.5) * 0.02; // ±1% move
+            const exitPrice = actualPrice * (1 + marketMove);
+            
+            // Calculate P&L
+            let pnl;
+            if (side === 'buy') {
+                pnl = (exitPrice - actualPrice) * amount - fee;
+            } else {
+                pnl = (actualPrice - exitPrice) * amount - fee;
+            }
+            
+            // Update balance
+            sandboxBalance += pnl;
+            
+            // Update stats
+            sandboxStats.totalTrades++;
+            if (pnl > 0) {
+                sandboxStats.winningTrades++;
+                sandboxStats.totalProfit += pnl;
+                if (pnl > sandboxStats.largestWin) sandboxStats.largestWin = pnl;
+            } else {
+                sandboxStats.losingTrades++;
+                sandboxStats.totalLoss += Math.abs(pnl);
+                if (Math.abs(pnl) > sandboxStats.largestLoss) sandboxStats.largestLoss = Math.abs(pnl);
+            }
+            
+            // Create trade record
+            const trade = {
+                timestamp: new Date().toISOString(),
+                side: side,
+                amount: amount,
+                entryPrice: actualPrice,
+                exitPrice: exitPrice,
+                pnl: pnl,
+                fee: fee,
+                balance: sandboxBalance
+            };
+            
+            sandboxTrades.push(trade);
+            
+            // Keep only last 100 trades
+            if (sandboxTrades.length > 100) {
+                sandboxTrades.shift();
+            }
+            
+            // Update UI
+            updateSandboxBalance();
+            
+            // Log trade
+            const pnlSign = pnl >= 0 ? '+' : '';
+            console.log(`🎮 SANDBOX TRADE: ${side.toUpperCase()} ${amount} BTC @ $${actualPrice.toFixed(2)} → ${pnlSign}$${pnl.toFixed(2)} | Balance: $${sandboxBalance.toFixed(2)}`);
+            
+            return trade;
+        }
+
+        function resetSandbox() {
+            if (!confirm('Reset sandbox? This will clear all paper trading history and reset balance to $100,000.')) {
+                return;
+            }
+            
+            // Reset balance and stats
+            sandboxBalance = sandboxInitialBalance;
+            sandboxTrades = [];
+            sandboxStats = {
+                totalTrades: 0,
+                winningTrades: 0,
+                losingTrades: 0,
+                totalProfit: 0,
+                totalLoss: 0,
+                largestWin: 0,
+                largestLoss: 0
+            };
+            
+            // Update UI
+            updateSandboxBalance();
+            
+            console.log('🔄 SANDBOX RESET - Balance restored to $100,000');
+            showNotification('Sandbox Reset - Starting Fresh', 'success');
+        }
+
+        function getSandboxStats() {
+            if (!sandboxMode) {
+                console.log('Sandbox mode is not enabled');
+                return null;
+            }
+            
+            const winRate = sandboxStats.totalTrades > 0 
+                ? (sandboxStats.winningTrades / sandboxStats.totalTrades * 100).toFixed(2)
+                : 0;
+            
+            const profitFactor = sandboxStats.totalLoss > 0
+                ? (sandboxStats.totalProfit / sandboxStats.totalLoss).toFixed(2)
+                : 'N/A';
+            
+            const avgWin = sandboxStats.winningTrades > 0
+                ? (sandboxStats.totalProfit / sandboxStats.winningTrades).toFixed(2)
+                : 0;
+            
+            const avgLoss = sandboxStats.losingTrades > 0
+                ? (sandboxStats.totalLoss / sandboxStats.losingTrades).toFixed(2)
+                : 0;
+            
+            const stats = {
+                balance: sandboxBalance,
+                profitLoss: sandboxBalance - sandboxInitialBalance,
+                profitLossPercent: ((sandboxBalance - sandboxInitialBalance) / sandboxInitialBalance * 100).toFixed(2),
+                totalTrades: sandboxStats.totalTrades,
+                winningTrades: sandboxStats.winningTrades,
+                losingTrades: sandboxStats.losingTrades,
+                winRate: winRate,
+                profitFactor: profitFactor,
+                avgWin: avgWin,
+                avgLoss: avgLoss,
+                largestWin: sandboxStats.largestWin.toFixed(2),
+                largestLoss: sandboxStats.largestLoss.toFixed(2)
+            };
+            
+            console.log('📊 SANDBOX STATS:', stats);
+            return stats;
+        }
+
+        // Simulate sandbox trades when bots are running in sandbox mode
+        function simulateBotsInSandbox() {
+            if (!sandboxMode) return;
+            
+            tradingBots.forEach(bot => {
+                if (bot.status === 'running' && Math.random() < 0.1) { // 10% chance per update
+                    const amount = Math.random() * 0.5 + 0.1; // 0.1-0.6 BTC
+                    const side = Math.random() > 0.5 ? 'buy' : 'sell';
+                    
+                    simulateSandboxTrade(side, amount, obCurrentPrice);
+                }
+            });
+        }
+
+        // Update sandbox bot trades every 3 seconds
+        setInterval(simulateBotsInSandbox, 3000);
 
         // WebSocket Connection for Real-Time Updates
         let ws = null;
