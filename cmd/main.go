@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"ares_api/config"
+	"ares_api/internal/api/controllers"
 	"ares_api/internal/api/handlers"
 	"ares_api/internal/api/routes"
 	"ares_api/internal/common"
@@ -254,7 +255,20 @@ func main() {
 	// Register API routes with DB dependency, EventBus, and GRPO Agent (Phase 2 + GRPO)
 	routes.RegisterRoutes(r, db, eb, grpoAgent)
 
-	// 📊 Add analytics endpoint (Phase 2 Integration)
+	// �️ Register Approval Controller for Grok protocol manual approval gates
+	approvalController := controllers.NewApprovalController(db)
+	approvalGroup := r.Group("/api/approve")
+	{
+		approvalGroup.POST("/request", approvalController.RequestApproval)
+		approvalGroup.POST("/:subtask_id", approvalController.ApproveSubtask)
+		approvalGroup.POST("/:subtask_id/reject", approvalController.RejectSubtask)
+		approvalGroup.GET("/:subtask_id", approvalController.GetApprovalStatus)
+		approvalGroup.GET("/pending", approvalController.ListPendingApprovals)
+		approvalGroup.POST("/all", approvalController.ApproveAll)
+	}
+	log.Println("✅ Approval controller registered for Grok protocol safety gates")
+
+	// �📊 Add analytics endpoint (Phase 2 Integration)
 	r.GET("/api/v1/analytics/trading", func(c *gin.Context) {
 		stats := analyticsSubscriber.GetStats()
 		c.JSON(200, gin.H{
