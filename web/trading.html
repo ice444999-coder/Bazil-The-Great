@@ -65,6 +65,79 @@
             opacity: 0.7;
         }
 
+        /* Mission Progress Bar */
+        .mission-progress {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+        }
+
+        .mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .mission-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .mission-percent {
+            font-size: 14px;
+            font-weight: 700;
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.8);
+        }
+
+        .progress-glow {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-30px);
+            }
+            100% {
+                transform: translateX(30px);
+            }
+        }
+
+        .mission-status {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 6px;
+            font-style: italic;
+        }
+
         .nav-menu {
             flex: 1;
             overflow-y: auto;
@@ -73,16 +146,34 @@
         .nav-item {
             padding: 12px 20px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 10px;
             color: white;
             text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::after {
+            content: '▶';
+            position: absolute;
+            right: 20px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 10px;
         }
 
         .nav-item:hover {
             background: rgba(255,255,255,0.1);
+            transform: translateX(3px);
+        }
+
+        .nav-item:hover::after {
+            opacity: 0.5;
+            transform: translateX(0);
         }
 
         
@@ -94,14 +185,41 @@
             border-left: 4px solid #fff !important;
             color: #fff !important;
             font-weight: 600 !important;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6), 0 0 20px rgba(118, 75, 162, 0.4) !important;
+            animation: pulseGlow 3s ease-in-out infinite !important;
+        }
+
+        .sidebar .nav-menu a.nav-item.active::after {
+            content: '▶';
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+            animation: arrowBounce 2s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6), 0 0 20px rgba(118, 75, 162, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.8), 0 0 30px rgba(118, 75, 162, 0.6);
+            }
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(5px);
+            }
         }
 
         /* Hover effect for nav items */
         .sidebar .nav-menu a.nav-item:hover:not(.active) {
             background: rgba(255,255,255,0.15) !important;
-            transform: translateX(2px);
-            transition: all 0.2s ease;
+            transform: translateX(3px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
         }
 
         .logout-btn {
@@ -606,6 +724,20 @@
             <div class="user-info">
                 <div class="username" id="username">Loading...</div>
                 <div class="role">AI Trading System</div>
+            </div>
+
+            <!-- Mission Progress Bar -->
+            <div class="mission-progress">
+                <div class="mission-header">
+                    <span class="mission-title">🚀 Phase 1 Progress</span>
+                    <span class="mission-percent" id="missionPercent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-glow"></div>
+                    </div>
+                </div>
+                <div class="mission-status" id="missionStatus">Initializing systems...</div>
             </div>
 
             <div class="nav-menu">
@@ -1349,6 +1481,42 @@
             localStorage.removeItem('ares_user');
             window.location.href = '/login.html';
         }
+
+        // Mission Progress Bar Animation
+        function updateMissionProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const percentElement = document.getElementById('missionPercent');
+            const statusElement = document.getElementById('missionStatus');
+            
+            // Simulate progress from 0 to 100% over time
+            // In production, fetch from /api/mission/progress
+            let currentProgress = 0;
+            const targetProgress = 73; // Phase 1 target: 73%
+            
+            const progressInterval = setInterval(() => {
+                if (currentProgress < targetProgress) {
+                    currentProgress += 1;
+                    progressBar.style.width = currentProgress + '%';
+                    percentElement.textContent = currentProgress + '%';
+                    
+                    // Update status messages
+                    if (currentProgress < 25) {
+                        statusElement.textContent = '🔧 Initializing core systems...';
+                    } else if (currentProgress < 50) {
+                        statusElement.textContent = '🚀 Trading strategies loading...';
+                    } else if (currentProgress < 75) {
+                        statusElement.textContent = '🧠 SOLACE consciousness online...';
+                    } else {
+                        statusElement.textContent = '✅ Phase 1 operational - Ready for action!';
+                    }
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 50); // Smooth animation
+        }
+
+        // Initialize mission progress on page load
+        setTimeout(updateMissionProgress, 500);
 
         // Simulate price updates
         setInterval(() => {
