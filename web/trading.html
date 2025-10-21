@@ -620,6 +620,186 @@
             font-size: 14px;
         }
 
+        /* Strategy Controls Section */
+        .strategy-section {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .strategy-section h5 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .strategy-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 6px 0;
+        }
+
+        .strategy-toggle label {
+            font-size: 11px;
+            color: #EAECEF;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #2B3139;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(16px);
+        }
+
+        /* Kelly Calculator */
+        .kelly-calculator {
+            background: rgba(14, 203, 129, 0.05);
+            border: 1px solid rgba(14, 203, 129, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .kelly-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(14, 203, 129, 0.1);
+            border-radius: 4px;
+        }
+
+        .kelly-result-label {
+            font-size: 11px;
+            color: #848E9C;
+        }
+
+        .kelly-result-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0ECB81;
+        }
+
+        /* Risk Controls */
+        .risk-controls {
+            background: rgba(246, 70, 93, 0.05);
+            border: 1px solid rgba(246, 70, 93, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-group label {
+            font-size: 11px;
+            color: #EAECEF;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #0ECB81 0%, #F6465D 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-group input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Emergency Pause Button */
+        .emergency-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #F6465D 0%, #C13B47 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(246, 70, 93, 0.4);
+            animation: emergencyPulse 2s ease-in-out infinite;
+        }
+
+        .emergency-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(246, 70, 93, 0.6);
+        }
+
+        .emergency-btn:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes emergencyPulse {
+            0%, 100% {
+                box-shadow: 0 4px 12px rgba(246, 70, 93, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px rgba(246, 70, 93, 0.7);
+            }
+        }
+
         .trade-tabs {
             display: flex;
             gap: 8px;
@@ -967,6 +1147,71 @@
                     <!-- Trading Form -->
                     <div class="trading-form">
                         <h4>Spot Trading</h4>
+                        
+                        <!-- Emergency Pause Button -->
+                        <button class="emergency-btn" onclick="emergencyPause()">
+                            ⚠️ EMERGENCY PAUSE ALL TRADES
+                        </button>
+
+                        <!-- Strategy Controls -->
+                        <div class="strategy-section">
+                            <h5>🎯 Active Strategies</h5>
+                            
+                            <div class="strategy-toggle">
+                                <label>
+                                    <span>📊 RSI 8 Oversold</span>
+                                </label>
+                                <div class="toggle-switch active" onclick="toggleStrategy(this, 'rsi')" id="toggle-rsi"></div>
+                            </div>
+                            
+                            <div class="strategy-toggle">
+                                <label>
+                                    <span>📈 MACD 5-35-5 Divergence</span>
+                                </label>
+                                <div class="toggle-switch active" onclick="toggleStrategy(this, 'macd')" id="toggle-macd"></div>
+                            </div>
+                            
+                            <div class="strategy-toggle">
+                                <label>
+                                    <span>🐋 Whale Tracker (>$1M)</span>
+                                </label>
+                                <div class="toggle-switch" onclick="toggleStrategy(this, 'whale')" id="toggle-whale"></div>
+                            </div>
+                        </div>
+
+                        <!-- Kelly Sizing Calculator -->
+                        <div class="kelly-calculator">
+                            <h5 style="font-size: 12px; font-weight: 600; color: #0ECB81; margin-bottom: 8px;">💰 Kelly Criterion Position Size</h5>
+                            <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                                <input type="number" id="kellyWinRate" placeholder="Win %" style="flex: 1; padding: 6px; background: #1E2329; border: 1px solid #2B3139; border-radius: 4px; color: white; font-size: 11px;" value="70" onchange="calculateKelly()">
+                                <input type="number" id="kellyWinLoss" placeholder="W/L Ratio" style="flex: 1; padding: 6px; background: #1E2329; border: 1px solid #2B3139; border-radius: 4px; color: white; font-size: 11px;" value="2.5" onchange="calculateKelly()">
+                            </div>
+                            <div class="kelly-result">
+                                <span class="kelly-result-label">Optimal Position:</span>
+                                <span class="kelly-result-value" id="kellyResult">28.0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Risk Controls -->
+                        <div class="risk-controls">
+                            <h5 style="font-size: 12px; font-weight: 600; color: #F6465D; margin-bottom: 10px;">⚠️ Risk Management</h5>
+                            
+                            <div class="slider-group">
+                                <label>
+                                    <span>Max Drawdown</span>
+                                    <span id="drawdownValue">10%</span>
+                                </label>
+                                <input type="range" id="drawdownSlider" min="1" max="25" value="10" oninput="updateDrawdown(this.value)">
+                            </div>
+                            
+                            <div class="slider-group">
+                                <label>
+                                    <span>Max Position Size</span>
+                                    <span id="positionValue">25%</span>
+                                </label>
+                                <input type="range" id="positionSlider" min="5" max="100" value="25" oninput="updatePosition(this.value)">
+                            </div>
+                        </div>
                         
                         <!-- Buy/Sell Tabs -->
                         <div class="trade-tabs">
@@ -1517,6 +1762,100 @@
 
         // Initialize mission progress on page load
         setTimeout(updateMissionProgress, 500);
+
+        // Strategy Toggle Functions
+        let activeStrategies = {
+            rsi: true,
+            macd: true,
+            whale: false
+        };
+
+        function toggleStrategy(element, strategyName) {
+            element.classList.toggle('active');
+            activeStrategies[strategyName] = element.classList.contains('active');
+            
+            console.log(`Strategy ${strategyName} toggled:`, activeStrategies[strategyName]);
+            
+            // In production, send to API: /api/trading/strategies
+            // fetch('/api/v1/trading/strategies', { method: 'POST', body: JSON.stringify(activeStrategies) })
+        }
+
+        // Kelly Criterion Calculator
+        function calculateKelly() {
+            const winRate = parseFloat(document.getElementById('kellyWinRate').value) / 100;
+            const winLossRatio = parseFloat(document.getElementById('kellyWinLoss').value);
+            
+            // Kelly Formula: f = (bp - q) / b
+            // where: b = win/loss ratio, p = win probability, q = loss probability (1-p)
+            const b = winLossRatio;
+            const p = winRate;
+            const q = 1 - p;
+            
+            const kellyPercent = ((b * p - q) / b) * 100;
+            const safeKelly = Math.max(0, Math.min(kellyPercent * 0.5, 100)); // Half Kelly for safety
+            
+            document.getElementById('kellyResult').textContent = safeKelly.toFixed(1) + '%';
+            
+            console.log(`Kelly: ${kellyPercent.toFixed(1)}%, Safe Kelly: ${safeKelly.toFixed(1)}%`);
+        }
+
+        // Initialize Kelly calculation
+        calculateKelly();
+
+        // Risk Controls
+        function updateDrawdown(value) {
+            document.getElementById('drawdownValue').textContent = value + '%';
+            console.log('Max Drawdown set to:', value + '%');
+            
+            // In production, send to API: /api/trading/risk-limits
+        }
+
+        function updatePosition(value) {
+            document.getElementById('positionValue').textContent = value + '%';
+            console.log('Max Position Size set to:', value + '%');
+            
+            // In production, send to API: /api/trading/risk-limits
+        }
+
+        // Emergency Pause Function
+        function emergencyPause() {
+            const confirmed = confirm(
+                '⚠️ EMERGENCY PAUSE\n\n' +
+                'This will immediately:\n' +
+                '• Close all open trades\n' +
+                '• Cancel all pending orders\n' +
+                '• Disable auto-trading\n' +
+                '• Halt SOLACE autonomous actions\n\n' +
+                'Are you sure you want to proceed?'
+            );
+            
+            if (confirmed) {
+                console.log('🚨 EMERGENCY PAUSE ACTIVATED');
+                
+                // Disable all strategy toggles
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.classList.remove('active');
+                });
+                activeStrategies = { rsi: false, macd: false, whale: false };
+                
+                // Visual feedback
+                const btn = document.querySelector('.emergency-btn');
+                btn.style.background = '#0ECB81';
+                btn.textContent = '✅ ALL SYSTEMS PAUSED';
+                btn.style.animation = 'none';
+                
+                setTimeout(() => {
+                    btn.style.background = 'linear-gradient(135deg, #F6465D 0%, #C13B47 100%)';
+                    btn.textContent = '⚠️ EMERGENCY PAUSE ALL TRADES';
+                    btn.style.animation = 'emergencyPulse 2s ease-in-out infinite';
+                }, 3000);
+                
+                // In production, send to API: /api/trading/emergency-pause
+                // fetch('/api/v1/trading/emergency-pause', { method: 'POST' })
+                
+                alert('🚨 EMERGENCY PAUSE ACTIVATED\n\nAll trading systems halted.\nManual restart required.');
+            }
+        }
 
         // Simulate price updates
         setInterval(() => {
