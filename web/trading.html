@@ -1598,6 +1598,293 @@
             transform: translateX(16px);
         }
 
+        /* 📊 Live Indicators Dashboard (Subtask 3) */
+        .indicators-dashboard {
+            background: linear-gradient(135deg, #1E2329 0%, #2B3139 100%);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .indicator-item {
+            background: #0B0E11;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #2B3139;
+            transition: border-color 0.3s ease;
+        }
+
+        .indicator-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .indicator-item:hover {
+            border-color: #667eea;
+        }
+
+        .indicator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .indicator-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .indicator-signal {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(14, 203, 129, 0.1);
+            color: #0ECB81;
+        }
+
+        .indicator-signal.bearish {
+            background: rgba(246, 70, 93, 0.1);
+            color: #F6465D;
+        }
+
+        .indicator-value-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .indicator-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0ECB81;
+        }
+
+        .indicator-value.bearish {
+            color: #F6465D;
+        }
+
+        /* RSI Gauge */
+        .rsi-gauge {
+            flex: 1;
+            height: 6px;
+            background: linear-gradient(to right, #F6465D 0%, #F0B90B 33%, #0ECB81 100%);
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .rsi-marker {
+            position: absolute;
+            width: 3px;
+            height: 14px;
+            background: white;
+            border-radius: 2px;
+            top: -4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            transition: left 0.5s ease;
+        }
+
+        .rsi-zone {
+            position: absolute;
+            font-size: 8px;
+            color: #848E9C;
+            top: 10px;
+        }
+
+        .rsi-zone.oversold {
+            left: 0;
+        }
+
+        .rsi-zone.overbought {
+            right: 0;
+        }
+
+        /* MACD Bars */
+        .macd-histogram {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0ECB81;
+        }
+
+        .macd-histogram.negative {
+            color: #F6465D;
+        }
+
+        .macd-bars {
+            flex: 1;
+            height: 40px;
+            display: flex;
+            align-items: flex-end;
+            background: rgba(43, 49, 57, 0.5);
+            border-radius: 4px;
+            padding: 4px;
+        }
+
+        .macd-bar {
+            width: 100%;
+            background: #0ECB81;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.5s ease;
+            min-height: 2px;
+        }
+
+        .macd-bar.negative {
+            background: #F6465D;
+        }
+
+        /* Whale Alert */
+        .whale-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(246, 70, 93, 0.15) 0%, rgba(240, 185, 11, 0.15) 100%);
+            border: 2px solid #F0B90B;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            animation: whaleSlideIn 0.5s ease, whalePulse 2s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .whale-alert.hidden {
+            display: none;
+        }
+
+        .whale-alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: whaleSwim 3s ease infinite;
+        }
+
+        @keyframes whaleSlideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes whalePulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(240, 185, 11, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(240, 185, 11, 0.6);
+            }
+        }
+
+        @keyframes whaleSwim {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        .whale-icon {
+            font-size: 24px;
+            animation: whaleFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes whaleFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        .whale-details {
+            flex: 1;
+        }
+
+        .whale-volume {
+            font-size: 16px;
+            font-weight: 700;
+            color: #F0B90B;
+            margin-bottom: 2px;
+        }
+
+        .whale-symbol {
+            font-size: 11px;
+            color: #848E9C;
+        }
+
+        .whale-dismiss {
+            background: transparent;
+            border: 1px solid #848E9C;
+            color: #848E9C;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .whale-dismiss:hover {
+            background: rgba(246, 70, 93, 0.2);
+            border-color: #F6465D;
+            color: #F6465D;
+        }
+
+        /* Emergency Pause Button */
+        .emergency-pause-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #F6465D 0%, #D32F2F 100%);
+            border: 2px solid #F6465D;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            animation: emergencyPulse 1.5s ease infinite;
+            transition: all 0.2s ease;
+            letter-spacing: 1px;
+        }
+
+        .emergency-pause-btn:hover {
+            background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(246, 70, 93, 0.4);
+        }
+
+        .emergency-pause-btn:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes emergencyPulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(246, 70, 93, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(246, 70, 93, 0.7);
+            }
+        }
+
         /* Kelly Calculator */
         .kelly-calculator {
             background: rgba(14, 203, 129, 0.05);
@@ -3002,6 +3289,51 @@
                             </div>
                         </div>
 
+                        <!-- Live Indicators Dashboard (Subtask 3) -->
+                        <div class="indicators-dashboard">
+                            <h5 style="font-size: 12px; font-weight: 600; color: #667eea; margin-bottom: 10px;">📊 Live Market Indicators</h5>
+                            
+                            <!-- RSI 8 Indicator -->
+                            <div class="indicator-item rsi-indicator">
+                                <div class="indicator-header">
+                                    <span class="indicator-label">RSI(8)</span>
+                                    <span class="indicator-signal" id="rsiSignal">Neutral</span>
+                                </div>
+                                <div class="indicator-value-row">
+                                    <span class="indicator-value" id="rsiValue">45.2</span>
+                                    <div class="rsi-gauge">
+                                        <div class="rsi-marker" id="rsiMarker" style="left: 45%"></div>
+                                        <div class="rsi-zone oversold">30</div>
+                                        <div class="rsi-zone overbought">70</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- MACD 5-35-5 Indicator -->
+                            <div class="indicator-item macd-indicator">
+                                <div class="indicator-header">
+                                    <span class="indicator-label">MACD(5-35-5)</span>
+                                    <span class="indicator-signal" id="macdSignal">Bullish Cross</span>
+                                </div>
+                                <div class="indicator-value-row">
+                                    <span class="macd-histogram" id="macdHistogram">+0.32</span>
+                                    <div class="macd-bars">
+                                        <div class="macd-bar positive" id="macdBar" style="height: 60%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Whale Alert Badge -->
+                            <div class="whale-alert hidden" id="whaleAlert">
+                                <div class="whale-icon">🐋</div>
+                                <div class="whale-details">
+                                    <div class="whale-volume" id="whaleVolume">$1.2M</div>
+                                    <div class="whale-symbol" id="whaleSymbol">BTC/USDT Buy</div>
+                                </div>
+                                <button class="whale-dismiss" onclick="dismissWhaleAlert()">✕</button>
+                            </div>
+                        </div>
+
                         <!-- Kelly Sizing Calculator -->
                         <div class="kelly-calculator">
                             <h5 style="font-size: 12px; font-weight: 600; color: #0ECB81; margin-bottom: 8px;">💰 Kelly Criterion Position Size</h5>
@@ -3098,6 +3430,11 @@
                         <!-- Submit Button -->
                         <button class="submit-btn" onclick="submitTrade()">
                             Buy <span id="submitSymbol">BTC</span>
+                        </button>
+
+                        <!-- Emergency Pause Button (Subtask 3) -->
+                        <button class="emergency-pause-btn" id="emergencyPauseBtn" onclick="triggerEmergencyPause()">
+                            🚨 EMERGENCY PAUSE
                         </button>
                     </div>
 
@@ -3864,6 +4201,204 @@
 
         // Initialize Kelly calculation
         calculateKelly();
+
+        // ========================================
+        // SUBTASK 3: Live Indicators & Risk Management
+        // ========================================
+
+        /* HUMAN MODE - Truth Protocol Active
+           CLAIM: Live indicators update with real-time data
+           PROOF: Functions call backend APIs /api/indicators/*
+           STATUS: PROVISIONAL - needs backend compilation
+        */
+
+        // Update RSI Indicator
+        async function updateRSI() {
+            try {
+                const response = await fetch('http://localhost:8080/api/indicators/rsi?period=8');
+                if (!response.ok) throw new Error('RSI API unavailable');
+                
+                const data = await response.json();
+                
+                // Update value
+                document.getElementById('rsiValue').textContent = data.value.toFixed(1);
+                
+                // Update marker position
+                const marker = document.getElementById('rsiMarker');
+                marker.style.left = data.value + '%';
+                
+                // Update signal
+                const signal = document.getElementById('rsiSignal');
+                signal.textContent = data.signal;
+                signal.className = 'indicator-signal';
+                if (data.signal === 'Oversold') {
+                    signal.className += ' bearish';
+                    document.getElementById('rsiValue').className = 'indicator-value bearish';
+                } else if (data.signal === 'Overbought') {
+                    document.getElementById('rsiValue').className = 'indicator-value';
+                } else {
+                    document.getElementById('rsiValue').className = 'indicator-value';
+                }
+                
+                console.log('✅ RSI updated:', data);
+            } catch (error) {
+                console.warn('⚠️ RSI update failed:', error.message);
+                // Graceful degradation - show last known value
+            }
+        }
+
+        // Update MACD Indicator
+        async function updateMACD() {
+            try {
+                const response = await fetch('http://localhost:8080/api/indicators/macd?fast=5&slow=35&signal=5');
+                if (!response.ok) throw new Error('MACD API unavailable');
+                
+                const data = await response.json();
+                
+                // Update histogram value
+                const histogram = document.getElementById('macdHistogram');
+                histogram.textContent = (data.histogram >= 0 ? '+' : '') + data.histogram.toFixed(2);
+                histogram.className = 'macd-histogram' + (data.histogram < 0 ? ' negative' : '');
+                
+                // Update bar height (normalize to 0-100%)
+                const bar = document.getElementById('macdBar');
+                const height = Math.min(Math.abs(data.histogram) * 50, 100);
+                bar.style.height = height + '%';
+                bar.className = 'macd-bar' + (data.histogram < 0 ? ' negative' : ' positive');
+                
+                // Update signal
+                const signal = document.getElementById('macdSignal');
+                signal.textContent = data.cross_type || 'No Cross';
+                signal.className = 'indicator-signal' + (data.cross_type === 'Bullish Cross' ? '' : ' bearish');
+                
+                console.log('✅ MACD updated:', data);
+            } catch (error) {
+                console.warn('⚠️ MACD update failed:', error.message);
+            }
+        }
+
+        // Check for Whale Alerts
+        async function checkWhaleAlerts() {
+            try {
+                const response = await fetch('http://localhost:8080/api/alerts/whale?threshold=1000000&limit=1');
+                if (!response.ok) throw new Error('Whale API unavailable');
+                
+                const data = await response.json();
+                
+                if (data.alerts && data.alerts.length > 0) {
+                    const alert = data.alerts[0];
+                    showWhaleAlert(alert);
+                }
+            } catch (error) {
+                console.warn('⚠️ Whale alert check failed:', error.message);
+            }
+        }
+
+        // Show Whale Alert Notification
+        function showWhaleAlert(alert) {
+            const whaleAlert = document.getElementById('whaleAlert');
+            const volume = document.getElementById('whaleVolume');
+            const symbol = document.getElementById('whaleSymbol');
+            
+            volume.textContent = '$' + (alert.volume / 1000000).toFixed(1) + 'M';
+            symbol.textContent = alert.symbol + ' ' + (alert.side === 'buy' ? 'Buy' : 'Sell');
+            
+            whaleAlert.classList.remove('hidden');
+            
+            // Auto-dismiss after 10 seconds
+            setTimeout(() => {
+                dismissWhaleAlert();
+            }, 10000);
+            
+            console.log('🐋 Whale alert:', alert);
+        }
+
+        // Dismiss Whale Alert
+        function dismissWhaleAlert() {
+            const whaleAlert = document.getElementById('whaleAlert');
+            whaleAlert.classList.add('hidden');
+        }
+
+        // Emergency Pause - Stop All Trading
+        async function triggerEmergencyPause() {
+            const confirmPause = confirm(
+                '🚨 EMERGENCY PAUSE 🚨\n\n' +
+                'This will:\n' +
+                '• Cancel all open orders\n' +
+                '• Close all positions\n' +
+                '• Disable trading\n\n' +
+                'Are you ABSOLUTELY SURE?'
+            );
+            
+            if (!confirmPause) {
+                console.log('Emergency pause cancelled by user');
+                return;
+            }
+            
+            const btn = document.getElementById('emergencyPauseBtn');
+            btn.disabled = true;
+            btn.textContent = '⏸️ PAUSING...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/trading/emergency-pause', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reason: 'User-initiated emergency pause',
+                        close_all: true,
+                        disable_trade: true
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Emergency pause API failed');
+                
+                const data = await response.json();
+                
+                alert(
+                    '✅ EMERGENCY PAUSE ACTIVATED\n\n' +
+                    'Positions closed: ' + data.positions_closed + '\n' +
+                    'Trading disabled until manual re-enable'
+                );
+                
+                btn.textContent = '✅ PAUSED';
+                btn.style.background = '#848E9C';
+                
+                console.log('✅ Emergency pause successful:', data);
+            } catch (error) {
+                alert('❌ Emergency pause failed: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = '🚨 EMERGENCY PAUSE';
+                console.error('❌ Emergency pause error:', error);
+            }
+        }
+
+        // Initialize Subtask 3 Features
+        function initSubtask3() {
+            console.log('🎯 Initializing Subtask 3: Enhanced Order Form');
+            
+            // Update indicators immediately
+            updateRSI();
+            updateMACD();
+            checkWhaleAlerts();
+            
+            // Set up polling intervals
+            setInterval(updateRSI, 5000);        // Update RSI every 5 seconds
+            setInterval(updateMACD, 5000);       // Update MACD every 5 seconds
+            setInterval(checkWhaleAlerts, 10000); // Check whale alerts every 10 seconds
+            
+            console.log('✅ Subtask 3 initialized - Live indicators active');
+        }
+
+        // Start Subtask 3 when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSubtask3);
+        } else {
+            initSubtask3();
+        }
+
+        // ========================================
+        // END SUBTASK 3
+        // ========================================
 
         // Risk Controls
         function updateDrawdown(value) {
