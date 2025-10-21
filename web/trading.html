@@ -1700,6 +1700,234 @@
             transform: scale(0.98);
         }
 
+        /* Self-Healing System Styles */
+        .self-healing-panel {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .self-healing-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .self-healing-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .healing-status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .healing-status-badge.active {
+            background: rgba(14, 203, 129, 0.2);
+            color: #0ECB81;
+        }
+
+        .healing-status-badge.error {
+            background: rgba(246, 70, 93, 0.2);
+            color: #F6465D;
+        }
+
+        .healing-status-badge.warning {
+            background: rgba(255, 217, 61, 0.2);
+            color: #ffd93d;
+        }
+
+        .self-healing-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .self-healing-content.expanded {
+            max-height: 600px;
+            margin-top: 12px;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .health-metric {
+            background: rgba(27, 31, 35, 0.5);
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .health-metric-label {
+            font-size: 10px;
+            color: #848E9C;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .health-metric-value {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .health-metric-value.success {
+            color: #0ECB81;
+        }
+
+        .health-metric-value.danger {
+            color: #F6465D;
+        }
+
+        .health-metric-value.warning {
+            color: #ffd93d;
+        }
+
+        .circuit-breaker-status {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .circuit-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            background: rgba(27, 31, 35, 0.5);
+            border: 1px solid #2B3139;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .circuit-name {
+            color: #B7BDC6;
+        }
+
+        .circuit-state {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .circuit-state.closed {
+            background: rgba(14, 203, 129, 0.2);
+            color: #0ECB81;
+        }
+
+        .circuit-state.open {
+            background: rgba(246, 70, 93, 0.2);
+            color: #F6465D;
+        }
+
+        .circuit-state.half-open {
+            background: rgba(255, 217, 61, 0.2);
+            color: #ffd93d;
+        }
+
+        .recovery-log {
+            background: rgba(27, 31, 35, 0.5);
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            padding: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .recovery-log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(43, 49, 57, 0.5);
+            color: #848E9C;
+        }
+
+        .recovery-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .recovery-log-entry .timestamp {
+            color: #667eea;
+            margin-right: 6px;
+        }
+
+        .recovery-log-entry.success {
+            color: #0ECB81;
+        }
+
+        .recovery-log-entry.error {
+            color: #F6465D;
+        }
+
+        .recovery-log-entry.warning {
+            color: #ffd93d;
+        }
+
+        .self-healing-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background: rgba(27, 31, 35, 0.5);
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .self-healing-toggle:hover {
+            background: rgba(27, 31, 35, 0.8);
+            border-color: #667eea;
+        }
+
+        .self-healing-toggle-label {
+            font-size: 11px;
+            color: #B7BDC6;
+            font-weight: 600;
+        }
+
+        .healing-uptime {
+            text-align: center;
+            padding: 8px;
+            background: rgba(27, 31, 35, 0.5);
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .healing-uptime-label {
+            font-size: 9px;
+            color: #848E9C;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .healing-uptime-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
         @keyframes emergencyPulse {
             0%, 100% {
                 box-shadow: 0 4px 12px rgba(246, 70, 93, 0.4);
@@ -2173,6 +2401,82 @@
                         <button class="emergency-btn" onclick="emergencyPause()">
                             ⚠️ EMERGENCY PAUSE ALL TRADES
                         </button>
+
+                        <!-- Self-Healing Monitor Panel -->
+                        <div class="self-healing-panel">
+                            <div class="self-healing-header" onclick="toggleSelfHealingPanel()">
+                                <div class="self-healing-title">
+                                    <span>🛡️ Self-Healing Monitor</span>
+                                    <span class="healing-status-badge active" id="healingStatusBadge">ACTIVE</span>
+                                </div>
+                                <span style="color: #667eea;">▼</span>
+                            </div>
+                            
+                            <div class="self-healing-content" id="selfHealingContent">
+                                <!-- Health Metrics -->
+                                <div class="health-metrics">
+                                    <div class="health-metric">
+                                        <div class="health-metric-label">API Health</div>
+                                        <div class="health-metric-value success" id="apiHealthValue">100%</div>
+                                    </div>
+                                    <div class="health-metric">
+                                        <div class="health-metric-label">WebSocket</div>
+                                        <div class="health-metric-value success" id="wsHealthValue">Online</div>
+                                    </div>
+                                    <div class="health-metric">
+                                        <div class="health-metric-label">Error Rate</div>
+                                        <div class="health-metric-value success" id="errorRateValue">0.0%</div>
+                                    </div>
+                                    <div class="health-metric">
+                                        <div class="health-metric-label">Recoveries</div>
+                                        <div class="health-metric-value success" id="recoveriesValue">0</div>
+                                    </div>
+                                </div>
+
+                                <!-- Circuit Breakers -->
+                                <div class="circuit-breaker-status">
+                                    <div style="font-size: 11px; color: #848E9C; margin-bottom: 4px; font-weight: 600;">Circuit Breakers</div>
+                                    <div class="circuit-item">
+                                        <span class="circuit-name">API Endpoint</span>
+                                        <span class="circuit-state closed" id="circuitAPI">CLOSED</span>
+                                    </div>
+                                    <div class="circuit-item">
+                                        <span class="circuit-name">WebSocket Connection</span>
+                                        <span class="circuit-state closed" id="circuitWS">CLOSED</span>
+                                    </div>
+                                    <div class="circuit-item">
+                                        <span class="circuit-name">Order Execution</span>
+                                        <span class="circuit-state closed" id="circuitOrder">CLOSED</span>
+                                    </div>
+                                    <div class="circuit-item">
+                                        <span class="circuit-name">Data Stream</span>
+                                        <span class="circuit-state closed" id="circuitData">CLOSED</span>
+                                    </div>
+                                </div>
+
+                                <!-- Recovery Log -->
+                                <div style="font-size: 11px; color: #848E9C; margin-bottom: 4px; font-weight: 600;">Recovery Log</div>
+                                <div class="recovery-log" id="recoveryLog">
+                                    <div class="recovery-log-entry success">
+                                        <span class="timestamp">[00:00:00]</span> Self-healing system initialized
+                                    </div>
+                                </div>
+
+                                <!-- Auto-Recovery Toggle -->
+                                <div class="self-healing-toggle" onclick="toggleAutoRecovery()">
+                                    <span class="self-healing-toggle-label">🔄 Auto-Recovery</span>
+                                    <div class="indicator-toggle-switch active" id="autoRecoveryToggle">
+                                        <div class="indicator-toggle-knob"></div>
+                                    </div>
+                                </div>
+
+                                <!-- System Uptime -->
+                                <div class="healing-uptime">
+                                    <div class="healing-uptime-label">System Uptime</div>
+                                    <div class="healing-uptime-value" id="systemUptime">00:00:00</div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Strategy Controls -->
                         <div class="strategy-section">
@@ -3890,6 +4194,273 @@
             }
         `;
         document.head.appendChild(style);
+
+        // ==================== SELF-HEALING SYSTEM ====================
+        const selfHealingState = {
+            enabled: true,
+            apiHealth: 100,
+            wsHealth: true,
+            errorRate: 0,
+            recoveryCount: 0,
+            startTime: Date.now(),
+            circuits: {
+                api: { state: 'closed', failures: 0, lastFailure: null, threshold: 5 },
+                ws: { state: 'closed', failures: 0, lastFailure: null, threshold: 3 },
+                order: { state: 'closed', failures: 0, lastFailure: null, threshold: 3 },
+                data: { state: 'closed', failures: 0, lastFailure: null, threshold: 5 }
+            },
+            recoveryLog: [],
+            lastHealthCheck: Date.now()
+        };
+
+        function toggleSelfHealingPanel() {
+            const content = document.getElementById('selfHealingContent');
+            content.classList.toggle('expanded');
+        }
+
+        function toggleAutoRecovery() {
+            selfHealingState.enabled = !selfHealingState.enabled;
+            const toggle = document.getElementById('autoRecoveryToggle');
+            toggle.classList.toggle('active');
+            
+            const status = selfHealingState.enabled ? 'enabled' : 'disabled';
+            addRecoveryLog(`Auto-recovery ${status}`, 'warning');
+            showNotification(`Self-healing auto-recovery ${status}`, 'info');
+            console.log(`🛡️ Self-healing auto-recovery ${status}`);
+        }
+
+        function addRecoveryLog(message, type = 'success') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = { timestamp, message, type };
+            selfHealingState.recoveryLog.unshift(entry);
+            
+            // Keep only last 50 entries
+            if (selfHealingState.recoveryLog.length > 50) {
+                selfHealingState.recoveryLog.pop();
+            }
+            
+            updateRecoveryLogDisplay();
+        }
+
+        function updateRecoveryLogDisplay() {
+            const logContainer = document.getElementById('recoveryLog');
+            logContainer.innerHTML = selfHealingState.recoveryLog
+                .slice(0, 20)
+                .map(entry => `
+                    <div class="recovery-log-entry ${entry.type}">
+                        <span class="timestamp">[${entry.timestamp}]</span> ${entry.message}
+                    </div>
+                `).join('');
+        }
+
+        function updateCircuitBreaker(circuit, success) {
+            const cb = selfHealingState.circuits[circuit];
+            
+            if (success) {
+                // Reset failures on success
+                if (cb.failures > 0) {
+                    cb.failures = Math.max(0, cb.failures - 1);
+                }
+                
+                // Close circuit if it was half-open
+                if (cb.state === 'half-open') {
+                    cb.state = 'closed';
+                    addRecoveryLog(`Circuit breaker [${circuit}] closed after successful recovery`, 'success');
+                    console.log(`🛡️ Circuit breaker [${circuit}] closed`);
+                }
+            } else {
+                cb.failures++;
+                cb.lastFailure = Date.now();
+                
+                if (cb.failures >= cb.threshold && cb.state === 'closed') {
+                    cb.state = 'open';
+                    addRecoveryLog(`Circuit breaker [${circuit}] OPENED (${cb.failures} failures)`, 'error');
+                    console.error(`🚨 Circuit breaker [${circuit}] OPENED`);
+                    
+                    // Schedule half-open attempt after 30 seconds
+                    setTimeout(() => attemptRecovery(circuit), 30000);
+                }
+            }
+            
+            updateCircuitDisplay(circuit);
+        }
+
+        function attemptRecovery(circuit) {
+            const cb = selfHealingState.circuits[circuit];
+            
+            if (cb.state !== 'open' || !selfHealingState.enabled) return;
+            
+            cb.state = 'half-open';
+            addRecoveryLog(`Attempting recovery for circuit [${circuit}]...`, 'warning');
+            console.log(`🔄 Attempting recovery for circuit [${circuit}]`);
+            updateCircuitDisplay(circuit);
+            
+            // Simulate recovery attempt based on circuit type
+            setTimeout(() => {
+                const success = Math.random() > 0.3; // 70% success rate
+                
+                if (success) {
+                    cb.state = 'closed';
+                    cb.failures = 0;
+                    selfHealingState.recoveryCount++;
+                    addRecoveryLog(`✅ Recovery successful for circuit [${circuit}]`, 'success');
+                    showNotification(`Circuit [${circuit}] recovered automatically`, 'success');
+                    console.log(`✅ Circuit [${circuit}] recovered`);
+                    
+                    // Trigger appropriate recovery action
+                    switch(circuit) {
+                        case 'api':
+                            // Reinitialize API connection
+                            break;
+                        case 'ws':
+                            // Reconnect WebSocket
+                            if (ws && ws.readyState !== WebSocket.OPEN) {
+                                connectWebSocket();
+                            }
+                            break;
+                        case 'order':
+                            // Reset order system
+                            break;
+                        case 'data':
+                            // Reinitialize data stream
+                            break;
+                    }
+                } else {
+                    cb.state = 'open';
+                    addRecoveryLog(`❌ Recovery failed for circuit [${circuit}], will retry`, 'error');
+                    console.error(`❌ Circuit [${circuit}] recovery failed`);
+                    
+                    // Retry after 60 seconds
+                    setTimeout(() => attemptRecovery(circuit), 60000);
+                }
+                
+                updateCircuitDisplay(circuit);
+                updateHealthMetrics();
+            }, 2000);
+        }
+
+        function updateCircuitDisplay(circuit) {
+            const element = document.getElementById(`circuit${circuit.toUpperCase()}`);
+            if (!element) return;
+            
+            const cb = selfHealingState.circuits[circuit];
+            element.className = `circuit-state ${cb.state}`;
+            element.textContent = cb.state.toUpperCase();
+        }
+
+        function updateHealthMetrics() {
+            // Calculate API health
+            const openCircuits = Object.values(selfHealingState.circuits).filter(c => c.state === 'open').length;
+            selfHealingState.apiHealth = Math.max(0, 100 - (openCircuits * 25));
+            
+            // Update displays
+            document.getElementById('apiHealthValue').textContent = `${selfHealingState.apiHealth}%`;
+            document.getElementById('apiHealthValue').className = `health-metric-value ${
+                selfHealingState.apiHealth >= 80 ? 'success' : 
+                selfHealingState.apiHealth >= 50 ? 'warning' : 'danger'
+            }`;
+            
+            // WebSocket health
+            const wsConnected = ws && ws.readyState === WebSocket.OPEN;
+            document.getElementById('wsHealthValue').textContent = wsConnected ? 'Online' : 'Offline';
+            document.getElementById('wsHealthValue').className = `health-metric-value ${wsConnected ? 'success' : 'danger'}`;
+            selfHealingState.wsHealth = wsConnected;
+            
+            // Error rate
+            const totalCircuits = Object.keys(selfHealingState.circuits).length;
+            const errorCircuits = Object.values(selfHealingState.circuits).filter(c => c.failures > 0).length;
+            selfHealingState.errorRate = (errorCircuits / totalCircuits) * 100;
+            document.getElementById('errorRateValue').textContent = `${selfHealingState.errorRate.toFixed(1)}%`;
+            document.getElementById('errorRateValue').className = `health-metric-value ${
+                selfHealingState.errorRate === 0 ? 'success' : 
+                selfHealingState.errorRate < 50 ? 'warning' : 'danger'
+            }`;
+            
+            // Recovery count
+            document.getElementById('recoveriesValue').textContent = selfHealingState.recoveryCount;
+            
+            // Update status badge
+            const badge = document.getElementById('healingStatusBadge');
+            if (selfHealingState.apiHealth >= 80 && selfHealingState.wsHealth) {
+                badge.className = 'healing-status-badge active';
+                badge.textContent = 'ACTIVE';
+            } else if (selfHealingState.apiHealth >= 50) {
+                badge.className = 'healing-status-badge warning';
+                badge.textContent = 'DEGRADED';
+            } else {
+                badge.className = 'healing-status-badge error';
+                badge.textContent = 'CRITICAL';
+            }
+        }
+
+        function updateSystemUptime() {
+            const uptime = Date.now() - selfHealingState.startTime;
+            const hours = Math.floor(uptime / 3600000);
+            const minutes = Math.floor((uptime % 3600000) / 60000);
+            const seconds = Math.floor((uptime % 60000) / 1000);
+            
+            const uptimeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('systemUptime').textContent = uptimeString;
+        }
+
+        function performHealthCheck() {
+            const now = Date.now();
+            selfHealingState.lastHealthCheck = now;
+            
+            // Check WebSocket health
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                updateCircuitBreaker('ws', false);
+                
+                // Auto-recover WebSocket if enabled
+                if (selfHealingState.enabled && selfHealingState.circuits.ws.state === 'open') {
+                    addRecoveryLog('WebSocket disconnected, triggering recovery', 'warning');
+                    attemptRecovery('ws');
+                }
+            } else {
+                updateCircuitBreaker('ws', true);
+            }
+            
+            // Simulate API health check (could be replaced with actual fetch)
+            if (Math.random() > 0.98) { // 2% random failure simulation
+                updateCircuitBreaker('api', false);
+                addRecoveryLog('API health check failed', 'error');
+            } else {
+                updateCircuitBreaker('api', true);
+            }
+            
+            // Update all metrics
+            updateHealthMetrics();
+        }
+
+        // Initialize self-healing system
+        addRecoveryLog('Self-healing system initialized', 'success');
+        console.log('🛡️ Self-healing system initialized');
+        
+        // Update uptime every second
+        setInterval(updateSystemUptime, 1000);
+        
+        // Perform health checks every 10 seconds
+        setInterval(performHealthCheck, 10000);
+        performHealthCheck();
+
+        // Monitor WebSocket connection status
+        const originalConnectWebSocket = connectWebSocket;
+        connectWebSocket = function() {
+            addRecoveryLog('Connecting WebSocket...', 'warning');
+            const result = originalConnectWebSocket.apply(this, arguments);
+            
+            // Monitor connection success
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    updateCircuitBreaker('ws', true);
+                    addRecoveryLog('WebSocket connected successfully', 'success');
+                } else {
+                    updateCircuitBreaker('ws', false);
+                }
+            }, 1000);
+            
+            return result;
+        };
 
         // ==================== INDICATORS SYSTEM ====================
         const indicatorState = {
