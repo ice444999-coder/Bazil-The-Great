@@ -3276,8 +3276,8 @@
             });
         }
 
-        // Initialize chart on page load
-        setTimeout(() => initTradingViewChart(currentSymbol), 100);
+        // Initialize chart on page load - INSTANT (Guardian approved)
+        initTradingViewChart(currentSymbol);
 
         // Enhanced Chart.js with WebGL Acceleration
         let enhancedChart = null;
@@ -3436,9 +3436,9 @@
                 enhancedContainer.style.display = 'block';
                 chartViewMode = 'enhanced';
                 
-                // Initialize enhanced chart if not already done
+                // Initialize enhanced chart if not already done - INSTANT (Guardian approved)
                 if (!enhancedChart) {
-                    setTimeout(initEnhancedChart, 100);
+                    initEnhancedChart();
                 }
             } else {
                 // Switch back to TradingView

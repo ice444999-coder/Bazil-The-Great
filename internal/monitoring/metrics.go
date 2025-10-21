@@ -13,42 +13,42 @@ type Metrics struct {
 	TotalRequests     int64
 	FailedRequests    int64
 	AvgResponseTimeMs float64
-	
+
 	// Trading metrics
 	ActiveTrades      int
 	TotalTradesOpened int64
 	TotalTradesClosed int64
-	
+
 	// LLM metrics
-	LLMRequests       int64
-	LLMFailures       int64
-	LLMAvgLatencyMs   float64
+	LLMRequests         int64
+	LLMFailures         int64
+	LLMAvgLatencyMs     float64
 	CircuitBreakerState string
-	
+
 	// Database metrics
-	DBConnections     int
-	DBQueryCount      int64
-	DBSlowQueries     int64
-	
+	DBConnections int
+	DBQueryCount  int64
+	DBSlowQueries int64
+
 	// System metrics
-	StartTime         time.Time
-	LastHealthCheck   time.Time
-	MemoryUsageMB     float64
-	GoroutineCount    int
-	
+	StartTime       time.Time
+	LastHealthCheck time.Time
+	MemoryUsageMB   float64
+	GoroutineCount  int
+
 	// Extended system metrics (gopsutil)
-	CPUPercent        float64
-	RAMTotalGB        float64
-	RAMUsedGB         float64
-	RAMUsedPercent    float64
-	DiskTotalGB       float64
-	DiskUsedGB        float64
-	DiskUsedPercent   float64
-	CPUTemperatureC   float64
-	
+	CPUPercent      float64
+	RAMTotalGB      float64
+	RAMUsedGB       float64
+	RAMUsedPercent  float64
+	DiskTotalGB     float64
+	DiskUsedGB      float64
+	DiskUsedPercent float64
+	CPUTemperatureC float64
+
 	// Error tracking
-	Errors            []ErrorEntry
-	MaxErrors         int
+	Errors    []ErrorEntry
+	MaxErrors int
 }
 
 // ErrorEntry represents a logged error
@@ -62,19 +62,19 @@ type ErrorEntry struct {
 
 // PerformanceEntry tracks individual request performance
 type PerformanceEntry struct {
-	Timestamp    time.Time
-	Endpoint     string
-	DurationMs   float64
-	StatusCode   int
-	UserID       uint
+	Timestamp  time.Time
+	Endpoint   string
+	DurationMs float64
+	StatusCode int
+	UserID     uint
 }
 
 // NewMetrics creates a new metrics collector
 func NewMetrics() *Metrics {
 	return &Metrics{
-		StartTime:   time.Now(),
-		MaxErrors:   1000, // Keep last 1000 errors
-		Errors:      make([]ErrorEntry, 0, 1000),
+		StartTime:           time.Now(),
+		MaxErrors:           1000, // Keep last 1000 errors
+		Errors:              make([]ErrorEntry, 0, 1000),
 		CircuitBreakerState: "closed",
 	}
 }
@@ -83,12 +83,12 @@ func NewMetrics() *Metrics {
 func (m *Metrics) RecordRequest(durationMs float64, success bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.TotalRequests++
 	if !success {
 		m.FailedRequests++
 	}
-	
+
 	// Update average response time (moving average)
 	if m.TotalRequests == 1 {
 		m.AvgResponseTimeMs = durationMs
@@ -101,7 +101,7 @@ func (m *Metrics) RecordRequest(durationMs float64, success bool) {
 func (m *Metrics) RecordTrade(opened bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if opened {
 		m.TotalTradesOpened++
 		m.ActiveTrades++
@@ -118,12 +118,12 @@ func (m *Metrics) RecordTrade(opened bool) {
 func (m *Metrics) RecordLLMRequest(latencyMs float64, success bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.LLMRequests++
 	if !success {
 		m.LLMFailures++
 	}
-	
+
 	// Update average latency
 	if m.LLMRequests == 1 {
 		m.LLMAvgLatencyMs = latencyMs
@@ -143,7 +143,7 @@ func (m *Metrics) UpdateCircuitBreaker(state string) {
 func (m *Metrics) RecordError(component, errorMsg string, userID uint, traceID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	entry := ErrorEntry{
 		Timestamp: time.Now(),
 		Component: component,
@@ -151,9 +151,9 @@ func (m *Metrics) RecordError(component, errorMsg string, userID uint, traceID s
 		UserID:    userID,
 		TraceID:   traceID,
 	}
-	
+
 	m.Errors = append(m.Errors, entry)
-	
+
 	// Trim if too many errors
 	if len(m.Errors) > m.MaxErrors {
 		m.Errors = m.Errors[len(m.Errors)-m.MaxErrors:]
@@ -164,7 +164,7 @@ func (m *Metrics) RecordError(component, errorMsg string, userID uint, traceID s
 func (m *Metrics) UpdateSystemMetrics(memoryMB float64, goroutines int, dbConns int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.MemoryUsageMB = memoryMB
 	m.GoroutineCount = goroutines
 	m.DBConnections = dbConns
@@ -175,7 +175,7 @@ func (m *Metrics) UpdateSystemMetrics(memoryMB float64, goroutines int, dbConns 
 func (m *Metrics) UpdateExtendedSystemMetrics(cpuPercent, ramTotalGB, ramUsedGB, ramUsedPercent, diskTotalGB, diskUsedGB, diskUsedPercent, cpuTemp float64) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.CPUPercent = cpuPercent
 	m.RAMTotalGB = ramTotalGB
 	m.RAMUsedGB = ramUsedGB
@@ -190,9 +190,9 @@ func (m *Metrics) UpdateExtendedSystemMetrics(cpuPercent, ramTotalGB, ramUsedGB,
 func (m *Metrics) GetSnapshot() MetricsSnapshot {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return MetricsSnapshot{
-		StartTime:           m.StartTime,  // Added for uptime calculation
+		StartTime:           m.StartTime, // Added for uptime calculation
 		Uptime:              time.Since(m.StartTime).String(),
 		TotalRequests:       m.TotalRequests,
 		FailedRequests:      m.FailedRequests,
@@ -225,7 +225,7 @@ func (m *Metrics) GetSnapshot() MetricsSnapshot {
 
 // MetricsSnapshot represents metrics at a point in time
 type MetricsSnapshot struct {
-	StartTime           time.Time  // Added for uptime calculation
+	StartTime           time.Time // Added for uptime calculation
 	Uptime              string
 	TotalRequests       int64
 	FailedRequests      int64
@@ -244,18 +244,18 @@ type MetricsSnapshot struct {
 	MemoryUsageMB       float64
 	GoroutineCount      int
 	LastHealthCheck     time.Time
-	
+
 	// Extended system metrics
-	CPUPercent          float64
-	RAMTotalGB          float64
-	RAMUsedGB           float64
-	RAMUsedPercent      float64
-	DiskTotalGB         float64
-	DiskUsedGB          float64
-	DiskUsedPercent     float64
-	CPUTemperatureC     float64
-	
-	RecentErrors        []ErrorEntry
+	CPUPercent      float64
+	RAMTotalGB      float64
+	RAMUsedGB       float64
+	RAMUsedPercent  float64
+	DiskTotalGB     float64
+	DiskUsedGB      float64
+	DiskUsedPercent float64
+	CPUTemperatureC float64
+
+	RecentErrors []ErrorEntry
 }
 
 func (m *Metrics) calculateSuccessRate() float64 {
@@ -276,12 +276,12 @@ func (m *Metrics) getRecentErrors(count int) []ErrorEntry {
 	if len(m.Errors) == 0 {
 		return []ErrorEntry{}
 	}
-	
+
 	start := len(m.Errors) - count
 	if start < 0 {
 		start = 0
 	}
-	
+
 	return m.Errors[start:]
 }
 
@@ -303,10 +303,10 @@ type HealthCheck struct {
 func (m *Metrics) CheckHealth() HealthStatus {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	checks := make(map[string]HealthCheck)
 	overallHealthy := true
-	
+
 	// Check LLM circuit breaker
 	if m.CircuitBreakerState == "open" {
 		checks["llm"] = HealthCheck{
@@ -325,7 +325,7 @@ func (m *Metrics) CheckHealth() HealthStatus {
 			Message: "LLM operational",
 		}
 	}
-	
+
 	// Check request success rate
 	successRate := m.calculateSuccessRate()
 	if successRate < 90 {
@@ -345,7 +345,7 @@ func (m *Metrics) CheckHealth() HealthStatus {
 			Message: "Requests healthy",
 		}
 	}
-	
+
 	// Check memory usage
 	if m.MemoryUsageMB > 1000 {
 		checks["memory"] = HealthCheck{
@@ -358,7 +358,7 @@ func (m *Metrics) CheckHealth() HealthStatus {
 			Message: "Memory usage normal",
 		}
 	}
-	
+
 	status := "healthy"
 	if !overallHealthy {
 		status = "unhealthy"
@@ -371,7 +371,7 @@ func (m *Metrics) CheckHealth() HealthStatus {
 			}
 		}
 	}
-	
+
 	return HealthStatus{
 		Status:    status,
 		Timestamp: time.Now(),

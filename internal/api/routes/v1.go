@@ -224,13 +224,13 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 			if len(cpuPercent) > 0 {
 				cpuAvg = cpuPercent[0]
 			}
-			
+
 			// RAM usage
 			memInfo, _ := mem.VirtualMemory()
 			ramTotalGB := float64(memInfo.Total) / 1024 / 1024 / 1024
 			ramUsedGB := float64(memInfo.Used) / 1024 / 1024 / 1024
 			ramUsedPercent := memInfo.UsedPercent
-			
+
 			// Disk usage (all partitions - your 4TB total)
 			partitions, _ := disk.Partitions(false)
 			var totalSize, totalUsed uint64
@@ -247,7 +247,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 			if totalSize > 0 {
 				diskUsedPercent = (float64(totalUsed) / float64(totalSize)) * 100
 			}
-			
+
 			// CPU Temperature (best effort - may not be available)
 			cpuTemp := 0.0
 			temps, err := host.SensorsTemperatures()
@@ -258,7 +258,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 					break // Use first available temperature
 				}
 			}
-			
+
 			metrics.UpdateExtendedSystemMetrics(cpuAvg, ramTotalGB, ramUsedGB, ramUsedPercent, diskTotalGB, diskUsedGB, diskUsedPercent, cpuTemp)
 		}
 	}()
