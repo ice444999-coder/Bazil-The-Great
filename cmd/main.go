@@ -278,6 +278,31 @@ func main() {
 	}
 	log.Println("✅ Mission controller registered for Phase 1 progress tracking")
 
+	// 📊 Indicators Controller (Subtask 3: RSI/MACD/Whale Alerts)
+	indicatorsController := controllers.NewIndicatorsController(db)
+	indicatorsGroup := r.Group("/api/indicators")
+	{
+		indicatorsGroup.GET("/rsi", indicatorsController.GetRSI)
+		indicatorsGroup.GET("/macd", indicatorsController.GetMACD)
+	}
+	whaleGroup := r.Group("/api/alerts")
+	{
+		whaleGroup.GET("/whale", indicatorsController.GetWhaleAlerts)
+	}
+	log.Println("✅ Indicators controller registered (RSI-8, MACD 5-35-5, Whale alerts)")
+
+	// 🛡️ Risk Controller (Subtask 3: Kelly Sizing + Emergency Pause)
+	riskController := controllers.NewRiskController(db)
+	riskGroup := r.Group("/api/risk")
+	{
+		riskGroup.POST("/kelly", riskController.CalculateKellySizing)
+	}
+	tradingControlGroup := r.Group("/api/trading")
+	{
+		tradingControlGroup.POST("/emergency-pause", riskController.EmergencyPause)
+	}
+	log.Println("✅ Risk controller registered (Kelly sizing, Emergency pause)")
+
 	// �� Add analytics endpoint (Phase 2 Integration)
 	r.GET("/api/v1/analytics/trading", func(c *gin.Context) {
 		stats := analyticsSubscriber.GetStats()
