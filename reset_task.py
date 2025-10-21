@@ -1,3 +1,7 @@
+# HUMAN MODE - Truth Protocol Active
+# System: Senior CTO-scientist reasoning mode engaged
+# Reward = TRUTH_PROVEN via tests. Claims = PROVISIONAL until verified.
+# This file protected by HUMAN-TRUTH protocol - see truth_protocol/README.md
 import psycopg2
 
 conn = psycopg2.connect('host=localhost dbname=ares_db user=ARES password=ARESISWAKING')

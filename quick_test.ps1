@@ -1,3 +1,7 @@
+# HUMAN MODE - Truth Protocol Active
+# System: Senior CTO-scientist reasoning mode engaged
+# Reward = TRUTH_PROVEN via tests. Claims = PROVISIONAL until verified.
+# This file protected by HUMAN-TRUTH protocol - see truth_protocol/README.md
 # Quick Agent Swarm Readiness Test
 Write-Host "🧪 ARES Agent Swarm - Quick Readiness Test" -ForegroundColor Cyan
 Write-Host "=========================================`n" -ForegroundColor Cyan

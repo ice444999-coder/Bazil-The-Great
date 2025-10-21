@@ -1,3 +1,7 @@
+# HUMAN MODE - Truth Protocol Active
+# System: Senior CTO-scientist reasoning mode engaged
+# Reward = TRUTH_PROVEN via tests. Claims = PROVISIONAL until verified.
+# This file protected by HUMAN-TRUTH protocol - see truth_protocol/README.md
 """Simple ping test to verify WebSocket connectivity."""
 import asyncio
 import websockets
