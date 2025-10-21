@@ -857,45 +857,45 @@
                     <div class="gauge-container">
                         <div class="gauge-label">CPU Usage</div>
                         <div class="circular-gauge" id="cpuGauge">
-                            <svg width="120" height="120">
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="#2B3139" stroke-width="10"/>
-                                <circle id="cpuCircle" cx="60" cy="60" r="50" fill="none" stroke="#667eea" stroke-width="10" 
-                                    stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
-                                <text x="60" y="65" text-anchor="middle" fill="#EAECEF" font-size="20" font-weight="bold" id="cpuText">0%</text>
+                            <svg width="216" height="216" viewBox="0 0 216 216">
+                                <circle cx="108" cy="108" r="90" fill="none" stroke="#2B3139" stroke-width="12"/>
+                                <circle id="cpuCircle" cx="108" cy="108" r="90" fill="none" stroke="#667eea" stroke-width="12" 
+                                    stroke-dasharray="565" stroke-dashoffset="565" transform="rotate(-90 108 108)"/>
+                                <text x="108" y="118" text-anchor="middle" fill="#EAECEF" font-size="30" font-weight="bold" id="cpuText">0%</text>
                             </svg>
                         </div>
                     </div>
                     <div class="gauge-container">
                         <div class="gauge-label">Memory</div>
                         <div class="circular-gauge" id="memGauge">
-                            <svg width="120" height="120">
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="#2B3139" stroke-width="10"/>
-                                <circle id="memCircle" cx="60" cy="60" r="50" fill="none" stroke="#0ECB81" stroke-width="10" 
-                                    stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
-                                <text x="60" y="65" text-anchor="middle" fill="#EAECEF" font-size="20" font-weight="bold" id="memText">0%</text>
+                            <svg width="216" height="216" viewBox="0 0 216 216">
+                                <circle cx="108" cy="108" r="90" fill="none" stroke="#2B3139" stroke-width="12"/>
+                                <circle id="memCircle" cx="108" cy="108" r="90" fill="none" stroke="#0ECB81" stroke-width="12" 
+                                    stroke-dasharray="565" stroke-dashoffset="565" transform="rotate(-90 108 108)"/>
+                                <text x="108" y="118" text-anchor="middle" fill="#EAECEF" font-size="30" font-weight="bold" id="memText">0%</text>
                             </svg>
                         </div>
                     </div>
                     <div class="gauge-container">
                         <div class="gauge-label">Disk Space</div>
                         <div class="circular-gauge" id="diskGauge">
-                            <svg width="120" height="120">
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="#2B3139" stroke-width="10"/>
-                                <circle id="diskCircle" cx="60" cy="60" r="50" fill="none" stroke="#FFB800" stroke-width="10" 
-                                    stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
-                                <text x="60" y="65" text-anchor="middle" fill="#EAECEF" font-size="20" font-weight="bold" id="diskText">0%</text>
+                            <svg width="216" height="216" viewBox="0 0 216 216">
+                                <circle cx="108" cy="108" r="90" fill="none" stroke="#2B3139" stroke-width="12"/>
+                                <circle id="diskCircle" cx="108" cy="108" r="90" fill="none" stroke="#FFB800" stroke-width="12" 
+                                    stroke-dasharray="565" stroke-dashoffset="565" transform="rotate(-90 108 108)"/>
+                                <text x="108" y="118" text-anchor="middle" fill="#EAECEF" font-size="30" font-weight="bold" id="diskText">0%</text>
                             </svg>
                         </div>
                     </div>
                     <div class="gauge-container">
                         <div class="gauge-label">API Latency</div>
                         <div class="circular-gauge" id="latencyGauge">
-                            <svg width="120" height="120">
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="#2B3139" stroke-width="10"/>
-                                <circle id="latencyCircle" cx="60" cy="60" r="50" fill="none" stroke="#F6465D" stroke-width="10" 
-                                    stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"/>
-                                <text x="60" y="60" text-anchor="middle" fill="#EAECEF" font-size="18" font-weight="bold" id="latencyText">0</text>
-                                <text x="60" y="75" text-anchor="middle" fill="#848E9C" font-size="10">ms</text>
+                            <svg width="216" height="216" viewBox="0 0 216 216">
+                                <circle cx="108" cy="108" r="90" fill="none" stroke="#2B3139" stroke-width="12"/>
+                                <circle id="latencyCircle" cx="108" cy="108" r="90" fill="none" stroke="#F6465D" stroke-width="12" 
+                                    stroke-dasharray="565" stroke-dashoffset="565" transform="rotate(-90 108 108)"/>
+                                <text x="108" y="108" text-anchor="middle" fill="#EAECEF" font-size="27" font-weight="bold" id="latencyText">0</text>
+                                <text x="108" y="130" text-anchor="middle" fill="#848E9C" font-size="15">ms</text>
                             </svg>
                         </div>
                     </div>
@@ -1618,7 +1618,7 @@
         }
 
         function updateGauge(id, percent, color, customText = null) {
-            const circumference = 314; // 2 * PI * 50
+            const circumference = 565; // 2 * PI * 90 (updated for larger radius)
             const offset = circumference - (percent / 100) * circumference;
             
             const circle = document.getElementById(id + 'Circle');
@@ -1630,7 +1630,20 @@
             }
             
             if (text) {
-                text.textContent = customText || Math.round(percent) + '%';
+                const displayText = customText || Math.round(percent) + '%';
+                text.textContent = displayText;
+                
+                // Dynamic font-size scaling: shrink text if it's too long
+                const textLength = displayText.length;
+                let fontSize = 30; // Base size (1.5x original 20px)
+                
+                if (textLength > 12) {
+                    fontSize = 20; // Shrink for very long text (e.g., "35.7GB / 63.2G")
+                } else if (textLength > 8) {
+                    fontSize = 24; // Medium shrink for moderately long text
+                }
+                
+                text.setAttribute('font-size', fontSize);
             }
         }
 
