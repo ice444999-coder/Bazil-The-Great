@@ -535,12 +535,31 @@
             border-bottom: 1px solid #2B3139;
             padding: 12px;
             overflow-y: auto;
+            position: relative;
         }
 
         .order-book h4 {
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ob-live-indicator {
+            font-size: 10px;
+            color: #0ECB81;
+            animation: blink 2s infinite;
+        }
+
+        .ob-spread {
+            font-size: 11px;
+            color: #FCD535;
+            background: rgba(252, 213, 53, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
         }
 
         .ob-header {
@@ -552,26 +571,110 @@
         }
 
         .ob-row {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
             font-size: 12px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            animation: obRowFadeIn 0.4s ease-out;
+            transition: background 0.2s;
+        }
+
+        .ob-row:hover {
+            background: rgba(43, 49, 57, 0.5);
+        }
+
+        .ob-row-depth {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            opacity: 0.15;
+            z-index: 0;
+            transition: width 0.3s ease-out;
+        }
+
+        .ob-row-depth.ask {
+            background: linear-gradient(to left, #F6465D, transparent);
+        }
+
+        .ob-row-depth.bid {
+            background: linear-gradient(to left, #0ECB81, transparent);
+        }
+
+        .ob-row > span {
+            position: relative;
+            z-index: 1;
         }
 
         .ob-price-ask {
             color: #F6465D;
+            font-weight: 500;
         }
 
         .ob-price-bid {
             color: #0ECB81;
+            font-weight: 500;
+        }
+
+        .ob-amount {
+            text-align: center;
+            color: #EAECEF;
+        }
+
+        .ob-total {
+            text-align: right;
+            color: #848E9C;
         }
 
         .ob-current-price {
             text-align: center;
             margin: 12px 0;
+            padding: 8px;
             font-size: 14px;
             font-weight: 600;
             color: #0ECB81;
+            background: rgba(14, 203, 129, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(14, 203, 129, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ob-price-change {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(14, 203, 129, 0.2);
+        }
+
+        .ob-price-change.down {
+            color: #F6465D;
+            background: rgba(246, 70, 93, 0.2);
+        }
+
+        @keyframes obRowFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .ob-depth-indicator {
+            font-size: 10px;
+            color: #848E9C;
+            margin-top: 4px;
+            text-align: right;
         }
 
         /* Market Type Tabs */
@@ -1166,48 +1269,31 @@
                 <div class="right-column">
                     <!-- Order Book -->
                     <div class="order-book">
-                        <h4>Order Book</h4>
+                        <h4>
+                            Order Book
+                            <span class="ob-live-indicator">● LIVE</span>
+                        </h4>
                         <div class="ob-header">
                             <span>Price (USDT)</span>
-                            <span>Amount (BTC)</span>
-                            <span>Total</span>
+                            <span style="text-align: center;">Amount (BTC)</span>
+                            <span style="text-align: right;">Total</span>
                         </div>
                         
-                        <!-- Asks (Sell Orders) -->
-                        <div class="ob-row">
-                            <span class="ob-price-ask">66,528.50</span>
-                            <span>0.125</span>
-                            <span style="color: #848E9C;">8,316.06</span>
-                        </div>
-                        <div class="ob-row">
-                            <span class="ob-price-ask">66,527.00</span>
-                            <span>0.085</span>
-                            <span style="color: #848E9C;">5,654.80</span>
-                        </div>
-                        <div class="ob-row">
-                            <span class="ob-price-ask">66,526.20</span>
-                            <span>0.250</span>
-                            <span style="color: #848E9C;">16,631.55</span>
+                        <!-- Asks (Sell Orders) - Dynamic -->
+                        <div id="obAsksList"></div>
+
+                        <!-- Current Price with Spread -->
+                        <div class="ob-current-price" id="obCurrentPrice">
+                            <span id="obPriceValue">$66,500.00</span>
+                            <span class="ob-price-change" id="obPriceChange">+0.00%</span>
+                            <span class="ob-spread" id="obSpread">Spread: $0.00</span>
                         </div>
 
-                        <!-- Current Price -->
-                        <div class="ob-current-price" id="obCurrentPrice">$66,500.00</div>
-
-                        <!-- Bids (Buy Orders) -->
-                        <div class="ob-row">
-                            <span class="ob-price-bid">66,499.00</span>
-                            <span>0.175</span>
-                            <span style="color: #848E9C;">11,637.33</span>
-                        </div>
-                        <div class="ob-row">
-                            <span class="ob-price-bid">66,498.50</span>
-                            <span>0.090</span>
-                            <span style="color: #848E9C;">5,984.87</span>
-                        </div>
-                        <div class="ob-row">
-                            <span class="ob-price-bid">66,497.20</span>
-                            <span>0.300</span>
-                            <span style="color: #848E9C;">19,949.16</span>
+                        <!-- Bids (Buy Orders) - Dynamic -->
+                        <div id="obBidsList"></div>
+                        
+                        <div class="ob-depth-indicator" id="obDepthInfo">
+                            Total Depth: Asks $0 | Bids $0
                         </div>
                     </div>
 
@@ -2024,17 +2110,122 @@
         }
         scheduleNextTradeUpdate();
 
-        // Simulate price updates
-        setInterval(() => {
-            const basePrice = 66500;
-            const newPrice = basePrice + (Math.random() - 0.5) * 100;
-            document.getElementById('currentPrice').textContent = '$' + newPrice.toFixed(2);
-            document.getElementById('obCurrentPrice').textContent = '$' + newPrice.toFixed(2);
+        // ==================== ORDER BOOK SYSTEM ====================
+        let obCurrentPrice = 66500;
+        let obPriceHistory = [obCurrentPrice];
+        const obLevels = 8; // Number of bid/ask levels
+
+        function generateOrderBookLevel(basePrice, offset, isBid) {
+            const tickSize = 0.50; // $0.50 price increments
+            const price = isBid ? basePrice - (offset * tickSize) : basePrice + (offset * tickSize);
+            const amount = (Math.random() * 2 + 0.05).toFixed(3); // 0.05 - 2.05 BTC
+            const total = (price * amount).toFixed(2);
             
-            // Update position prices and P&L if positions exist
+            return {
+                price: price.toFixed(2),
+                amount: amount,
+                total: total
+            };
+        }
+
+        function calculateDepthPercentage(total, maxTotal) {
+            return Math.min((parseFloat(total) / maxTotal) * 100, 100);
+        }
+
+        function renderOrderBookRow(level, isBid, maxDepth) {
+            const depthPercentage = calculateDepthPercentage(level.total, maxDepth);
+            const priceClass = isBid ? 'ob-price-bid' : 'ob-price-ask';
+            const depthClass = isBid ? 'bid' : 'ask';
+            
+            return `
+                <div class="ob-row">
+                    <div class="ob-row-depth ${depthClass}" style="width: ${depthPercentage}%;"></div>
+                    <span class="${priceClass}">${parseFloat(level.price).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                    <span class="ob-amount">${level.amount}</span>
+                    <span class="ob-total">${parseFloat(level.total).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                </div>
+            `;
+        }
+
+        function updateOrderBook() {
+            // Update current price with slight variation
+            const priceChange = (Math.random() - 0.5) * 20; // ±$10 change
+            obCurrentPrice = Math.max(obCurrentPrice + priceChange, 60000);
+            obPriceHistory.push(obCurrentPrice);
+            if (obPriceHistory.length > 100) obPriceHistory.shift();
+
+            // Generate asks (ascending prices from current)
+            const asks = [];
+            for (let i = 1; i <= obLevels; i++) {
+                asks.push(generateOrderBookLevel(obCurrentPrice, i, false));
+            }
+            asks.reverse(); // Show highest ask first
+
+            // Generate bids (descending prices from current)
+            const bids = [];
+            for (let i = 1; i <= obLevels; i++) {
+                bids.push(generateOrderBookLevel(obCurrentPrice, i, true));
+            }
+
+            // Calculate max depth for visualization
+            const allTotals = [...asks, ...bids].map(l => parseFloat(l.total));
+            const maxDepth = Math.max(...allTotals);
+
+            // Calculate total depth
+            const totalAsksDepth = asks.reduce((sum, l) => sum + parseFloat(l.total), 0);
+            const totalBidsDepth = bids.reduce((sum, l) => sum + parseFloat(l.total), 0);
+
+            // Calculate spread
+            const bestAsk = parseFloat(asks[asks.length - 1].price);
+            const bestBid = parseFloat(bids[0].price);
+            const spread = bestAsk - bestBid;
+            const spreadPercent = ((spread / obCurrentPrice) * 100).toFixed(3);
+
+            // Calculate price change
+            const oldPrice = obPriceHistory.length > 10 ? obPriceHistory[obPriceHistory.length - 10] : obCurrentPrice;
+            const priceChangePercent = (((obCurrentPrice - oldPrice) / oldPrice) * 100).toFixed(2);
+            const isUp = priceChangePercent >= 0;
+
+            // Render asks
+            document.getElementById('obAsksList').innerHTML = asks.map(level => 
+                renderOrderBookRow(level, false, maxDepth)
+            ).join('');
+
+            // Render bids
+            document.getElementById('obBidsList').innerHTML = bids.map(level => 
+                renderOrderBookRow(level, true, maxDepth)
+            ).join('');
+
+            // Update current price display
+            document.getElementById('obPriceValue').textContent = '$' + obCurrentPrice.toLocaleString('en-US', {minimumFractionDigits: 2});
+            const changeEl = document.getElementById('obPriceChange');
+            changeEl.textContent = (isUp ? '+' : '') + priceChangePercent + '%';
+            changeEl.className = 'ob-price-change' + (isUp ? '' : ' down');
+
+            // Update spread
+            document.getElementById('obSpread').textContent = `Spread: $${spread.toFixed(2)} (${spreadPercent}%)`;
+
+            // Update depth info
+            document.getElementById('obDepthInfo').textContent = 
+                `Total Depth: Asks $${totalAsksDepth.toLocaleString('en-US', {maximumFractionDigits: 0})} | Bids $${totalBidsDepth.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+
+            // Update other price displays
+            document.getElementById('currentPrice').textContent = '$' + obCurrentPrice.toFixed(2);
+        }
+
+        // Initialize order book
+        updateOrderBook();
+
+        // Update order book every 1-2 seconds
+        setInterval(() => {
+            updateOrderBook();
+        }, 1000 + Math.random() * 1000);
+
+        // Update position prices and P&L if positions exist
+        setInterval(() => {
             if (openPositions.length > 0) {
                 openPositions.forEach(pos => {
-                    pos.currentPrice = pos.entryPrice + (Math.random() - 0.5) * 100;
+                    pos.currentPrice = obCurrentPrice + (Math.random() - 0.5) * 50;
                     if (pos.type === 'long') {
                         pos.pnl = (pos.currentPrice - pos.entryPrice) * pos.size;
                     } else {
