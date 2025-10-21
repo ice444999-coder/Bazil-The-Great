@@ -255,7 +255,7 @@ func main() {
 	// Register API routes with DB dependency, EventBus, and GRPO Agent (Phase 2 + GRPO)
 	routes.RegisterRoutes(r, db, eb, grpoAgent)
 
-	// �️ Register Approval Controller for Grok protocol manual approval gates
+	// 🛡️ Approval Controller (Grok Protocol Safety Gates)
 	approvalController := controllers.NewApprovalController(db)
 	approvalGroup := r.Group("/api/approve")
 	{
@@ -267,6 +267,16 @@ func main() {
 		approvalGroup.POST("/all", approvalController.ApproveAll)
 	}
 	log.Println("✅ Approval controller registered for Grok protocol safety gates")
+
+	// 🚀 Mission Progress Controller (Subtask 2: Mission Progress Bar)
+	missionController := controllers.NewMissionController(db)
+	missionGroup := r.Group("/api/mission")
+	{
+		missionGroup.GET("/progress", missionController.GetProgress)
+		missionGroup.POST("/progress", missionController.UpdateProgress)
+		missionGroup.POST("/progress/increment", missionController.IncrementProgress)
+	}
+	log.Println("✅ Mission controller registered for Phase 1 progress tracking")
 
 	// �📊 Add analytics endpoint (Phase 2 Integration)
 	r.GET("/api/v1/analytics/trading", func(c *gin.Context) {

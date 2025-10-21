@@ -3727,13 +3727,73 @@
         }
 
         // Mission Progress Bar Animation
-        function updateMissionProgress() {
+        async function updateMissionProgress() {
             const progressBar = document.getElementById('progressBar');
             const percentElement = document.getElementById('missionPercent');
             const statusElement = document.getElementById('missionStatus');
             
-            // Simulate progress from 0 to 100% over time
-            // In production, fetch from /api/mission/progress
+            // 🛡️ DRY_RUN Safety Checkpoint (Grok Protocol)
+            if (window.DRY_RUN) {
+                console.log('🔍 [DRY_RUN] Subtask 2: Mission Progress Bar');
+                console.log('  - API Endpoint: /api/mission/progress');
+                console.log('  - Real-time progress tracking from backend');
+                console.log('  - Auto-increments per completed subtask (0-12)');
+                console.log('  - Status messages based on percentage thresholds');
+                return;
+            }
+            
+            // 🔍 Approval Gate Check
+            const approved = await checkMissionBarApproval();
+            
+            if (!approved) {
+                console.log('⏳ Mission Progress Bar awaiting manual approval');
+                console.log('📋 Request approval via: POST /api/approve/request');
+                console.log('🎛️ Or approve via dashboard button');
+                // Fallback to simulation mode if unapproved
+                simulateMissionProgress(progressBar, percentElement, statusElement);
+                return;
+            }
+            
+            // ✅ Approved - Use real API data
+            try {
+                const response = await fetch('/api/mission/progress');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Animate progress bar to actual percentage
+                progressBar.style.width = data.percentage + '%';
+                percentElement.textContent = data.percentage + '%';
+                statusElement.textContent = data.status;
+                
+                console.log('✅ Mission Progress Bar active (real API data)');
+                console.log(`   Phase ${data.phase}: ${data.subtasks_completed}/${data.subtasks_total} subtasks complete`);
+                
+                // Poll for updates every 10 seconds
+                setTimeout(updateMissionProgress, 10000);
+            } catch (error) {
+                console.error('❌ Failed to fetch mission progress:', error.message);
+                // Graceful degradation to simulation mode
+                simulateMissionProgress(progressBar, percentElement, statusElement);
+            }
+        }
+        
+        // 🔍 Check if mission bar upgrade is approved
+        async function checkMissionBarApproval() {
+            try {
+                const response = await fetch('/api/approve/ui_mission_bar');
+                if (!response.ok) return false;
+                const data = await response.json();
+                return data.status === 'approved';
+            } catch (err) {
+                return false;
+            }
+        }
+        
+        // Fallback simulation mode (legacy behavior)
+        function simulateMissionProgress(progressBar, percentElement, statusElement) {
             let currentProgress = 0;
             const targetProgress = 73; // Phase 1 target: 73%
             
