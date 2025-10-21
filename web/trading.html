@@ -417,25 +417,108 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recent-trades h4 .live-indicator {
+            font-size: 10px;
+            color: #0ECB81;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
         .trade-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 4px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            margin-bottom: 6px;
+            padding: 6px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .trade-row:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateX(2px);
+        }
+
+        .trade-row.whale-alert {
+            background: rgba(246, 70, 93, 0.1);
+            border: 1px solid rgba(246, 70, 93, 0.3);
+            animation: whaleGlow 1s ease-in-out infinite;
+        }
+
+        @keyframes whaleGlow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(246, 70, 93, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(246, 70, 93, 0.6);
+            }
         }
 
         .trade-price-buy {
             color: #0ECB81;
+            font-weight: 600;
         }
 
         .trade-price-sell {
             color: #F6465D;
+            font-weight: 600;
         }
 
         .trade-amount {
             color: #848E9C;
+        }
+
+        .trade-pnl {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .trade-pnl.positive {
+            color: #0ECB81;
+        }
+
+        .trade-pnl.negative {
+            color: #F6465D;
+        }
+
+        .trade-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .trade-badge.whale {
+            background: rgba(246, 70, 93, 0.2);
+            color: #F6465D;
+        }
+
+        .trade-badge.mev {
+            background: rgba(255, 165, 0, 0.2);
+            color: orange;
         }
 
         /* Right Column - OrderBook + Trading */
@@ -1069,28 +1152,12 @@
 
                     <!-- Recent Trades -->
                     <div class="recent-trades">
-                        <h4>Recent Trades</h4>
+                        <h4>
+                            <span>Recent Trades</span>
+                            <span class="live-indicator">● LIVE</span>
+                        </h4>
                         <div id="recentTradesList">
-                            <div class="trade-row">
-                                <span class="trade-price-buy">$66,523.45</span>
-                                <span class="trade-amount">0.125</span>
-                                <span class="trade-amount">14:32:12</span>
-                            </div>
-                            <div class="trade-row">
-                                <span class="trade-price-sell">$66,520.00</span>
-                                <span class="trade-amount">0.085</span>
-                                <span class="trade-amount">14:32:10</span>
-                            </div>
-                            <div class="trade-row">
-                                <span class="trade-price-buy">$66,525.12</span>
-                                <span class="trade-amount">0.250</span>
-                                <span class="trade-amount">14:32:08</span>
-                            </div>
-                            <div class="trade-row">
-                                <span class="trade-price-sell">$66,518.90</span>
-                                <span class="trade-amount">0.175</span>
-                                <span class="trade-amount">14:32:05</span>
-                            </div>
+                            <!-- Trades will be dynamically populated by JavaScript -->
                         </div>
                     </div>
                 </div>
@@ -1856,6 +1923,106 @@
                 alert('🚨 EMERGENCY PAUSE ACTIVATED\n\nAll trading systems halted.\nManual restart required.');
             }
         }
+
+        // Recent Trades Live Updates
+        let recentTrades = [];
+        let tradeCounter = 0;
+
+        function generateTrade() {
+            const basePrice = 66500;
+            const priceVariation = (Math.random() - 0.5) * 200;
+            const price = basePrice + priceVariation;
+            const amount = (Math.random() * 0.5 + 0.05).toFixed(3);
+            const isBuy = Math.random() > 0.5;
+            const isWhale = Math.random() > 0.9; // 10% chance of whale trade (>$1M)
+            const hasMEV = Math.random() > 0.85; // 15% chance of MEV detected
+            
+            // Calculate P&L (simulated based on price movement)
+            const entryPrice = basePrice + (Math.random() - 0.5) * 100;
+            const pnl = ((price - entryPrice) / entryPrice * 100).toFixed(2);
+            const pnlDollar = (parseFloat(amount) * (price - entryPrice)).toFixed(2);
+            
+            // MEV slippage simulation (0.1-0.5%)
+            const mevSlippage = hasMEV ? (Math.random() * 0.4 + 0.1).toFixed(2) : 0;
+            
+            const trade = {
+                id: tradeCounter++,
+                price: price.toFixed(2),
+                amount: amount,
+                time: new Date().toLocaleTimeString(),
+                isBuy: isBuy,
+                isWhale: isWhale,
+                hasMEV: hasMEV,
+                pnl: pnl,
+                pnlDollar: pnlDollar,
+                mevSlippage: mevSlippage
+            };
+            
+            return trade;
+        }
+
+        function renderTrade(trade) {
+            const priceClass = trade.isBuy ? 'trade-price-buy' : 'trade-price-sell';
+            const pnlClass = trade.pnl >= 0 ? 'positive' : 'negative';
+            const pnlSign = trade.pnl >= 0 ? '+' : '';
+            const whaleClass = trade.isWhale ? 'whale-alert' : '';
+            
+            let badges = '';
+            if (trade.isWhale) {
+                badges += '<span class="trade-badge whale">🐋 WHALE</span>';
+            }
+            if (trade.hasMEV) {
+                badges += `<span class="trade-badge mev">⚡ MEV -${trade.mevSlippage}%</span>`;
+            }
+            
+            return `
+                <div class="trade-row ${whaleClass}" style="animation-delay: 0s;">
+                    <span class="${priceClass}">$${parseFloat(trade.price).toLocaleString()}</span>
+                    <span class="trade-amount">${trade.amount} BTC</span>
+                    <span class="trade-pnl ${pnlClass}">${pnlSign}${trade.pnl}% ($${pnlSign}${parseFloat(trade.pnlDollar).toLocaleString()})</span>
+                    <span>${badges || trade.time}</span>
+                </div>
+            `;
+        }
+
+        function updateRecentTrades() {
+            // Add new trade
+            const newTrade = generateTrade();
+            recentTrades.unshift(newTrade);
+            
+            // Keep only last 10 trades
+            if (recentTrades.length > 10) {
+                recentTrades.pop();
+            }
+            
+            // Render all trades
+            const tradesHTML = recentTrades.map(trade => renderTrade(trade)).join('');
+            document.getElementById('recentTradesList').innerHTML = tradesHTML;
+            
+            // Log whale and MEV trades
+            if (newTrade.isWhale) {
+                console.log('🐋 WHALE ALERT: $' + (parseFloat(newTrade.amount) * parseFloat(newTrade.price)).toFixed(0) + ' trade detected!');
+            }
+            if (newTrade.hasMEV) {
+                console.log('⚡ MEV DETECTED: ' + newTrade.mevSlippage + '% slippage on trade');
+            }
+        }
+
+        // Initialize with some trades
+        for (let i = 0; i < 5; i++) {
+            recentTrades.push(generateTrade());
+        }
+        updateRecentTrades();
+
+        // Update trades every 2-5 seconds (variable interval for realism)
+        function scheduleNextTradeUpdate() {
+            const delay = Math.random() * 3000 + 2000; // 2-5 seconds
+            setTimeout(() => {
+                updateRecentTrades();
+                scheduleNextTradeUpdate();
+            }, delay);
+        }
+        scheduleNextTradeUpdate();
 
         // Simulate price updates
         setInterval(() => {
