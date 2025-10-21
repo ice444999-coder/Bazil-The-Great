@@ -1025,6 +1025,201 @@
             }
         }
 
+        /* Risk Management Tools */
+        .risk-tools-panel {
+            background: #1E2329;
+            border-top: 1px solid #2B3139;
+            padding: 12px 16px;
+            margin-top: 10px;
+        }
+
+        .risk-tools-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 0;
+            user-select: none;
+        }
+
+        .risk-tools-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #F6465D;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-tools-toggle {
+            font-size: 12px;
+            color: #848E9C;
+            transition: transform 0.3s;
+        }
+
+        .risk-tools-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .risk-tools-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .risk-tools-content.expanded {
+            max-height: 1000px;
+        }
+
+        .risk-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+
+        .risk-metric-card {
+            background: #0B0E11;
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .risk-metric-label {
+            font-size: 10px;
+            color: #848E9C;
+            margin-bottom: 4px;
+        }
+
+        .risk-metric-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #EAECEF;
+        }
+
+        .risk-metric-value.danger {
+            color: #F6465D;
+        }
+
+        .risk-metric-value.warning {
+            color: #FCD535;
+        }
+
+        .risk-metric-value.safe {
+            color: #0ECB81;
+        }
+
+        .risk-calculator {
+            background: #0B0E11;
+            border: 1px solid #2B3139;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .risk-calculator-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #EAECEF;
+            margin-bottom: 8px;
+        }
+
+        .risk-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .risk-input {
+            flex: 1;
+            padding: 8px;
+            background: #1E2329;
+            border: 1px solid #2B3139;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .risk-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .risk-calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .risk-calculate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .risk-result {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .risk-result.show {
+            display: block;
+            animation: riskResultFadeIn 0.3s ease-out;
+        }
+
+        @keyframes riskResultFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .risk-result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .risk-result-label {
+            color: #848E9C;
+        }
+
+        .risk-result-value {
+            color: #EAECEF;
+            font-weight: 600;
+        }
+
+        .volatility-bar {
+            width: 100%;
+            height: 8px;
+            background: #2B3139;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .volatility-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0ECB81 0%, #FCD535 50%, #F6465D 100%);
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
         /* Position Tracker */
         .position-tracker {
             background: #1E2329;
@@ -1780,6 +1975,113 @@
                         <button class="submit-btn" onclick="submitTrade()">
                             Buy <span id="submitSymbol">BTC</span>
                         </button>
+                    </div>
+
+                    <!-- Advanced Risk Management Tools -->
+                    <div class="risk-tools-panel">
+                        <div class="risk-tools-header" onclick="toggleRiskTools()">
+                            <div class="risk-tools-title">
+                                ⚠️ Advanced Risk Tools
+                            </div>
+                            <div class="risk-tools-toggle" id="riskToolsToggle">▼</div>
+                        </div>
+                        
+                        <div class="risk-tools-content" id="riskToolsContent">
+                            <!-- Real-Time Risk Metrics -->
+                            <div class="risk-metrics-grid">
+                                <div class="risk-metric-card">
+                                    <div class="risk-metric-label">Portfolio Heat</div>
+                                    <div class="risk-metric-value safe" id="portfolioHeat">0%</div>
+                                </div>
+                                <div class="risk-metric-card">
+                                    <div class="risk-metric-label">Volatility (24h)</div>
+                                    <div class="risk-metric-value" id="volatility24h">0%</div>
+                                </div>
+                                <div class="risk-metric-card">
+                                    <div class="risk-metric-label">Sharpe Ratio</div>
+                                    <div class="risk-metric-value" id="sharpeRatio">0.00</div>
+                                </div>
+                                <div class="risk-metric-card">
+                                    <div class="risk-metric-label">Max Drawdown</div>
+                                    <div class="risk-metric-value danger" id="maxDrawdown">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- Position Size Calculator -->
+                            <div class="risk-calculator">
+                                <div class="risk-calculator-title">📊 Position Size Calculator</div>
+                                <div class="risk-input-group">
+                                    <input type="number" class="risk-input" id="accountBalance" placeholder="Account Balance" value="100000">
+                                    <input type="number" class="risk-input" id="riskPercent" placeholder="Risk %" value="2">
+                                </div>
+                                <div class="risk-input-group">
+                                    <input type="number" class="risk-input" id="entryPrice" placeholder="Entry Price" value="66500">
+                                    <input type="number" class="risk-input" id="stopLoss" placeholder="Stop Loss" value="65000">
+                                </div>
+                                <button class="risk-calculate-btn" onclick="calculatePositionSize()">Calculate Position</button>
+                                <div class="risk-result" id="positionSizeResult">
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Position Size:</span>
+                                        <span class="risk-result-value" id="positionSizeValue">0 BTC</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Risk Amount:</span>
+                                        <span class="risk-result-value" id="riskAmountValue">$0</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Position Value:</span>
+                                        <span class="risk-result-value" id="positionValueTotal">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Risk/Reward Calculator -->
+                            <div class="risk-calculator">
+                                <div class="risk-calculator-title">🎯 Risk/Reward Calculator</div>
+                                <div class="risk-input-group">
+                                    <input type="number" class="risk-input" id="rrEntry" placeholder="Entry" value="66500">
+                                    <input type="number" class="risk-input" id="rrStop" placeholder="Stop Loss" value="65000">
+                                    <input type="number" class="risk-input" id="rrTarget" placeholder="Target" value="70000">
+                                </div>
+                                <button class="risk-calculate-btn" onclick="calculateRiskReward()">Calculate R:R</button>
+                                <div class="risk-result" id="riskRewardResult">
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Risk/Reward Ratio:</span>
+                                        <span class="risk-result-value" id="rrRatio">0:0</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Risk Amount:</span>
+                                        <span class="risk-result-value" id="rrRisk">$0</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Reward Amount:</span>
+                                        <span class="risk-result-value" id="rrReward">$0</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Win Rate Needed:</span>
+                                        <span class="risk-result-value" id="rrWinRate">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Volatility Meter -->
+                            <div class="risk-calculator">
+                                <div class="risk-calculator-title">📈 Volatility Meter</div>
+                                <div class="volatility-bar">
+                                    <div class="volatility-fill" id="volatilityFill"></div>
+                                </div>
+                                <div class="risk-result show">
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Current Volatility:</span>
+                                        <span class="risk-result-value" id="currentVolValue">Medium</span>
+                                    </div>
+                                    <div class="risk-result-row">
+                                        <span class="risk-result-label">Recommended Action:</span>
+                                        <span class="risk-result-value" id="volAction">Normal Trading</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2762,6 +3064,171 @@
 
         // Update bot metrics every 5 seconds
         setInterval(updateBotMetrics, 5000);
+
+        // ==================== RISK MANAGEMENT TOOLS ====================
+        let riskToolsExpanded = false;
+
+        function toggleRiskTools() {
+            riskToolsExpanded = !riskToolsExpanded;
+            const content = document.getElementById('riskToolsContent');
+            const toggle = document.getElementById('riskToolsToggle');
+            
+            if (riskToolsExpanded) {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+            } else {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            }
+        }
+
+        // Calculate Position Size based on risk management
+        function calculatePositionSize() {
+            const accountBalance = parseFloat(document.getElementById('accountBalance').value) || 0;
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 0;
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const stopLossPrice = parseFloat(document.getElementById('stopLoss').value) || 0;
+            
+            if (accountBalance === 0 || entryPrice === 0 || stopLossPrice === 0) {
+                alert('Please enter all values');
+                return;
+            }
+            
+            if (entryPrice <= stopLossPrice) {
+                alert('Entry price must be greater than stop loss for long positions');
+                return;
+            }
+            
+            // Calculate risk amount
+            const riskAmount = accountBalance * (riskPercent / 100);
+            
+            // Calculate price risk per unit
+            const priceRisk = entryPrice - stopLossPrice;
+            
+            // Calculate position size
+            const positionSize = riskAmount / priceRisk;
+            
+            // Calculate position value
+            const positionValue = positionSize * entryPrice;
+            
+            // Update UI
+            document.getElementById('positionSizeValue').textContent = positionSize.toFixed(4) + ' BTC';
+            document.getElementById('riskAmountValue').textContent = '$' + riskAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('positionValueTotal').textContent = '$' + positionValue.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('positionSizeResult').classList.add('show');
+            
+            console.log(`📊 Position Size: ${positionSize.toFixed(4)} BTC | Risk: $${riskAmount.toFixed(2)} | Value: $${positionValue.toFixed(2)}`);
+        }
+
+        // Calculate Risk/Reward Ratio
+        function calculateRiskReward() {
+            const entry = parseFloat(document.getElementById('rrEntry').value) || 0;
+            const stop = parseFloat(document.getElementById('rrStop').value) || 0;
+            const target = parseFloat(document.getElementById('rrTarget').value) || 0;
+            
+            if (entry === 0 || stop === 0 || target === 0) {
+                alert('Please enter all values');
+                return;
+            }
+            
+            if (entry <= stop) {
+                alert('Entry must be above stop loss for long positions');
+                return;
+            }
+            
+            if (target <= entry) {
+                alert('Target must be above entry for long positions');
+                return;
+            }
+            
+            // Calculate risk and reward
+            const risk = entry - stop;
+            const reward = target - entry;
+            const ratio = reward / risk;
+            
+            // Calculate breakeven win rate (accounts for losing -1R and winning +xR)
+            const breakevenWinRate = (1 / (ratio + 1)) * 100;
+            
+            // Update UI
+            document.getElementById('rrRatio').textContent = '1:' + ratio.toFixed(2);
+            document.getElementById('rrRisk').textContent = '$' + risk.toFixed(2);
+            document.getElementById('rrReward').textContent = '$' + reward.toFixed(2);
+            document.getElementById('rrWinRate').textContent = breakevenWinRate.toFixed(1) + '%';
+            document.getElementById('riskRewardResult').classList.add('show');
+            
+            // Visual feedback based on R:R quality
+            const rrRatioEl = document.getElementById('rrRatio');
+            if (ratio >= 3) {
+                rrRatioEl.style.color = '#0ECB81'; // Excellent
+            } else if (ratio >= 2) {
+                rrRatioEl.style.color = '#FCD535'; // Good
+            } else {
+                rrRatioEl.style.color = '#F6465D'; // Poor
+            }
+            
+            console.log(`🎯 R:R = 1:${ratio.toFixed(2)} | Breakeven Win Rate: ${breakevenWinRate.toFixed(1)}%`);
+        }
+
+        // Update Real-Time Risk Metrics
+        function updateRiskMetrics() {
+            // Simulate portfolio heat (total risk exposure)
+            const portfolioHeat = (Math.random() * 30 + 10).toFixed(1); // 10-40%
+            const heatEl = document.getElementById('portfolioHeat');
+            heatEl.textContent = portfolioHeat + '%';
+            
+            // Color code based on heat level
+            if (portfolioHeat < 20) {
+                heatEl.className = 'risk-metric-value safe';
+            } else if (portfolioHeat < 30) {
+                heatEl.className = 'risk-metric-value warning';
+            } else {
+                heatEl.className = 'risk-metric-value danger';
+            }
+            
+            // Simulate 24h volatility
+            const volatility = (Math.random() * 4 + 1).toFixed(2); // 1-5%
+            document.getElementById('volatility24h').textContent = volatility + '%';
+            
+            // Update volatility meter
+            const volPercent = (parseFloat(volatility) / 5) * 100; // Scale to 0-100%
+            document.getElementById('volatilityFill').style.width = volPercent + '%';
+            
+            // Volatility interpretation
+            let volLevel, volAction;
+            if (volatility < 2) {
+                volLevel = 'Low';
+                volAction = 'Increase Position Sizes';
+            } else if (volatility < 3.5) {
+                volLevel = 'Medium';
+                volAction = 'Normal Trading';
+            } else {
+                volLevel = 'High';
+                volAction = 'Reduce Position Sizes';
+            }
+            document.getElementById('currentVolValue').textContent = volLevel + ' (' + volatility + '%)';
+            document.getElementById('volAction').textContent = volAction;
+            
+            // Simulate Sharpe Ratio
+            const sharpe = (Math.random() * 2 + 0.5).toFixed(2); // 0.5-2.5
+            const sharpeEl = document.getElementById('sharpeRatio');
+            sharpeEl.textContent = sharpe;
+            
+            if (sharpe > 2) {
+                sharpeEl.className = 'risk-metric-value safe';
+            } else if (sharpe > 1) {
+                sharpeEl.className = 'risk-metric-value warning';
+            } else {
+                sharpeEl.className = 'risk-metric-value danger';
+            }
+            
+            // Simulate Max Drawdown
+            const drawdown = (Math.random() * 15 + 5).toFixed(1); // 5-20%
+            document.getElementById('maxDrawdown').textContent = drawdown + '%';
+        }
+
+        // Initialize risk metrics and update every 10 seconds
+        updateRiskMetrics();
+        setInterval(updateRiskMetrics, 10000);
 
         // ==================== SANDBOX MODE SYSTEM ====================
         let sandboxMode = false;
