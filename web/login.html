@@ -190,9 +190,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Save token to localStorage
-                    localStorage.setItem('ares_token', data.token);
-                    localStorage.setItem('ares_user', JSON.stringify(data.user));
+                    // Save tokens to localStorage
+                    localStorage.setItem('ares_token', data.access_token);
+                    localStorage.setItem('ares_refresh_token', data.refresh_token);
+                    localStorage.setItem('ares_username', username);
 
                     // Show success message
                     successMessage.textContent = 'Login successful! Redirecting...';

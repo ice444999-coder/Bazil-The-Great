@@ -209,18 +209,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Save token to localStorage
-                    localStorage.setItem('ares_token', data.token);
-                    localStorage.setItem('ares_user', JSON.stringify(data.user));
-
                     // Show success message
-                    successMessage.textContent = 'Account created successfully! Redirecting...';
+                    successMessage.textContent = 'Account created successfully! Redirecting to login...';
                     successMessage.style.display = 'block';
 
-                    // Redirect to dashboard after 1 second
+                    // Redirect to login page after 1.5 seconds
                     setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 1000);
+                        window.location.href = '/login.html';
+                    }, 1500);
                 } else {
                     // Show error message
                     errorMessage.textContent = data.error || 'Registration failed';
