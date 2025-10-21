@@ -1582,20 +1582,19 @@
             fetch('/api/v1/monitoring/metrics')
                 .then(response => response.json())
                 .then(data => {
-                    // Update CPU Gauge (use GoroutineCount as proxy - scale to 0-100 where 1000 goroutines = 100%)
-                    const goroutines = data.GoroutineCount || 0;
-                    const cpuPercent = Math.min((goroutines / 1000) * 100, 100);
+                    // Update CPU Gauge (use real CPU percentage from gopsutil)
+                    const cpuPercent = data.CPUPercent || 0;
                     updateGauge('cpu', cpuPercent, cpuPercent > 80 ? '#F6465D' : '#667eea');
                     
-                    // Update Memory Gauge (convert MB to percentage - assume 1024MB = 100%)
-                    const memoryMB = data.MemoryUsageMB || 0;
-                    const memPercent = Math.min((memoryMB / 1024) * 100, 100);
-                    updateGauge('mem', memPercent, memPercent > 80 ? '#F6465D' : '#0ECB81');
+                    // Update Memory Gauge (use real RAM usage percentage)
+                    const ramPercent = data.RAMUsedPercent || 0;
+                    const ramText = `${data.RAMUsedGB ? data.RAMUsedGB.toFixed(1) : 0}GB / ${data.RAMTotalGB ? data.RAMTotalGB.toFixed(1) : 0}GB`;
+                    updateGauge('mem', ramPercent, ramPercent > 80 ? '#F6465D' : '#0ECB81', ramText);
                     
-                    // Update Disk Gauge (use DB connections as proxy - scale to 0-100 where 100 connections = 100%)
-                    const dbConns = data.DBConnections || 0;
-                    const diskPercent = Math.min((dbConns / 100) * 100, 100);
-                    updateGauge('disk', diskPercent, diskPercent > 85 ? '#F6465D' : '#FFB800');
+                    // Update Disk Gauge (use real disk usage percentage - all drives including your 4TB)
+                    const diskPercent = data.DiskUsedPercent || 0;
+                    const diskText = `${data.DiskUsedGB ? data.DiskUsedGB.toFixed(1) : 0}GB / ${data.DiskTotalGB ? data.DiskTotalGB.toFixed(1) : 0}GB`;
+                    updateGauge('disk', diskPercent, diskPercent > 90 ? '#F6465D' : '#F59E0B', diskText);
                     
                     // Update Latency Gauge (use LLM avg latency)
                     const latency = data.LLMAvgLatencyMs || data.AvgResponseTimeMs || 0;
@@ -1604,10 +1603,10 @@
                     
                     // Update overall status badge
                     const statusBadge = document.getElementById('healthStatus');
-                    if (cpuPercent > 90 || memPercent > 90 || diskPercent > 95) {
+                    if (cpuPercent > 90 || ramPercent > 90 || diskPercent > 95) {
                         statusBadge.className = 'badge danger';
                         statusBadge.textContent = 'CRITICAL';
-                    } else if (cpuPercent > 80 || memPercent > 80 || diskPercent > 85) {
+                    } else if (cpuPercent > 80 || ramPercent > 80 || diskPercent > 85) {
                         statusBadge.className = 'badge warning';
                         statusBadge.textContent = 'DEGRADED';
                     } else {

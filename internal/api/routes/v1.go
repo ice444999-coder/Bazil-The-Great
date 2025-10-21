@@ -27,6 +27,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/mem"
 	"gorm.io/gorm"
 )
 
@@ -200,11 +204,62 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, eb *eventbus.EventBus, grpoAgent
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
+			// Basic metrics (DB, goroutines, heap memory)
 			sqlDB, _ := db.DB()
 			stats := sqlDB.Stats()
 			var m runtime.MemStats
 			runtime.ReadMemStats(&m)
 			metrics.UpdateSystemMetrics(float64(m.Alloc)/1024/1024, runtime.NumGoroutine(), stats.OpenConnections)
+		}
+	}()
+
+	// Start extended system metrics collection (CPU, RAM, Disk, Temp) - slower poll
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			// CPU usage
+			cpuPercent, _ := cpu.Percent(time.Second, false)
+			cpuAvg := 0.0
+			if len(cpuPercent) > 0 {
+				cpuAvg = cpuPercent[0]
+			}
+			
+			// RAM usage
+			memInfo, _ := mem.VirtualMemory()
+			ramTotalGB := float64(memInfo.Total) / 1024 / 1024 / 1024
+			ramUsedGB := float64(memInfo.Used) / 1024 / 1024 / 1024
+			ramUsedPercent := memInfo.UsedPercent
+			
+			// Disk usage (all partitions - your 4TB total)
+			partitions, _ := disk.Partitions(false)
+			var totalSize, totalUsed uint64
+			for _, partition := range partitions {
+				usage, err := disk.Usage(partition.Mountpoint)
+				if err == nil {
+					totalSize += usage.Total
+					totalUsed += usage.Used
+				}
+			}
+			diskTotalGB := float64(totalSize) / 1024 / 1024 / 1024
+			diskUsedGB := float64(totalUsed) / 1024 / 1024 / 1024
+			diskUsedPercent := 0.0
+			if totalSize > 0 {
+				diskUsedPercent = (float64(totalUsed) / float64(totalSize)) * 100
+			}
+			
+			// CPU Temperature (best effort - may not be available)
+			cpuTemp := 0.0
+			temps, err := host.SensorsTemperatures()
+			if err == nil && len(temps) > 0 {
+				// Find CPU temp (usually labeled with "CPU" or "Core")
+				for _, temp := range temps {
+					cpuTemp = temp.Temperature
+					break // Use first available temperature
+				}
+			}
+			
+			metrics.UpdateExtendedSystemMetrics(cpuAvg, ramTotalGB, ramUsedGB, ramUsedPercent, diskTotalGB, diskUsedGB, diskUsedPercent, cpuTemp)
 		}
 	}()
 

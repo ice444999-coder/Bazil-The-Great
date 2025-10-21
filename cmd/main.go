@@ -220,7 +220,7 @@ func main() {
 	})
 
 	// Legacy routes for backwards compatibility
-	r.StaticFile("/login.html", "./web/login.html")     // CRITICAL: Explicit route for login
+	r.StaticFile("/login.html", "./web/login.html")       // CRITICAL: Explicit route for login
 	r.StaticFile("/register.html", "./web/register.html") // CRITICAL: Explicit route for register
 	r.StaticFile("/trading.html", "./web/trading.html")
 	r.StaticFile("/dashboard.html", "./web/dashboard.html")

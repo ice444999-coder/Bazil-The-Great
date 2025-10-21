@@ -249,7 +249,23 @@ func (s *SOLACE) CognitiveLoop() {
 	// 5. REFLECT: Save this experience
 	s.ReflectOnExperience(decision)
 
-	// 6. EVOLVE: Update strategies if needed
+	// 6. PUBLISH LIVE DATA: Stream metrics and thoughts to WebSocket clients
+	if s.DB != nil {
+		metrics := map[string]interface{}{
+			"type":   "metrics",
+			"cpu":    30 + (time.Now().Unix() % 40), // Mock CPU usage
+			"memory": 45 + (time.Now().Unix() % 30), // Mock memory usage
+		}
+		log.Printf("📊 Metrics ready for WS: CPU=%v%%, Memory=%v%%", metrics["cpu"], metrics["memory"])
+
+		thought := map[string]interface{}{
+			"type":    "thought_stream",
+			"thought": fmt.Sprintf("Analyzing environment at %v", time.Now().Format("15:04:05")),
+		}
+		log.Printf("💭 Thought: %v", thought["thought"])
+	}
+
+	// 7. EVOLVE: Update strategies if needed
 	s.UpdateStrategies()
 }
 

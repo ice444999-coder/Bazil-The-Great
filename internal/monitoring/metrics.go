@@ -36,6 +36,16 @@ type Metrics struct {
 	MemoryUsageMB     float64
 	GoroutineCount    int
 	
+	// Extended system metrics (gopsutil)
+	CPUPercent        float64
+	RAMTotalGB        float64
+	RAMUsedGB         float64
+	RAMUsedPercent    float64
+	DiskTotalGB       float64
+	DiskUsedGB        float64
+	DiskUsedPercent   float64
+	CPUTemperatureC   float64
+	
 	// Error tracking
 	Errors            []ErrorEntry
 	MaxErrors         int
@@ -161,6 +171,21 @@ func (m *Metrics) UpdateSystemMetrics(memoryMB float64, goroutines int, dbConns 
 	m.LastHealthCheck = time.Now()
 }
 
+// UpdateExtendedSystemMetrics updates extended system metrics (CPU, RAM, Disk, Temp)
+func (m *Metrics) UpdateExtendedSystemMetrics(cpuPercent, ramTotalGB, ramUsedGB, ramUsedPercent, diskTotalGB, diskUsedGB, diskUsedPercent, cpuTemp float64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	
+	m.CPUPercent = cpuPercent
+	m.RAMTotalGB = ramTotalGB
+	m.RAMUsedGB = ramUsedGB
+	m.RAMUsedPercent = ramUsedPercent
+	m.DiskTotalGB = diskTotalGB
+	m.DiskUsedGB = diskUsedGB
+	m.DiskUsedPercent = diskUsedPercent
+	m.CPUTemperatureC = cpuTemp
+}
+
 // GetSnapshot returns a snapshot of current metrics
 func (m *Metrics) GetSnapshot() MetricsSnapshot {
 	m.mu.RLock()
@@ -186,6 +211,14 @@ func (m *Metrics) GetSnapshot() MetricsSnapshot {
 		MemoryUsageMB:       m.MemoryUsageMB,
 		GoroutineCount:      m.GoroutineCount,
 		LastHealthCheck:     m.LastHealthCheck,
+		CPUPercent:          m.CPUPercent,
+		RAMTotalGB:          m.RAMTotalGB,
+		RAMUsedGB:           m.RAMUsedGB,
+		RAMUsedPercent:      m.RAMUsedPercent,
+		DiskTotalGB:         m.DiskTotalGB,
+		DiskUsedGB:          m.DiskUsedGB,
+		DiskUsedPercent:     m.DiskUsedPercent,
+		CPUTemperatureC:     m.CPUTemperatureC,
 		RecentErrors:        m.getRecentErrors(10),
 	}
 }
@@ -211,6 +244,17 @@ type MetricsSnapshot struct {
 	MemoryUsageMB       float64
 	GoroutineCount      int
 	LastHealthCheck     time.Time
+	
+	// Extended system metrics
+	CPUPercent          float64
+	RAMTotalGB          float64
+	RAMUsedGB           float64
+	RAMUsedPercent      float64
+	DiskTotalGB         float64
+	DiskUsedGB          float64
+	DiskUsedPercent     float64
+	CPUTemperatureC     float64
+	
 	RecentErrors        []ErrorEntry
 }
 
